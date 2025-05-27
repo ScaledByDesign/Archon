@@ -1,0 +1,40 @@
+version: 1
+metadata:
+  name: Default Users and Groups
+entries:
+  - model: authentik_core.group
+    identifiers:
+      name: admins
+    attrs:
+      name: admins
+      is_superuser: true
+  - model: authentik_core.group
+    identifiers:
+      name: users
+    attrs:
+      name: users
+      is_superuser: false
+  - model: authentik_core.user
+    identifiers:
+      username: admin
+    attrs:
+      username: admin
+      name: System Administrator
+      email: admin@localhost
+      is_active: true
+      is_staff: true
+      is_superuser: true
+      groups:
+        - !KeyOf admins
+  - model: authentik_core.user
+    identifiers:
+      username: user
+    attrs:
+      username: user
+      name: Regular User
+      email: user@localhost
+      is_active: true
+      is_staff: false
+      is_superuser: false
+      groups:
+        - !KeyOf users

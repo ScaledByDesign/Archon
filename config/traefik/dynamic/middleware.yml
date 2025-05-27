@@ -1,0 +1,130 @@
+# Dynamic Middleware Configuration
+http:
+  middlewares:
+    # Security Headers
+    secure-headers:
+      headers:
+        accessControlAllowMethods:
+          - GET
+          - OPTIONS
+          - PUT
+          - POST
+          - DELETE
+          - PATCH
+        accessControlAllowOriginList:
+          - https://localhost
+          - https://*.localhost
+        accessControlMaxAge: 100
+        addVaryHeader: true
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        frameDeny: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+        customFrameOptionsValue: SAMEORIGIN
+        referrerPolicy: same-origin
+        permissionsPolicy: geolocation=(),midi=(),sync-xhr=(),microphone=(),camera=(),magnetometer=(),gyroscope=(),fullscreen=(self),payment=()
+
+    # Rate Limiting
+    rate-limit:
+      rateLimit:
+        average: 100
+        period: 60s
+        burst: 50
+        sourceCriterion:
+          ipStrategy:
+            depth: 1
+
+    # API Rate Limiting (more restrictive)
+    api-rate-limit:
+      rateLimit:
+        average: 20
+        period: 60s
+        burst: 10
+        sourceCriterion:
+          ipStrategy:
+            depth: 1
+
+    # Compression
+    gzip:
+      compress: {}
+
+    # Basic Auth for Traefik Dashboard
+    dashboard-auth:
+      basicAuth:
+        users:
+          - "admin:$apr1$H6uskkkW$IgXLP6ewTrSuBkTrqE8wj/"  # admin:admin (change this!)
+
+    # IP Whitelist for admin services
+    admin-whitelist:
+      ipWhiteList:
+        sourceRange:
+          - "127.0.0.1/32"
+          - "10.0.0.0/8"
+          - "172.16.0.0/12"
+          - "192.168.0.0/16"
+
+    # Error Pages
+    error-pages:
+      errors:
+        status:
+          - "400-599"
+        service: error-pages
+        query: /{status}.html
+
+    # Path Prefix Strip
+    strip-prefix:
+      stripPrefix:
+        prefixes:
+          - "/api/v1"
+
+    # Redirect to HTTPS
+    https-redirect:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+    # CORS for API
+    cors:
+      headers:
+        accessControlAllowCredentials: true
+        accessControlAllowHeaders:
+          - "*"
+        accessControlAllowMethods:
+          - "GET"
+          - "POST"
+          - "PUT"
+          - "DELETE"
+          - "OPTIONS"
+          - "PATCH"
+        accessControlAllowOriginList:
+          - "https://localhost"
+          - "https://*.localhost"
+        accessControlExposeHeaders:
+          - "*"
+        accessControlMaxAge: 100
+        addVaryHeader: true
+
+  # Middleware Chains
+  middlewareChains:
+    # Standard chain for web services
+    web-secure:
+      - secure-headers
+      - gzip
+      - rate-limit
+
+    # API chain with CORS and API rate limiting
+    api-secure:
+      - secure-headers
+      - cors
+      - gzip
+      - api-rate-limit
+
+    # Admin chain with authentication and IP filtering
+    admin-secure:
+      - admin-whitelist
+      - dashboard-auth
+      - secure-headers
+      - gzip

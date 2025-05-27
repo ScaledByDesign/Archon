@@ -1,0 +1,58 @@
+# Task ID: 3
+# Title: Implement Authentik SSO Integration
+# Status: in-progress
+# Dependencies: 1, 2
+# Priority: high
+# Description: Integrate Authentik for Single Sign-On (SSO) and OAuth authentication, following the structure and configuration in docs/rag-project-structure.md.
+# Details:
+Set up Authentik 2023.5 container in docker-compose.yml as specified in docs/rag-project-structure.md. Configure Authentik as an OAuth2 provider. Implement OpenID Connect flow for authentication. Create necessary applications and scopes in Authentik for different services (API, frontend, admin dashboards). Implement JWT token issuance and validation. Reference the Authentik configuration and integration samples in docs/rag-project-structure.md.
+
+# Test Strategy:
+Create test users and groups in Authentik. Verify SSO login flow for different applications. Test token issuance, validation, and expiration. Ensure proper scopes are applied for different user roles. Follow the testing procedures in docs/rag-project-structure.md.
+
+# Subtasks:
+## 1. Set Up Authentik Container Environment [done]
+### Dependencies: None
+### Description: Prepare the host system and deploy Authentik using Docker Compose, including environment variable configuration and initial container startup, as outlined in docs/rag-project-structure.md.
+### Details:
+Download the docker-compose.yml for Authentik, configure the .env file with secure secrets and email settings, and start the containers using 'docker compose up -d'. Reference the container setup and environment configuration in docs/rag-project-structure.md.
+
+## 2. Configure Authentik as an OAuth2 Provider [done]
+### Dependencies: 3.1
+### Description: Access the Authentik admin interface and enable/configure OAuth2 provider settings to allow external applications to authenticate via OAuth2, following docs/rag-project-structure.md.
+### Details:
+Set up OAuth2 provider endpoints, define allowed redirect URIs, and configure any necessary provider-specific settings. Use the OAuth2 provider configuration steps in docs/rag-project-structure.md.
+
+## 3. Implement OpenID Connect (OIDC) Flow [done]
+### Dependencies: 3.2
+### Description: Enable and configure OpenID Connect support in Authentik to facilitate secure authentication and identity federation, as described in docs/rag-project-structure.md.
+### Details:
+Ensure OIDC endpoints are active, configure signing keys, and verify OIDC discovery metadata is available. Reference the OIDC setup in docs/rag-project-structure.md.
+
+## 4. Create Applications and Define Scopes [deferred]
+### Dependencies: 3.3
+### Description: Register client applications in Authentik and define OAuth2/OIDC scopes for granular access control, following the process in docs/rag-project-structure.md.
+### Details:
+Add new applications in the Authentik admin UI, assign client IDs/secrets, and specify required scopes and permissions. Use the application registration and scope definition examples in docs/rag-project-structure.md.
+
+## 5. Configure JWT Handling and Security [pending]
+### Dependencies: 3.4
+### Description: Set up JWT signing, validation, and secure storage/handling practices within Authentik and for consuming services, as specified in docs/rag-project-structure.md.
+### Details:
+Configure JWT signing algorithms, token lifetimes, and ensure secure transmission and validation of tokens. Reference the JWT handling guidelines in docs/rag-project-structure.md.
+
+## 6. Integrate Authentik with Target Services [pending]
+### Dependencies: 3.5
+### Description: Connect Authentik to external services and applications using OAuth2/OIDC for SSO, ensuring proper client configuration as described in docs/rag-project-structure.md.
+### Details:
+Update service configurations to use Authentik as the identity provider, provide client credentials, and test authentication flows. Follow the integration steps in docs/rag-project-structure.md.
+
+## 7. Test and Validate the SSO Integration [done]
+### Dependencies: None
+### Description: Perform end-to-end testing of the SSO setup, including login flows, token issuance, scope enforcement, and service access, following the test strategy in docs/rag-project-structure.md.
+### Details:
+Verify that authentication, authorization, and token handling work as expected across all integrated services. Use the test cases and validation procedures in docs/rag-project-structure.md.
+<info added on 2025-05-27T22:56:42.436Z>
+Encountered an authorization error when pulling the image ghcr.io/goauthentik/authentik:2023.10.7 from GitHub Container Registry, indicating the tag may be unavailable or the registry is experiencing issues. Update deployment configuration to use a more recent and publicly available Authentik image tag, such as ghcr.io/goauthentik/server:2025.2, as recommended in the latest release documentation. Avoid using the :latest tag, as it is deprecated and will not be updated past version 2025.2[2].
+</info added on 2025-05-27T22:56:42.436Z>
+

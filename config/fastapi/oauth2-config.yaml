@@ -1,0 +1,16 @@
+oauth2:
+  client_id: "${FASTAPI_OAUTH_CLIENT_ID}"
+  client_secret: "${FASTAPI_OAUTH_CLIENT_SECRET}"
+  server_metadata_url: "${AUTHENTIK_ISSUER}/fastapi-oauth2/.well-known/openid_configuration"
+  scopes: ["openid", "email", "profile", "rag:api"]
+  redirect_uri: "https://api.${DOMAIN:-localhost}/auth/callback"
+
+authentik:
+  base_url: "${AUTHENTIK_URL}"
+  issuer: "${AUTHENTIK_ISSUER}"
+  userinfo_endpoint: "${AUTHENTIK_ISSUER}/userinfo/"
+  
+security:
+  jwt_algorithm: "RS256"
+  token_verification: true
+  require_https: true

@@ -1,0 +1,13 @@
+credentials:
+  oauth2:
+    client_id: "${N8N_OAUTH_CLIENT_ID}"
+    client_secret: "${N8N_OAUTH_CLIENT_SECRET}"
+    authorization_url: "${AUTHENTIK_ISSUER}/authorize/"
+    token_url: "${AUTHENTIK_ISSUER}/token/"
+    userinfo_url: "${AUTHENTIK_ISSUER}/userinfo/"
+    scopes: ["openid", "email", "profile", "rag:workflows"]
+    
+workflow_access:
+  require_authentication: true
+  allowed_groups: ["admins"]
+  token_validation: true

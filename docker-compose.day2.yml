@@ -1,0 +1,117 @@
+# ─────────────────────────────────────────────
+# docker-compose.day2.yml  –  Operational add-ons
+# ─────────────────────────────────────────────
+version: "3.8"
+
+services:
+  # ─────────── 1) Central Cache / Rate-limit counter ───────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: >
+      redis-server --appendonly yes
+                   --loglevel warning
+                   --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks: [rag_network]
+
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      RI_HOST: 0.0.0.0
+    networks: [rag_network]
+
+  # ─────────── 2) Authentication / SSO (Authentik) ───────────
+  authentik-server:
+    image: ghcr.io/goauthentik/server:latest
+    restart: unless-stopped
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASS}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+    depends_on:
+      - postgres
+      - redis
+    networks: [rag_network]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.auth.rule=Host(`auth.${DOMAIN}`)"
+      - "traefik.http.routers.auth.entrypoints=websecure"
+      - "traefik.http.routers.auth.tls=true"
+      - "traefik.http.routers.auth.tls.certresolver=letsEncrypt"
+      - "traefik.http.services.auth.loadbalancer.server.port=9000"
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:latest
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgres
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASS}
+    depends_on:
+      - authentik-server
+    networks: [rag_network]
+
+  # PostgreSQL for Authentik (isolated from other DBs)
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: authentik
+      POSTGRES_USER: authentik
+      POSTGRES_PASSWORD: ${AUTHENTIK_DB_PASS}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks: [rag_network]
+
+  # ─────────── 3) Message Queue for async jobs ───────────
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    ports:
+      - "15672:15672"   # RabbitMQ dashboard
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks: [rag_network]
+
+  # ─────────── 4) Off-site backup (Restic Backrest UI) ───────────
+  backrest:
+    image: garethgeorge/backrest:latest
+    restart: unless-stopped
+    environment:
+      BACKREST_DATA: /data
+    volumes:
+      - ./backrest/config:/config
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - mongo_data:/backup/mongo:ro
+      - qdrant_data:/backup/qdrant:ro
+    ports:
+      - "9898:9898"
+    networks: [rag_network]
+
+# ─────────────────────────────────────────────
+#  Traefik rate-limit middleware (attached to existing routers)
+#    – this snippet applies to ALL routers called “api” & “chat”
+# ─────────────────────────────────────────────
+services:
+  traefik:
+    labels:
+      - "traefik.http.middlewares.rate-limit.ratelimit.average=100"
+      - "traefik.http.middlewares.rate-limit.ratelimit.burst=50"
+      - "traefik.http.routers.api.middlewares=rate-limit"
+      - "traefik.http.routers.chat.middlewares=rate-limit"
+
+volumes:

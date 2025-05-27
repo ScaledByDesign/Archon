@@ -1,0 +1,9 @@
+{
+  "defaultEngine": "openai-4o",
+  "promptDir": "../ai-tools/prompts",
+  "workflowDir": "../ai-tools/pipelines",
+  "snippetDir": "../ai-tools/snippets",
+  "maxContextLines": 200,
+  "autoSave": true,
+  "onFileSave": ["runWorkflow:default", "lint", "test"]
+}

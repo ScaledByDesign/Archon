@@ -1,0 +1,5 @@
+name: code-review
+steps:
+  - action: analyzeDiff
+  - action: suggestImprovements
+  - action: generateUnitTests

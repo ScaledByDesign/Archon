@@ -1,0 +1,43 @@
+# Task ID: 17
+# Title: Implement AIM for ML Experiment Tracking
+# Status: pending
+# Dependencies: 1, 13
+# Priority: medium
+# Description: Integrate AIM for tracking and visualizing machine learning experiments and model performance.
+# Details:
+Set up AIM 3.17+ in docker-compose.yml. Implement logging of model inferences, including input, output, and performance metrics. Create custom metrics for RAG-specific measurements (e.g., retrieval precision, generation quality). Implement experiment grouping and tagging for organized tracking. Use AIM's Python SDK for seamless integration with the backend services.
+
+# Test Strategy:
+Verify logging of experiments and metrics in AIM. Test visualization of different metric types. Ensure proper grouping and filtering of experiments. Test concurrent logging from multiple services.
+
+# Subtasks:
+## 1. AIM Setup and Configuration [pending]
+### Dependencies: None
+### Description: Install and configure AIM experiment tracking framework with proper directory structure and initial settings
+### Details:
+Install AIM via pip, set up experiment storage directory, configure authentication if needed, and establish connection with existing ML pipeline. Include environment variable configuration and verify installation with a simple test run.
+
+## 2. Implement Logging Integration [pending]
+### Dependencies: 17.1
+### Description: Create logging handlers to capture experiment metrics, parameters, and artifacts across the ML pipeline
+### Details:
+Develop logging wrappers for model training, validation, and inference steps. Implement systematic naming conventions for experiments, integrate with existing code using minimal modifications, and ensure proper handling of distributed training scenarios.
+
+## 3. Develop Custom Metric Implementation [pending]
+### Dependencies: 17.2
+### Description: Create specialized metrics beyond standard accuracy/loss to better evaluate model performance
+### Details:
+Define custom metric classes with calculation logic, implement proper serialization for storage, create visualization-ready formats, and ensure metrics are comparable across experiments. Include domain-specific evaluation criteria relevant to the project goals.
+
+## 4. Configure Experiment Grouping and Tagging [pending]
+### Dependencies: 17.2
+### Description: Establish a taxonomy for organizing experiments with hierarchical tags and grouping mechanisms
+### Details:
+Design tag hierarchy for experiment organization, implement automatic tagging based on parameters, create experiment grouping functionality for comparative analysis, and document the tagging system for team consistency.
+
+## 5. Implement Dashboard Testing [pending]
+### Dependencies: 17.3, 17.4
+### Description: Create and validate visualization dashboards for experiment comparison and result analysis
+### Details:
+Design dashboard layouts for key metrics, implement interactive comparison views, create automated dashboard generation scripts, test with historical experiment data, and optimize for team collaboration with shareable links and export functionality.
+

@@ -1,0 +1,6 @@
+name: ci-publish
+steps:
+  - action: lint
+  - action: runTests
+  - action: build
+  - action: publish

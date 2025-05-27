@@ -1,0 +1,444 @@
+version: '3.8'
+
+services:
+  # Authentication
+  authentik-db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASS:-secretpass}
+      POSTGRES_USER: authentik
+      POSTGRES_DB: authentik
+    volumes:
+      - authentik_db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U authentik"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  authentik-redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${AUTHENTIK_REDIS_PASS:-redispass}
+    volumes:
+      - authentik_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  authentik-server:
+    image: ghcr.io/goauthentik/server:2025.2
+    restart: unless-stopped
+    command: server
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_REDIS__PASSWORD: ${AUTHENTIK_REDIS_PASS:-redispass}
+      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:-secretpass}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-change-me-to-a-long-random-string}
+      AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD:-change-me-authentik-admin}
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:-change-me-authentik-token}
+      AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL:-admin@localhost}
+    volumes:
+      - authentik_media:/media
+      - authentik_templates:/templates
+      - ./config/authentik/blueprints:/blueprints/custom:ro
+    env_file:
+      - ./config/authentik/authentik.env
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    depends_on:
+      - authentik-db
+      - authentik-redis
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.authentik.rule=Host(`auth.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.authentik.entrypoints=websecure"
+      - "traefik.http.routers.authentik.tls.certresolver=letsencrypt"
+      - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+    healthcheck:
+      test: ["CMD-SHELL", "ak healthcheck"]
+      start_period: 30s
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:2025.2
+    restart: unless-stopped
+    command: worker
+    environment:
+      AUTHENTIK_REDIS__HOST: authentik-redis
+      AUTHENTIK_REDIS__PASSWORD: ${AUTHENTIK_REDIS_PASS:-redispass}
+      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__NAME: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:-secretpass}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:-change-me-to-a-long-random-string}
+    volumes:
+      - authentik_media:/media
+      - authentik_templates:/templates
+      - ./config/authentik/blueprints:/blueprints/custom:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - ./config/authentik/authentik.env
+    depends_on:
+      - authentik-db
+      - authentik-redis
+    healthcheck:
+      test: ["CMD-SHELL", "ak healthcheck"]
+      start_period: 30s
+      interval: 30s
+      timeout: 30s
+      retries: 3
+
+  # Reverse Proxy
+  traefik:
+    image: traefik:v3.0
+    restart: unless-stopped
+    command:
+      - "--configFile=/etc/traefik/traefik.yml"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"  # Dashboard port
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./config/traefik/dynamic:/configuration/dynamic:ro
+      - ./config/traefik/certs:/certs:ro
+      - traefik_certs:/letsencrypt
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - ACME_EMAIL=${ACME_EMAIL}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth@file"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Cache Layer
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis-insight:
+    image: redislabs/redisinsight:latest
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-secretpass}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./config/rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    ports:
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # API Backend (Multiple Instances)
+  fastapi-1: &fastapi
+    build: ./services/fastapi
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MONGODB_URL=mongodb://mongo-episodic:27017,mongo-procedural:27017
+      - QDRANT_URL=http://qdrant:6333
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
+      - LITELLM_URL=http://litellm:8000
+      - AUTHENTIK_URL=http://authentik-server:9000
+      - INSTANCE_ID=1
+    depends_on:
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`api.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls=true"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+      - "traefik.http.services.api.loadbalancer.sticky.cookie=true"
+
+  fastapi-2:
+    <<: *fastapi
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MONGODB_URL=mongodb://mongo-episodic:27017,mongo-procedural:27017
+      - QDRANT_URL=http://qdrant:6333
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
+      - LITELLM_URL=http://litellm:8000
+      - AUTHENTIK_URL=http://authentik-server:9000
+      - INSTANCE_ID=2
+
+  fastapi-3:
+    <<: *fastapi
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MONGODB_URL=mongodb://mongo-episodic:27017,mongo-procedural:27017
+      - QDRANT_URL=http://qdrant:6333
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
+      - LITELLM_URL=http://litellm:8000
+      - AUTHENTIK_URL=http://authentik-server:9000
+      - INSTANCE_ID=3
+
+  # Worker for async tasks
+  worker:
+    build: ./services/workers
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - MONGODB_URL=mongodb://mongo-episodic:27017,mongo-procedural:27017
+      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    deploy:
+      replicas: 2
+
+  # LLM Proxy
+  litellm:
+    image: ghcr.io/berriai/litellm:main-latest
+    restart: unless-stopped
+    environment:
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OLLAMA_API_BASE=http://ollama:11434
+    volumes:
+      - ./config/litellm/config.yaml:/app/config.yaml
+    command: ["--config", "/app/config.yaml"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Local LLM
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # Databases
+  mongo-episodic:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-secretpass}
+      MONGO_INITDB_DATABASE: episodic
+    volumes:
+      - mongo_episodic:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongo-procedural:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-secretpass}
+      MONGO_INITDB_DATABASE: procedural
+    volumes:
+      - mongo_procedural:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/readyz"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # UI Applications
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    restart: unless-stopped
+    environment:
+      - OPENAI_API_BASE_URL=http://litellm:8000/v1
+      - OPENAI_API_KEY=${LITELLM_MASTER_KEY}
+      - WEBUI_AUTH=false
+    volumes:
+      - open_webui:/app/backend/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.webui.rule=Host(`chat.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.webui.entrypoints=websecure"
+      - "traefik.http.routers.webui.tls=true"
+
+  # Scheduler
+  n8n:
+    image: n8nio/n8n:latest
+    restart: unless-stopped
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_PASS:-secretpass}
+      - N8N_HOST=n8n.${DOMAIN:-localhost}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=https
+      - WEBHOOK_URL=https://n8n.${DOMAIN:-localhost}/
+    volumes:
+      - n8n_data:/home/node/.n8n
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.n8n.rule=Host(`n8n.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.n8n.entrypoints=websecure"
+      - "traefik.http.routers.n8n.tls=true"
+
+  # Monitoring
+  aim:
+    image: aimstack/aim:latest
+    restart: unless-stopped
+    volumes:
+      - aim_data:/aim
+    command: ["up", "--host", "0.0.0.0", "--port", "43800"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.aim.rule=Host(`aim.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.aim.entrypoints=websecure"
+      - "traefik.http.routers.aim.tls=true"
+
+  healthchecks:
+    image: healthchecks/healthchecks:latest
+    restart: unless-stopped
+    environment:
+      - ALLOWED_HOSTS=*
+      - DB=postgres
+      - DB_HOST=authentik-db
+      - DB_PORT=5432
+      - DB_NAME=healthchecks
+      - DB_USER=authentik
+      - DB_PASSWORD=${PG_PASS:-secretpass}
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USE_TLS=True
+      - EMAIL_HOST_USER=${EMAIL_USER}
+      - EMAIL_HOST_PASSWORD=${EMAIL_PASS}
+      - SECRET_KEY=${HC_SECRET_KEY}
+      - SITE_ROOT=https://health.${DOMAIN:-localhost}
+    depends_on:
+      authentik-db:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.health.rule=Host(`health.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.health.entrypoints=websecure"
+      - "traefik.http.routers.health.tls=true"
+
+  # Backup
+  backrest:
+    image: garethgeorge/backrest:latest
+    restart: unless-stopped
+    environment:
+      - BACKREST_DATA=/data
+      - BACKREST_CONFIG=/config/config.json
+      - XDG_CACHE_HOME=/cache
+    volumes:
+      - ./config/backrest:/config
+      - ./volumes/backups:/data
+      - backrest_cache:/cache
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - mongo_episodic:/backup/mongo_episodic:ro
+      - mongo_procedural:/backup/mongo_procedural:ro
+      - qdrant_data:/backup/qdrant:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backrest.rule=Host(`backup.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.backrest.entrypoints=websecure"
+      - "traefik.http.routers.backrest.tls=true"
+
+volumes:
+  aim_data:
+    name: aim_data
+  authentik_db:
+    name: authentik_db
+  authentik_media:
+    name: authentik_media
+  authentik_redis:
+    name: authentik_redis
+  authentik_templates:
+    name: authentik_templates
+  backrest_cache:
+    name: backrest_cache
+  mongo_episodic:
+    name: mongo_episodic
+  mongo_procedural:
+    name: mongo_procedural
+  n8n_data:
+    name: n8n_data
+  ollama_data:
+    name: ollama_data
+  open_webui:
+    name: open_webui
+  qdrant_data:
+    name: qdrant_data
+  rabbitmq_data:
+    name: rabbitmq_data
+  redis_data:
+    name: redis_data
+  traefik_certs:
+    name: traefik_certs
+
+networks:
+  default:
+    name: rag_network

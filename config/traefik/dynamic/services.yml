@@ -1,0 +1,65 @@
+# Dynamic Services Configuration
+http:
+  services:
+    # FastAPI Load Balancer
+    fastapi-backend:
+      loadBalancer:
+        sticky:
+          cookie:
+            name: server
+            secure: true
+            httpOnly: true
+        healthCheck:
+          path: /health
+          interval: 30s
+          timeout: 5s
+          scheme: http
+        servers:
+          - url: "http://fastapi-1:8000"
+          - url: "http://fastapi-2:8000"
+          - url: "http://fastapi-3:8000"
+
+    # Error Pages Service
+    error-pages:
+      loadBalancer:
+        servers:
+          - url: "http://nginx-error-pages:8080"
+
+    # Monitoring Services
+    prometheus:
+      loadBalancer:
+        servers:
+          - url: "http://prometheus:9090"
+
+    grafana:
+      loadBalancer:
+        servers:
+          - url: "http://grafana:3000"
+
+  # Routers for services not defined in docker-compose labels
+  routers:
+    # Error pages router
+    error-pages:
+      rule: "HostRegexp(`{host:.+}`)"
+      priority: 1
+      service: error-pages
+      middlewares:
+        - error-pages
+
+    # Metrics endpoint
+    prometheus:
+      rule: "Host(`metrics.${DOMAIN:-localhost}`)"
+      service: prometheus
+      middlewares:
+        - admin-secure
+      tls:
+        certResolver: letsencrypt
+
+    # Monitoring dashboard
+    grafana:
+      rule: "Host(`monitor.${DOMAIN:-localhost}`)"
+      service: grafana
+      middlewares:
+        - web-secure
+      tls:
+        certResolver: letsencrypt

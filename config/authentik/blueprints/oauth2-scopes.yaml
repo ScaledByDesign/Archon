@@ -1,0 +1,99 @@
+version: 1
+metadata:
+  name: OAuth2 Scope Mappings
+entries:
+  # Standard OpenID Connect scope mappings
+  - model: authentik_providers_oauth2.scopemapping
+    identifiers:
+      scope_name: openid
+    attrs:
+      scope_name: openid
+      name: OpenID Connect
+      description: Access to the OpenID Connect user ID token.
+      expression: |
+        return {
+          # Authentik user ID
+          "sub": str(user.pk),
+        }
+
+  - model: authentik_providers_oauth2.scopemapping
+    identifiers:
+      scope_name: email
+    attrs:
+      scope_name: email
+      name: Email
+      description: Access to the user's email address.
+      expression: |
+        return {
+          "email": user.email,
+          "email_verified": True,
+        }
+
+  - model: authentik_providers_oauth2.scopemapping
+    identifiers:
+      scope_name: profile
+    attrs:
+      scope_name: profile
+      name: User Profile
+      description: Access to the user's profile information.
+      expression: |
+        return {
+          "name": user.name,
+          "given_name": user.name.split()[0] if user.name else "",
+          "family_name": " ".join(user.name.split()[1:]) if user.name and len(user.name.split()) > 1 else "",
+          "preferred_username": user.username,
+          "nickname": user.username,
+          "groups": [group.name for group in user.ak_groups.all()],
+        }
+
+  # Custom RAG System scope for API access
+  - model: authentik_providers_oauth2.scopemapping
+    identifiers:
+      scope_name: rag:api
+    attrs:
+      scope_name: rag:api
+      name: RAG API Access
+      description: Access to RAG system API endpoints.
+      expression: |
+        return {
+          "api_access": True,
+          "user_id": str(user.pk),
+          "username": user.username,
+          "groups": [group.name for group in user.ak_groups.all()],
+          "is_admin": user.is_superuser,
+        }
+
+  # Custom scope for chat interface
+  - model: authentik_providers_oauth2.scopemapping
+    identifiers:
+      scope_name: rag:chat
+    attrs:
+      scope_name: rag:chat
+      name: RAG Chat Access
+      description: Access to the chat interface.
+      expression: |
+        return {
+          "chat_access": True,
+          "user_id": str(user.pk),
+          "username": user.username,
+          "preferences": {
+            "theme": "auto",
+            "language": "en"
+          }
+        }
+
+  # Custom scope for workflow automation
+  - model: authentik_providers_oauth2.scopemapping
+    identifiers:
+      scope_name: rag:workflows
+    attrs:
+      scope_name: rag:workflows
+      name: RAG Workflow Access
+      description: Access to workflow automation features.
+      expression: |
+        return {
+          "workflow_access": True,
+          "user_id": str(user.pk),
+          "username": user.username,
+          "can_create_workflows": "admins" in [group.name for group in user.ak_groups.all()],
+        }

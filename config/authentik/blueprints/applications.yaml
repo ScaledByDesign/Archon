@@ -1,0 +1,150 @@
+version: 1
+metadata:
+  name: RAG System Applications
+entries:
+  # OAuth2 Provider for FastAPI
+  - model: authentik_providers_oauth2.oauth2provider
+    identifiers:
+      name: fastapi-oauth2
+    attrs:
+      name: fastapi-oauth2
+      client_type: confidential
+      client_id: fastapi-client
+      authorization_grant_type: authorization-code
+      redirect_uris: |
+        https://api.localhost/auth/callback
+        http://localhost:8000/auth/callback
+      sub_mode: hashed_user_id
+      issuer_mode: per_provider
+      authorization_flow: !Find [authentik_flows.flow, [slug, "default-authorization-flow"]]
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "openid"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "email"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "profile"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "rag:api"]]
+      access_token_validity: minutes=60
+      refresh_token_validity: days=30
+      include_claims_in_id_token: true
+
+  # OAuth2 Provider for Open WebUI
+  - model: authentik_providers_oauth2.oauth2provider
+    identifiers:
+      name: webui-oauth2
+    attrs:
+      name: webui-oauth2
+      client_type: public
+      client_id: webui-client
+      authorization_grant_type: authorization-code
+      redirect_uris: |
+        https://chat.localhost/auth/callback
+        http://localhost:3000/auth/callback
+      sub_mode: hashed_user_id
+      issuer_mode: per_provider
+      authorization_flow: !Find [authentik_flows.flow, [slug, "default-authorization-flow"]]
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "openid"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "email"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "profile"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "rag:chat"]]
+      access_token_validity: minutes=60
+      refresh_token_validity: days=30
+      include_claims_in_id_token: true
+
+  # OAuth2 Provider for n8n
+  - model: authentik_providers_oauth2.oauth2provider
+    identifiers:
+      name: n8n-oauth2
+    attrs:
+      name: n8n-oauth2
+      client_type: confidential
+      client_id: n8n-client
+      authorization_grant_type: authorization-code
+      redirect_uris: |
+        https://n8n.localhost/rest/oauth2-credential/callback
+      sub_mode: hashed_user_id
+      issuer_mode: per_provider
+      authorization_flow: !Find [authentik_flows.flow, [slug, "default-authorization-flow"]]
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "openid"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "email"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "profile"]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, "rag:workflows"]]
+      access_token_validity: minutes=60
+      refresh_token_validity: days=30
+      include_claims_in_id_token: true
+
+  # FastAPI Application
+  - model: authentik_core.application
+    identifiers:
+      slug: fastapi
+    attrs:
+      name: FastAPI Backend
+      slug: fastapi
+      provider: !KeyOf fastapi-oauth2
+      meta_launch_url: https://api.localhost
+      meta_description: RAG System API Backend
+      meta_publisher: RAG System
+      meta_icon: https://fastapi.tiangolo.com/img/icon-white.svg
+      policy_engine_mode: any
+
+  # Open WebUI Application
+  - model: authentik_core.application
+    identifiers:
+      slug: webui
+    attrs:
+      name: Chat Interface
+      slug: webui
+      provider: !KeyOf webui-oauth2
+      meta_launch_url: https://chat.localhost
+      meta_description: RAG System Chat Interface
+      meta_publisher: RAG System
+      meta_icon: https://docs.openwebui.com/assets/logo-dark.png
+      policy_engine_mode: any
+
+  # n8n Application
+  - model: authentik_core.application
+    identifiers:
+      slug: n8n
+    attrs:
+      name: Workflow Automation
+      slug: n8n
+      provider: !KeyOf n8n-oauth2
+      meta_launch_url: https://n8n.localhost
+      meta_description: Workflow Automation Platform
+      meta_publisher: RAG System
+      meta_icon: https://n8n.io/favicon.ico
+      policy_engine_mode: any
+
+  # Admin Applications (without OAuth, direct access)
+  - model: authentik_core.application
+    identifiers:
+      slug: traefik-dashboard
+    attrs:
+      name: Traefik Dashboard
+      slug: traefik-dashboard
+      meta_launch_url: https://traefik.localhost
+      meta_description: Reverse Proxy Dashboard
+      meta_publisher: RAG System
+      policy_engine_mode: any
+
+  - model: authentik_core.application
+    identifiers:
+      slug: rabbitmq-management
+    attrs:
+      name: RabbitMQ Management
+      slug: rabbitmq-management
+      meta_launch_url: http://localhost:15672
+      meta_description: Message Queue Management
+      meta_publisher: RAG System
+      policy_engine_mode: any
+
+  - model: authentik_core.application
+    identifiers:
+      slug: redis-insight
+    attrs:
+      name: Redis Insight
+      slug: redis-insight
+      meta_launch_url: http://localhost:8001
+      meta_description: Redis Database Management
+      meta_publisher: RAG System
+      policy_engine_mode: any

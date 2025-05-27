@@ -1,0 +1,15 @@
+oauth:
+  client_id: "${WEBUI_OAUTH_CLIENT_ID}"
+  client_secret: "${WEBUI_OAUTH_CLIENT_SECRET}"
+  provider_name: "Authentik"
+  authorization_url: "${AUTHENTIK_ISSUER}/authorize/"
+  token_url: "${AUTHENTIK_ISSUER}/token/"
+  userinfo_url: "${AUTHENTIK_ISSUER}/userinfo/"
+  scopes: ["openid", "email", "profile", "rag:chat"]
+  redirect_uri: "https://chat.${DOMAIN:-localhost}/auth/callback"
+  
+claims_mapping:
+  username: "preferred_username"
+  email: "email"
+  name: "name"
+  groups: "groups"
