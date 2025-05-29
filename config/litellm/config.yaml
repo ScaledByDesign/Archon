@@ -295,80 +295,144 @@ model_list:
   #     max_input_tokens: 8192
   #     output_vector_size: 768
 
-# Router Configuration for Load Balancing
+# Router Configuration for Load Balancing and Optimization
 router_settings:
-  routing_strategy: "least-busy"  # Options: simple-shuffle, least-busy, usage-based-routing
+  routing_strategy: "usage-based-routing"  # Options: simple-shuffle, least-busy, usage-based-routing
+  routing_strategy_args:
+    # Redis configuration for usage tracking (optional, falls back to simple-shuffle)
+    redis_host: "redis"
+    redis_port: 6379
+    redis_password: os.environ/REDIS_PASSWORD
+    ttl: 30  # seconds to cache usage data
+  
+  # Retry configuration for failed requests
+  retry_after: 5  # seconds to wait before retry
+  
   model_group_alias:
-    # High-performance models for complex tasks
+    # High-performance models for complex tasks (optimized for quality)
     "premium": ["gpt-4", "claude-3-opus", "azure-gpt-4"]
-    # Balanced performance models
+    # Balanced performance models (optimized for speed + quality)
     "standard": ["gpt-4-turbo", "claude-3-sonnet", "gpt-3.5-turbo", "command-r-plus"]
-    # Fast and efficient models
+    # Fast and efficient models (optimized for speed)
     "fast": ["claude-3-haiku", "gpt-3.5-turbo", "command-r", "gemini-pro"]
-    # Vision-capable models
+    # Vision-capable models (optimized for multimodal tasks)
     "vision": ["gpt-4-vision", "gpt-4-turbo", "claude-3-opus", "claude-3-sonnet", "claude-3-haiku", "gemini-pro-vision"]
-    # Local models for privacy-sensitive tasks
+    # Local models for privacy-sensitive tasks (optimized for privacy)
     "local": ["llama3.2-1b"]
-    # Code-specific models
+    # Code-specific models (optimized for programming tasks)
     "code": ["gpt-4", "claude-3-opus"]
-    # Embedding models
+    # Embedding models (optimized for semantic search)
     "embeddings": ["text-embedding-3-large", "text-embedding-3-small", "embed-english-v3"]
-    # Cost-effective models
+    # Cost-effective models (optimized for budget)
     "budget": ["gpt-3.5-turbo", "claude-3-haiku", "command-r", "gemini-pro"]
 
-# Fallback Configuration
+# Enhanced Fallback Configuration
 litellm_settings:
-  # Fallback models in case primary models fail
+  # Intelligent fallback chains based on capability and cost
   fallbacks: [
+    # Premium model fallbacks
     {"gpt-4": ["gpt-4-turbo", "claude-3-opus", "azure-gpt-4"]},
-    {"claude-3-opus": ["gpt-4", "claude-3-sonnet"]},
-    {"gpt-4-turbo": ["gpt-4", "claude-3-sonnet"]},
-    {"claude-3-sonnet": ["claude-3-haiku", "gpt-3.5-turbo"]},
-    {"gpt-4-vision": ["gpt-4-turbo", "claude-3-opus"]},
-    {"gemini-pro": ["gpt-3.5-turbo", "claude-3-haiku"]},
-    {"command-r-plus": ["command-r", "claude-3-sonnet"]},
+    {"claude-3-opus": ["gpt-4", "claude-3-sonnet", "gpt-4-turbo"]},
+    {"azure-gpt-4": ["gpt-4", "gpt-4-turbo", "claude-3-opus"]},
+    
+    # Standard model fallbacks
+    {"gpt-4-turbo": ["gpt-4", "claude-3-sonnet", "claude-3-opus"]},
+    {"claude-3-sonnet": ["claude-3-haiku", "gpt-3.5-turbo", "gpt-4-turbo"]},
+    {"command-r-plus": ["command-r", "claude-3-sonnet", "gpt-3.5-turbo"]},
+    
+    # Fast model fallbacks
+    {"claude-3-haiku": ["gpt-3.5-turbo", "command-r", "gemini-pro"]},
+    {"gpt-3.5-turbo": ["claude-3-haiku", "command-r", "gemini-pro"]},
+    {"command-r": ["gpt-3.5-turbo", "claude-3-haiku", "gemini-pro"]},
+    {"gemini-pro": ["gpt-3.5-turbo", "claude-3-haiku", "command-r"]},
+    
+    # Vision model fallbacks
+    {"gpt-4-vision": ["gpt-4-turbo", "claude-3-opus", "claude-3-sonnet"]},
+    {"gemini-pro-vision": ["gpt-4-vision", "gpt-4-turbo", "claude-3-opus"]},
+    
+    # Embedding model fallbacks
     {"text-embedding-3-large": ["text-embedding-3-small", "embed-english-v3"]},
-    {"mistral-7b": ["llama2-7b", "llama3-8b"]},
-    {"llama2-7b": ["mistral-7b", "llama3-8b"]},
-    {"nomic-embed": ["text-embedding-3-small"]}
+    {"text-embedding-3-small": ["embed-english-v3", "text-embedding-3-large"]},
+    {"embed-english-v3": ["text-embedding-3-small", "text-embedding-3-large"]},
+    
+    # Local model fallbacks (to external when local fails)
+    {"llama3.2-1b": ["gpt-3.5-turbo", "claude-3-haiku"]}
   ]
   
-  # Request timeout settings
-  request_timeout: 600
+  # Enhanced timeout settings for M4 Mac Mini
+  request_timeout: 900  # 15 minutes for local models
   
-  # Retry configuration
+  # Retry configuration with exponential backoff
   num_retries: 3
+  retry_delay: 2  # seconds
+  max_retry_delay: 30  # seconds
   
-  # Rate limiting per model
-  rpm: 500  # requests per minute
-  tpm: 90000  # tokens per minute
+  # Rate limiting per model (production-ready)
+  rpm: 1000  # requests per minute
+  tpm: 150000  # tokens per minute
   
-  # Logging
+  # Enhanced logging for production monitoring
   set_verbose: true
+  log_level: "INFO"
   
-  # Health check settings
-  health_check_interval: 300  # 5 minutes
+  # Health check settings optimized for M4 Mac Mini
+  health_check_interval: 180  # 3 minutes (faster for local models)
   
-  # Cost tracking
+  # Cost optimization
   track_cost_per_model: true
   track_cost_per_api_key: true
+  track_cost_per_user: true
+  budget_manager: true
+  
+  # Performance optimization
+  enable_caching: true
+  cache_ttl: 3600  # 1 hour
+  
+  # Security settings
+  disable_spend_logs: false  # Keep for monitoring
+  
+  # Model-specific optimizations
+  model_fallback_timeout: 60  # seconds before trying fallback
+  
+  # Load balancing settings
+  load_balancing_strategy: "weighted_round_robin"
+  
+  # Error handling
+  drop_params: true  # Drop unsupported parameters instead of failing
 
-# General Settings
+# Enhanced General Settings
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
   database_url: null  # Use in-memory for now, can be configured later
   
   # CORS settings for web integration
   allowed_origins: ["*"]
+  allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+  allowed_headers: ["*"]
   
   # UI settings
   ui_access_mode: "admin_only"
+  ui_username: "admin"
+  ui_password: os.environ/LITELLM_UI_PASSWORD
   
-  # Custom headers
+  # Custom headers for identification
   headers:
     "X-LiteLLM-Version": "1.0.0"
     "X-RAG-System": "Production"
     "X-Provider-Routing": "enabled"
+    "X-Platform": "M4-Mac-Mini"
+    "X-Environment": "Docker"
+  
+  # API settings
+  port: 4000
+  host: "0.0.0.0"
+  
+  # SSL/TLS settings (for production)
+  ssl_verify: true
+  
+  # Prometheus metrics (for monitoring)
+  enable_prometheus_metrics: true
+  prometheus_port: 4001
 
 # Environment-specific overrides
 environment_variables:
