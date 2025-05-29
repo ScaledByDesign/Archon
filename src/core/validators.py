@@ -287,13 +287,23 @@ class DateRangeFilter(BaseValidator):
         return values
 
 
+class DependencyStatus(BaseValidator):
+    """Dependency status model"""
+    
+    status: str = Field(..., description="Dependency status")
+    details: Optional[Dict[str, Any]] = Field(
+        None,
+        description="Dependency details"
+    )
+
+
 class HealthCheckResponse(BaseValidator):
     """Health check response model"""
     
     status: str = Field(..., description="Service status")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     version: Optional[str] = Field(None, description="Service version")
-    dependencies: Optional[Dict[str, str]] = Field(
+    dependencies: Optional[Dict[str, Any]] = Field(
         None,
         description="Dependency status"
     )

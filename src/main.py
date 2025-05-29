@@ -37,7 +37,7 @@ from src.observability.langfuse_client import langfuse_tracer
 from src.observability.litellm_wrapper import traced_llm
 
 # Existing imports
-from src.secrets.vault_client import get_secret_manager as create_secret_manager, VaultConfig, VaultClient, SecretManager
+from src.zoi_secrets.vault_client import get_secret_manager as create_secret_manager, VaultConfig, VaultClient, SecretManager
 from src.vector_store.vector_store import QdrantVectorStore, QdrantConfig
 from src.api.dependencies import set_global_secret_manager, set_global_vector_store, get_secret_manager, get_vector_store, set_global_document_processor
 from src.api.routes import auth, search, oauth, document_routes
@@ -78,9 +78,8 @@ async def initialize_secrets():
             mount_point=os.getenv("VAULT_MOUNT_POINT", "auth/approle")
         )
         
-        # Create Vault client
+        # Create Vault client (authentication happens automatically)
         vault_client = VaultClient(vault_config)
-        await vault_client.authenticate()
         
         # Create secret manager
         secret_manager = create_secret_manager(vault_client)

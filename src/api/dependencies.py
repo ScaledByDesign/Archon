@@ -8,7 +8,7 @@ from typing import Optional
 from fastapi import HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from src.secrets.vault_client import get_secret_manager, VaultClient, SecretManager
+from src.zoi_secrets.vault_client import get_secret_manager, VaultClient, SecretManager
 from src.vector_store.vector_store import QdrantVectorStore
 from src.document_pipeline.document_processor import DocumentProcessor
 

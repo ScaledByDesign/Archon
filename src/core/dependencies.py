@@ -12,7 +12,7 @@ from src.core.database import DatabaseManager, get_database_manager
 from src.core.security import verify_session_token
 from src.core.exceptions import AuthenticationError, AuthorizationError
 from src.config.settings import get_settings
-from src.secrets.vault_client import get_secret_manager
+from src.zoi_secrets.vault_client import get_secret_manager
 
 
 logger = logging.getLogger(__name__)
