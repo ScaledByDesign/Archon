@@ -682,6 +682,37 @@ services:
       - infrastructure_network
       - backend_network
 
+  # Dashboard Service
+  dashy:
+    image: lissy93/dashy:latest
+    container_name: dashy
+    restart: unless-stopped
+    ports:
+      - "4001:8080"
+    volumes:
+      - ./config/dashy/conf.yml:/app/user-data/conf.yml:ro
+      - dashy_data:/app/user-data/icons
+    environment:
+      - NODE_ENV=production
+      - UID=1000
+      - GID=1000
+      - CONFIG_PATH=/app/user-data/conf.yml
+    healthcheck:
+      test: ["CMD", "node", "/app/services/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - monitoring_network
+      - frontend_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashy.rule=Host(`dashy.localhost`)"
+      - "traefik.http.routers.dashy.entrypoints=web"
+      - "traefik.http.services.dashy.loadbalancer.server.port=8080"
+      - "traefik.docker.network=zoi_frontend"
+
 volumes:
   aim_data:
     name: aim_data
@@ -695,6 +726,8 @@ volumes:
     name: authentik_templates
   backrest_cache:
     name: backrest_cache
+  dashy_data:
+    name: dashy_data
   mongo_episodic:
     name: mongo_episodic
   mongo_procedural:

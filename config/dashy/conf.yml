@@ -1,0 +1,373 @@
+# Production RAG System Dashboard - Comprehensive Service Monitoring
+# Version: 2.0 - Enhanced for Production Use
+
+pageInfo:
+  title: 'Production RAG System'
+  description: 'Centralized Dashboard for AI-Powered Document Processing & Chat System'
+  logo: 'https://raw.githubusercontent.com/Lissy93/dashy/master/public/web-icons/dashy-logo.png'
+  footerText: '🚀 Production RAG System v2.0 | Powered by Docker & AI'
+
+appConfig:
+  theme: 'nord-frost'
+  layout: 'auto'
+  iconSize: 'large'
+  language: 'en'
+  startingView: 'default'
+  defaultOpeningMethod: 'newtab'
+  statusCheck: true
+  statusCheckInterval: 20
+  faviconApi: 'local'
+  routingMode: 'hash'
+  enableMultiTasking: true
+  widgetsAlwaysUseProxy: false
+  enableErrorReporting: false
+  allowConfigEdit: false
+  showSplashScreen: false
+  preventWriteToDisk: true
+  preventLocalSave: true
+  disableConfiguration: false
+  hideComponents:
+    hideHeading: false
+    hideNav: false
+    hideSearch: false
+    hideSettings: false
+    hideFooter: false
+  webSearch:
+    disableWebSearch: false
+    searchEngine: 'duckduckgo'
+    openingMethod: 'newtab'
+
+sections:
+  - name: '🎯 Core API Services'
+    icon: 'fas fa-server'
+    displayData:
+      sortBy: 'alphabetical'
+      rows: 2
+      cols: 3
+    items:
+      - title: 'FastAPI Instance 1'
+        description: 'Primary API server for RAG operations'
+        icon: 'hl-fastapi'
+        url: 'http://localhost:8001'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://fastapi-1:8000/health'
+        statusCheckHeaders:
+          Accept: 'application/json'
+        tags: ['api', 'primary', 'fastapi']
+
+      - title: 'FastAPI Instance 2'
+        description: 'Secondary API server for load balancing'
+        icon: 'hl-fastapi'
+        url: 'http://localhost:8002'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://fastapi-2:8000/health'
+        statusCheckHeaders:
+          Accept: 'application/json'
+        tags: ['api', 'secondary', 'fastapi']
+
+      - title: 'FastAPI Instance 3'
+        description: 'Tertiary API server for high availability'
+        icon: 'hl-fastapi'
+        url: 'http://localhost:8003'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://fastapi-3:8000/health'
+        statusCheckHeaders:
+          Accept: 'application/json'
+        tags: ['api', 'tertiary', 'fastapi']
+
+      - title: 'Background Worker'
+        description: 'Async task processing worker'
+        icon: 'fas fa-cogs'
+        url: 'http://localhost:8004'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://worker:8000/health'
+        tags: ['worker', 'async', 'background']
+
+      - title: 'API Documentation'
+        description: 'Interactive Swagger UI for API testing'
+        icon: 'fas fa-book-open'
+        url: 'http://localhost:8001/docs'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://fastapi-1:8000/docs'
+        tags: ['docs', 'swagger', 'testing']
+
+      - title: 'ReDoc API Docs'
+        description: 'Alternative API documentation'
+        icon: 'fas fa-file-code'
+        url: 'http://localhost:8001/redoc'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://fastapi-1:8000/redoc'
+        tags: ['docs', 'redoc', 'reference']
+
+  - name: '🔐 Authentication & Security'
+    icon: 'fas fa-shield-alt'
+    displayData:
+      sortBy: 'alphabetical'
+      rows: 2
+      cols: 2
+    items:
+      - title: 'Authentik SSO'
+        description: 'Single Sign-On and Identity Provider'
+        icon: 'hl-authentik'
+        url: 'https://localhost:9443'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'https://authentik-server:9443/api/v3/core/applications/'
+        statusCheckAcceptCodes: '200,401,403'
+        tags: ['auth', 'sso', 'oauth2']
+
+      - title: 'HashiCorp Vault'
+        description: 'Secrets management and encryption'
+        icon: 'hl-vault'
+        url: 'http://localhost:8200'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://vault:8200/v1/sys/health'
+        statusCheckAcceptCodes: '200,429,472,473,501,503'
+        tags: ['secrets', 'vault', 'security']
+
+      - title: 'Authentik Database'
+        description: 'PostgreSQL database for Authentik'
+        icon: 'hl-postgres'
+        url: '#'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://authentik-db:5432'
+        statusCheckAcceptCodes: '200,401,403'
+        tags: ['database', 'postgres', 'auth']
+
+      - title: 'Authentik Redis'
+        description: 'Redis cache for Authentik sessions'
+        icon: 'hl-redis'
+        url: '#'
+        target: 'newtab'
+        statusCheck: false
+        tags: ['cache', 'redis', 'sessions']
+
+  - name: '🗄️ Databases & Storage'
+    icon: 'fas fa-database'
+    displayData:
+      sortBy: 'alphabetical'
+      rows: 2
+      cols: 3
+    items:
+      - title: 'Qdrant Vector DB'
+        description: 'Vector database for embeddings and similarity search'
+        icon: 'fas fa-vector-square'
+        url: 'http://localhost:6333'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://qdrant:6333/health'
+        tags: ['vector', 'embeddings', 'search']
+
+      - title: 'MongoDB Episodic'
+        description: 'Document store for conversation memory'
+        icon: 'hl-mongodb'
+        url: 'http://localhost:27017'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://mongo-episodic:27017'
+        statusCheckAcceptCodes: '200,401,403'
+        tags: ['mongodb', 'episodic', 'memory']
+
+      - title: 'MongoDB Procedural'
+        description: 'Document store for workflow memory'
+        icon: 'hl-mongodb'
+        url: 'http://localhost:27018'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://mongo-procedural:27018'
+        statusCheckAcceptCodes: '200,401,403'
+        tags: ['mongodb', 'procedural', 'workflow']
+
+      - title: 'Redis Cache'
+        description: 'High-performance caching and session storage'
+        icon: 'hl-redis'
+        url: 'http://localhost:6379'
+        target: 'newtab'
+        statusCheck: false
+        tags: ['cache', 'redis', 'performance']
+
+      - title: 'Redis Insight'
+        description: 'Redis management and monitoring interface'
+        icon: 'hl-redis'
+        url: 'http://localhost:8001'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://redis-insight:8001'
+        tags: ['redis', 'management', 'monitoring']
+
+      - title: 'Backrest Backup'
+        description: 'Database backup and restoration service'
+        icon: 'fas fa-archive'
+        url: 'http://localhost:9898'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://backrest:9898/api/v1/config'
+        tags: ['backup', 'restore', 'data-protection']
+
+  - name: '🤖 AI & Language Models'
+    icon: 'fas fa-brain'
+    displayData:
+      sortBy: 'alphabetical'
+      rows: 2
+      cols: 2
+    items:
+      - title: 'LiteLLM Proxy'
+        description: 'Unified LLM API with intelligent routing'
+        icon: 'fas fa-route'
+        url: 'http://localhost:4000'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://litellm:4000/health'
+        tags: ['llm', 'proxy', 'routing']
+
+      - title: 'Ollama Local Models'
+        description: 'Local LLM model server and management'
+        icon: 'fas fa-microchip'
+        url: 'http://localhost:11434'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://ollama:11434/api/tags'
+        tags: ['ollama', 'local', 'models']
+
+      - title: 'Open WebUI'
+        description: 'Modern chat interface for local models'
+        icon: 'fas fa-comments'
+        url: 'http://localhost:3000'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://open-webui:8080/health'
+        tags: ['chat', 'ui', 'interface']
+
+      - title: 'AIM Experiments'
+        description: 'ML experiment tracking and visualization'
+        icon: 'fas fa-flask'
+        url: 'http://localhost:43800'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://aim:43800/api/runs'
+        tags: ['ml', 'experiments', 'tracking']
+
+  - name: '🔄 Workflow & Automation'
+    icon: 'fas fa-project-diagram'
+    displayData:
+      sortBy: 'alphabetical'
+      rows: 1
+      cols: 2
+    items:
+      - title: 'n8n Workflow Engine'
+        description: 'Visual workflow automation and integration'
+        icon: 'hl-n8n'
+        url: 'http://localhost:5678'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://n8n:5678/healthz'
+        tags: ['workflow', 'automation', 'integration']
+
+      - title: 'RabbitMQ Management'
+        description: 'Message queue broker and management'
+        icon: 'hl-rabbitmq'
+        url: 'http://localhost:15672'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://rabbitmq:15672/api/overview'
+        statusCheckAcceptCodes: '200,401'
+        tags: ['queue', 'messaging', 'broker']
+
+  - name: '🌐 Infrastructure & Networking'
+    icon: 'fas fa-network-wired'
+    displayData:
+      sortBy: 'alphabetical'
+      rows: 1
+      cols: 2
+    items:
+      - title: 'Traefik Dashboard'
+        description: 'Reverse proxy and load balancer management'
+        icon: 'hl-traefik'
+        url: 'http://localhost:8080'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://traefik:8080/api/rawdata'
+        tags: ['proxy', 'loadbalancer', 'routing']
+
+      - title: 'Healthchecks.io'
+        description: 'Cron job monitoring and alerting'
+        icon: 'fas fa-heartbeat'
+        url: 'http://localhost:8000'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://healthchecks:8000'
+        tags: ['monitoring', 'cron', 'alerts']
+
+  - name: '📊 System Monitoring'
+    icon: 'fas fa-chart-line'
+    displayData:
+      sortBy: 'alphabetical'
+      rows: 1
+      cols: 3
+    items:
+      - title: 'System Health Check'
+        description: 'Overall system health and status'
+        icon: 'fas fa-stethoscope'
+        url: 'http://localhost:8001/health'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://fastapi-1:8000/health'
+        tags: ['health', 'system', 'status']
+
+      - title: 'Service Metrics'
+        description: 'Real-time service performance metrics'
+        icon: 'fas fa-tachometer-alt'
+        url: 'http://localhost:8001/metrics'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://fastapi-1:8000/metrics'
+        tags: ['metrics', 'performance', 'monitoring']
+
+      - title: 'Container Stats'
+        description: 'Docker container resource usage'
+        icon: 'fab fa-docker'
+        url: '#'
+        target: 'newtab'
+        statusCheck: false
+        tags: ['docker', 'containers', 'resources']
+
+  - name: '⚙️ Development Tools'
+    icon: 'fas fa-tools'
+    displayData:
+      sortBy: 'alphabetical'
+      rows: 1
+      cols: 3
+    items:
+      - title: 'API Testing'
+        description: 'Interactive API endpoint testing'
+        icon: 'fas fa-vial'
+        url: 'http://localhost:8001/docs'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://fastapi-1:8000/docs'
+        tags: ['testing', 'api', 'development']
+
+      - title: 'Database Admin'
+        description: 'Database management interfaces'
+        icon: 'fas fa-database'
+        url: 'http://localhost:6333/dashboard'
+        target: 'newtab'
+        statusCheck: true
+        statusCheckUrl: 'http://qdrant:6333/dashboard'
+        tags: ['database', 'admin', 'management']
+
+      - title: 'Log Viewer'
+        description: 'Centralized log viewing and analysis'
+        icon: 'fas fa-file-alt'
+        url: '#'
+        target: 'newtab'
+        statusCheck: false
+        tags: ['logs', 'debugging', 'analysis']
