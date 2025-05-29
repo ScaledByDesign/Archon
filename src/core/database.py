@@ -54,8 +54,9 @@ class DatabaseManager:
     async def _init_mongodb(self):
         """Initialize MongoDB connection"""
         try:
-            # Use the MongoDB URL property from settings
-            episodic_uri = settings.database.mongodb_url
+            # Connect to episodic MongoDB for health checks
+            # Use individual host instead of cluster connection
+            episodic_uri = f"mongodb://{settings.database.mongodb_username}:{settings.database.mongodb_password}@mongo-episodic:27017/{settings.database.mongodb_database}?authSource=admin"
             
             self._mongo_client = AsyncIOMotorClient(episodic_uri)
             

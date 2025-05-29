@@ -47,6 +47,12 @@ class DatabaseSettings(BaseSettings):
     @property
     def mongodb_url(self) -> str:
         """Construct MongoDB connection URL"""
+        # Prefer direct MONGODB_URL if available
+        direct_url = os.getenv("MONGODB_URL")
+        if direct_url:
+            return direct_url
+            
+        # Fallback to constructing from individual fields
         if self.mongodb_username and self.mongodb_password:
             return (
                 f"mongodb://{self.mongodb_username}:{self.mongodb_password}@"
