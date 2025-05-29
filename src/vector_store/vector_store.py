@@ -109,7 +109,23 @@ class QdrantVectorStore:
             logger.error(f"Failed to connect to Qdrant: {e}")
             raise
     
-    def create_collection(
+    async def collection_exists(self, collection_name: str) -> bool:
+        """Check if a collection exists
+        
+        Args:
+            collection_name: Name of the collection to check
+            
+        Returns:
+            True if collection exists
+        """
+        try:
+            collections = self.client.get_collections().collections
+            return any(c.name == collection_name for c in collections)
+        except Exception as e:
+            logger.error(f"Failed to check if collection {collection_name} exists: {e}")
+            return False
+
+    async def create_collection(
         self,
         collection_name: str,
         vector_size: int,
@@ -131,8 +147,7 @@ class QdrantVectorStore:
         """
         try:
             # Check if collection exists
-            collections = self.client.get_collections().collections
-            collection_exists = any(c.name == collection_name for c in collections)
+            collection_exists = await self.collection_exists(collection_name)
             
             if collection_exists:
                 if recreate:

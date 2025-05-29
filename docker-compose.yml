@@ -237,6 +237,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     environment:
       - VAULT_ADDR=http://vault:8200
+      - VAULT_TOKEN=${VAULT_TOKEN}
       - VAULT_ROLE_ID=${VAULT_ROLE_ID}
       - VAULT_SECRET_ID=${VAULT_SECRET_ID}
       - VAULT_ROOT_TOKEN=${VAULT_ROOT_TOKEN}
@@ -249,11 +250,11 @@ services:
       - POSTGRES_USER=fastapi
       - POSTGRES_PASSWORD=${PG_PASS}
       - POSTGRES_DB=fastapi
-      - MONGODB_URL=mongodb://mongo-episodic:27017,mongo-procedural:27017
+      - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo-episodic:27017,mongo-procedural:27017
       - MONGODB_HOST=mongo-episodic
       - MONGODB_PORT=27017
       - MONGODB_USERNAME=${MONGO_USER:-admin}
-      - MONGODB_PASSWORD=${MONGO_PASS:-secretpass}
+      - MONGODB_PASSWORD=${MONGO_PASS:-change-me-mongo-pass}
       - MONGODB_DATABASE=episodic
       - QDRANT_URL=http://qdrant:6333
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
@@ -308,6 +309,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     environment:
       - VAULT_ADDR=http://vault:8200
+      - VAULT_TOKEN=${VAULT_TOKEN}
       - VAULT_ROLE_ID=${VAULT_ROLE_ID}
       - VAULT_SECRET_ID=${VAULT_SECRET_ID}
       - VAULT_ROOT_TOKEN=${VAULT_ROOT_TOKEN}
@@ -320,11 +322,11 @@ services:
       - POSTGRES_USER=fastapi
       - POSTGRES_PASSWORD=${PG_PASS}
       - POSTGRES_DB=fastapi
-      - MONGODB_URL=mongodb://mongo-episodic:27017,mongo-procedural:27017
+      - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo-episodic:27017,mongo-procedural:27017
       - MONGODB_HOST=mongo-episodic
       - MONGODB_PORT=27017
       - MONGODB_USERNAME=${MONGO_USER:-admin}
-      - MONGODB_PASSWORD=${MONGO_PASS:-secretpass}
+      - MONGODB_PASSWORD=${MONGO_PASS:-change-me-mongo-pass}
       - MONGODB_DATABASE=episodic
       - QDRANT_URL=http://qdrant:6333
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
@@ -372,6 +374,7 @@ services:
       - /etc/localtime:/etc/localtime:ro
     environment:
       - VAULT_ADDR=http://vault:8200
+      - VAULT_TOKEN=${VAULT_TOKEN}
       - VAULT_ROLE_ID=${VAULT_ROLE_ID}
       - VAULT_SECRET_ID=${VAULT_SECRET_ID}
       - VAULT_ROOT_TOKEN=${VAULT_ROOT_TOKEN}
@@ -384,11 +387,11 @@ services:
       - POSTGRES_USER=fastapi
       - POSTGRES_PASSWORD=${PG_PASS}
       - POSTGRES_DB=fastapi
-      - MONGODB_URL=mongodb://mongo-episodic:27017,mongo-procedural:27017
+      - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo-episodic:27017,mongo-procedural:27017
       - MONGODB_HOST=mongo-episodic
       - MONGODB_PORT=27017
       - MONGODB_USERNAME=${MONGO_USER:-admin}
-      - MONGODB_PASSWORD=${MONGO_PASS:-secretpass}
+      - MONGODB_PASSWORD=${MONGO_PASS:-change-me-mongo-pass}
       - MONGODB_DATABASE=episodic
       - QDRANT_URL=http://qdrant:6333
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
@@ -501,7 +504,7 @@ services:
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-secretpass}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-change-me-mongo-pass}
       MONGO_INITDB_DATABASE: episodic
       TZ: America/Chicago
     volumes:
@@ -520,7 +523,7 @@ services:
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-secretpass}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-change-me-mongo-pass}
       MONGO_INITDB_DATABASE: procedural
       TZ: America/Chicago
     volumes:

@@ -302,6 +302,10 @@ class SecretManager:
         """Get LLM credentials"""
         return self.vault.get_llm_credentials()
     
+    def get_secret(self, path: str, key: Optional[str] = None) -> Any:
+        """Get a generic secret from Vault"""
+        return self.vault.get_secret(path, key)
+    
     def refresh_secrets(self):
         """Refresh all cached secrets"""
         get_vault_client.cache_clear()

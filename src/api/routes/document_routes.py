@@ -16,6 +16,7 @@ from pydantic import BaseModel, Field
 from src.document_pipeline.document_processor import DocumentProcessor, ProcessingStatus
 from src.document_pipeline.queue_consumer import DocumentQueueConsumer
 from src.db.mongodb_client import MongoDBClient
+from src.core.service_manager import get_document_processor, get_mongodb_client, get_queue_consumer
 
 # Import observability
 try:
@@ -128,18 +129,17 @@ router = APIRouter(
 )
 
 # Dependencies
-async def get_document_processor():
-    processor = DocumentProcessor()
-    await processor.setup()
-    return processor
+async def get_document_processor_dep():
+    """Get document processor from service manager"""
+    return await get_document_processor()
 
-async def get_queue_consumer():
-    consumer = DocumentQueueConsumer()
-    await consumer.setup()
-    return consumer
+async def get_queue_consumer_dep():
+    """Get queue consumer from service manager"""
+    return await get_queue_consumer()
 
-async def get_mongodb_client():
-    return MongoDBClient()
+async def get_mongodb_client_dep():
+    """Get MongoDB client from service manager"""
+    return await get_mongodb_client()
 
 # Routes
 @router.post(
@@ -154,8 +154,8 @@ async def upload_document(
     file: UploadFile = File(...),
     metadata: Optional[str] = Form(None),
     process_async: bool = Form(True),
-    processor: DocumentProcessor = Depends(get_document_processor),
-    queue_consumer: DocumentQueueConsumer = Depends(get_queue_consumer)
+    processor: DocumentProcessor = Depends(get_document_processor_dep),
+    queue_consumer: DocumentQueueConsumer = Depends(get_queue_consumer_dep)
 ):
     try:
         # Generate document ID
@@ -223,7 +223,7 @@ async def upload_document(
 @trace_request("get_document") if LANGFUSE_AVAILABLE else lambda x: x
 async def get_document(
     document_id: str,
-    processor: DocumentProcessor = Depends(get_document_processor)
+    processor: DocumentProcessor = Depends(get_document_processor_dep)
 ):
     try:
         document = await processor.get_document_status(document_id)
@@ -264,7 +264,7 @@ async def get_document(
 @trace_request("search_documents") if LANGFUSE_AVAILABLE else lambda x: x
 async def search_documents(
     request: DocumentSearchRequest,
-    processor: DocumentProcessor = Depends(get_document_processor)
+    processor: DocumentProcessor = Depends(get_document_processor_dep)
 ):
     try:
         # Search for similar chunks
@@ -297,8 +297,8 @@ async def list_documents(
     status: Optional[str] = Query(None, description="Filter by processing status"),
     skip: int = Query(0, ge=0, description="Number of documents to skip"),
     limit: int = Query(10, ge=1, le=100, description="Maximum number of documents to return"),
-    mongodb_client: MongoDBClient = Depends(get_mongodb_client),
-    processor: DocumentProcessor = Depends(get_document_processor)
+    mongodb_client: MongoDBClient = Depends(get_mongodb_client_dep),
+    processor: DocumentProcessor = Depends(get_document_processor_dep)
 ):
     try:
         # Build filter
@@ -343,8 +343,8 @@ async def list_documents(
 @trace_request("delete_document") if LANGFUSE_AVAILABLE else lambda x: x
 async def delete_document(
     document_id: str,
-    mongodb_client: MongoDBClient = Depends(get_mongodb_client),
-    processor: DocumentProcessor = Depends(get_document_processor),
+    mongodb_client: MongoDBClient = Depends(get_mongodb_client_dep),
+    processor: DocumentProcessor = Depends(get_document_processor_dep),
 ):
     try:
         # Check if document exists

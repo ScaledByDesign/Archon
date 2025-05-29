@@ -29,6 +29,7 @@ from src.core import (
     APIError, ValidationError, AuthenticationError, InternalServerError
 )
 from src.core.validators import HealthCheckResponse, ErrorResponse
+from src.core.service_manager import service_manager
 from src.config.settings import get_settings
 
 # Observability imports
@@ -71,12 +72,7 @@ async def initialize_secrets():
         logger.info("Initializing secret manager...")
         
         # Get Vault configuration from environment
-        vault_config = VaultConfig(
-            url=os.getenv("VAULT_ADDR", "http://vault:8200"),
-            role_id=os.getenv("VAULT_ROLE_ID"),
-            secret_id=os.getenv("VAULT_SECRET_ID"),
-            mount_point=os.getenv("VAULT_MOUNT_POINT", "auth/approle")
-        )
+        vault_config = VaultConfig.from_env()
         
         # Create Vault client (authentication happens automatically)
         vault_client = VaultClient(vault_config)
@@ -86,8 +82,13 @@ async def initialize_secrets():
         set_global_secret_manager(secret_manager)
         
         # Load application configuration
-        app_config = await secret_manager.get_secret("app/config")
-        logger.info("Secret manager initialized successfully")
+        try:
+            app_config = secret_manager.get_secret("app/config")
+            logger.info("Secret manager initialized successfully with app config from Vault")
+        except Exception as config_error:
+            logger.warning(f"Could not load app config from Vault: {config_error}")
+            app_config = None  # Use default configuration
+            logger.info("Secret manager initialized successfully with default config")
         
     except Exception as e:
         logger.error(f"Failed to initialize secret manager: {e}")
@@ -108,8 +109,12 @@ async def initialize_vector_store():
         
         if secret_manager:
             # Get Qdrant configuration from Vault
-            qdrant_config_dict = await secret_manager.get_secret("qdrant/config")
-            qdrant_url = qdrant_config_dict.get("url", "http://qdrant:6333")
+            try:
+                qdrant_config_dict = secret_manager.get_secret("qdrant/config")
+                qdrant_url = qdrant_config_dict.get("url", "http://qdrant:6333")
+            except Exception as e:
+                logger.warning(f"Could not load Qdrant config from Vault: {e}")
+                qdrant_url = os.getenv("QDRANT_URL", "http://qdrant:6333")
         else:
             # Fallback to environment variables
             qdrant_url = os.getenv("QDRANT_URL", "http://qdrant:6333")
@@ -141,36 +146,36 @@ async def initialize_vector_store():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
-    global document_processor
     
-    # Initialize resources
+    # Initialize databases first
+    await initialize_databases()
+    
+    # Initialize secrets
     await initialize_secrets()
     await initialize_vector_store()
     
-    # Initialize document processor
+    # Initialize service manager
     try:
-        logger.info("Initializing document processor...")
-        document_processor = DocumentProcessor(vector_store=vector_store)
-        await document_processor.setup()
-        set_global_document_processor(document_processor)
-        logger.info("Document processor initialized successfully")
+        logger.info("Initializing service manager...")
+        await service_manager.initialize()
+        logger.info("Service manager initialized successfully")
     except Exception as e:
-        logger.error(f"Failed to initialize document processor: {e}")
-        logger.warning("Continuing without document processor")
+        logger.error(f"Failed to initialize service manager: {e}")
+        logger.warning("Continuing with limited functionality")
     
     # Start application
     yield
     
     # Cleanup resources
-    if vector_store:
-        try:
-            await vector_store.close()
-        except Exception as e:
-            logger.error(f"Error closing vector store: {e}")
-        # Cleanup on shutdown
+    try:
         logger.info("Shutting down application...")
+        await service_manager.cleanup()
+        if vector_store:
+            await vector_store.close()
         await close_databases()
         logger.info("Application shutdown completed")
+    except Exception as e:
+        logger.error(f"Error during shutdown: {e}")
 
 
 def create_app() -> FastAPI:
@@ -303,7 +308,7 @@ def create_app() -> FastAPI:
             # Check secret manager
             if secret_manager:
                 try:
-                    await secret_manager.get_secret("app/config")
+                    secret_manager.get_secret("app/config")
                     components["vault"] = "healthy"
                 except Exception as e:
                     logger.warning(f"Vault health check failed: {e}")

@@ -19,10 +19,11 @@ psycopg2-binary==2.9.9
 qdrant-client==1.7.0
 
 # Machine Learning
-sentence-transformers==2.2.2
+sentence-transformers==2.7.0
 torch>=2.2.0
 transformers>=4.36.0
 numpy>=1.26.0
+huggingface-hub>=0.20.0,<0.25.0
 
 # Authentication and security
 python-jose[cryptography]==3.3.0

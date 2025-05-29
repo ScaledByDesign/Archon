@@ -519,6 +519,70 @@ class MongoDBClient:
             logger.error(f"Failed to search documents: {e}")
             return []
     
+    async def find_document(self, collection_name: str, filter_dict: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Find a single document in a collection
+        
+        Args:
+            collection_name: Name of the collection
+            filter_dict: Filter criteria
+            
+        Returns:
+            Document if found, None otherwise
+        """
+        try:
+            collection = self.db[collection_name]
+            return await collection.find_one(filter_dict)
+        except Exception as e:
+            logger.error(f"Failed to find document in {collection_name}: {e}")
+            return None
+
+    async def find_documents(self, collection_name: str, filter_dict: Dict[str, Any] = None, 
+                           limit: int = None, skip: int = None, sort: List[tuple] = None) -> List[Dict[str, Any]]:
+        """Find multiple documents in a collection
+        
+        Args:
+            collection_name: Name of the collection
+            filter_dict: Filter criteria
+            limit: Maximum number of documents to return
+            skip: Number of documents to skip
+            sort: List of (field, direction) tuples for sorting
+            
+        Returns:
+            List of documents
+        """
+        try:
+            collection = self.db[collection_name]
+            cursor = collection.find(filter_dict or {})
+            
+            if sort:
+                cursor = cursor.sort(sort)
+            if skip:
+                cursor = cursor.skip(skip)
+            if limit:
+                cursor = cursor.limit(limit)
+                
+            return await cursor.to_list(length=limit)
+        except Exception as e:
+            logger.error(f"Failed to find documents in {collection_name}: {e}")
+            return []
+    
+    async def count_documents(self, collection_name: str, filter_dict: Dict[str, Any] = None) -> int:
+        """Count documents in a collection
+        
+        Args:
+            collection_name: Name of the collection
+            filter_dict: Filter criteria
+            
+        Returns:
+            Number of documents matching the filter
+        """
+        try:
+            collection = self.db[collection_name]
+            return await collection.count_documents(filter_dict or {})
+        except Exception as e:
+            logger.error(f"Failed to count documents in {collection_name}: {e}")
+            return 0
+    
     async def close(self):
         """Close MongoDB connection"""
         if self.client:
