@@ -1,0 +1,254 @@
+# LiteLLM Router Configuration for Advanced Model Routing
+# This file defines routing strategies, load balancing, and model selection logic
+
+# Model Routing Rules
+routing_rules:
+  # Route based on request type
+  by_request_type:
+    # Code generation and analysis
+    code:
+      primary_models: ["codellama-7b", "gpt-4", "claude-3-opus"]
+      fallback_models: ["gpt-4-turbo", "claude-3-sonnet"]
+      temperature: 0.1
+      max_tokens: 4096
+      
+    # Creative writing and content generation
+    creative:
+      primary_models: ["claude-3-opus", "gpt-4", "claude-3-sonnet"]
+      fallback_models: ["gpt-4-turbo", "command-r-plus"]
+      temperature: 0.8
+      max_tokens: 4096
+      
+    # Data analysis and reasoning
+    analysis:
+      primary_models: ["gpt-4", "claude-3-opus", "gpt-4-turbo"]
+      fallback_models: ["claude-3-sonnet", "command-r-plus"]
+      temperature: 0.3
+      max_tokens: 4096
+      
+    # Quick responses and chat
+    chat:
+      primary_models: ["gpt-3.5-turbo", "claude-3-haiku", "command-r"]
+      fallback_models: ["gemini-pro", "mistral-7b"]
+      temperature: 0.7
+      max_tokens: 2048
+      
+    # Vision and image analysis
+    vision:
+      primary_models: ["gpt-4-vision", "claude-3-opus", "claude-3-sonnet"]
+      fallback_models: ["gpt-4-turbo", "gemini-pro-vision"]
+      temperature: 0.5
+      max_tokens: 4096
+      
+    # Embedding generation
+    embedding:
+      primary_models: ["text-embedding-3-large", "text-embedding-3-small"]
+      fallback_models: ["embed-english-v3", "nomic-embed"]
+      
+  # Route based on user preferences
+  by_user_tier:
+    premium:
+      allowed_models: ["gpt-4", "claude-3-opus", "gpt-4-turbo", "azure-gpt-4"]
+      rate_limit: 1000  # requests per hour
+      priority: "high"
+      
+    standard:
+      allowed_models: ["gpt-3.5-turbo", "claude-3-sonnet", "claude-3-haiku", "command-r-plus", "gemini-pro"]
+      rate_limit: 500
+      priority: "medium"
+      
+    basic:
+      allowed_models: ["gpt-3.5-turbo", "claude-3-haiku", "command-r", "mistral-7b", "llama2-7b"]
+      rate_limit: 100
+      priority: "low"
+      
+    local_only:
+      allowed_models: ["mistral-7b", "llama2-7b", "llama3-8b", "codellama-7b", "nomic-embed"]
+      rate_limit: 1000
+      priority: "medium"
+      cost_tracking: false
+
+# Load Balancing Strategies
+load_balancing:
+  # Strategy for distributing requests
+  strategy: "weighted_round_robin"  # Options: round_robin, weighted_round_robin, least_busy, random
+  
+  # Model weights for weighted strategies
+  model_weights:
+    "gpt-4": 10
+    "claude-3-opus": 10
+    "gpt-4-turbo": 8
+    "claude-3-sonnet": 7
+    "gpt-3.5-turbo": 5
+    "claude-3-haiku": 5
+    "command-r-plus": 6
+    "command-r": 4
+    "gemini-pro": 5
+    "azure-gpt-4": 9
+    "mistral-7b": 3
+    "llama2-7b": 3
+    "llama3-8b": 4
+    "codellama-7b": 3
+    
+  # Health check configuration
+  health_checks:
+    interval: 60  # seconds
+    timeout: 30   # seconds
+    failure_threshold: 3
+    recovery_threshold: 2
+    
+  # Circuit breaker configuration
+  circuit_breaker:
+    failure_threshold: 5
+    timeout: 300  # seconds
+    half_open_max_calls: 3
+
+# Cost Optimization Rules
+cost_optimization:
+  # Automatic model selection based on cost
+  enable_cost_routing: true
+  
+  # Cost thresholds for automatic downgrading
+  cost_thresholds:
+    daily_limit: 100.00  # USD
+    hourly_limit: 10.00  # USD
+    per_request_limit: 1.00  # USD
+    
+  # Fallback strategy when cost limits are reached
+  cost_fallback_strategy:
+    - "downgrade_to_cheaper"  # Try cheaper models first
+    - "use_local_models"      # Fall back to local models
+    - "queue_request"         # Queue for later processing
+    - "reject_request"        # Reject if no alternatives
+    
+  # Model cost tiers
+  cost_tiers:
+    expensive: ["gpt-4", "claude-3-opus"]
+    moderate: ["gpt-4-turbo", "claude-3-sonnet", "command-r-plus"]
+    cheap: ["gpt-3.5-turbo", "claude-3-haiku", "command-r", "gemini-pro"]
+    free: ["mistral-7b", "llama2-7b", "llama3-8b", "codellama-7b", "nomic-embed"]
+
+# Performance Optimization
+performance:
+  # Caching configuration
+  caching:
+    enable: true
+    ttl: 3600  # seconds
+    max_size: 1000  # number of cached responses
+    cache_key_strategy: "hash_input"
+    
+  # Request batching
+  batching:
+    enable: true
+    max_batch_size: 10
+    batch_timeout: 100  # milliseconds
+    
+  # Connection pooling
+  connection_pool:
+    max_connections: 100
+    max_idle_connections: 20
+    idle_timeout: 300  # seconds
+    
+  # Request timeout configuration
+  timeouts:
+    connect_timeout: 10  # seconds
+    read_timeout: 300    # seconds
+    total_timeout: 600   # seconds
+
+# Monitoring and Alerting
+monitoring:
+  # Metrics collection
+  metrics:
+    enable: true
+    export_interval: 60  # seconds
+    include_model_metrics: true
+    include_cost_metrics: true
+    include_performance_metrics: true
+    
+  # Alerting rules
+  alerts:
+    high_error_rate:
+      threshold: 0.05  # 5% error rate
+      window: 300      # 5 minutes
+      
+    high_latency:
+      threshold: 10000  # 10 seconds
+      window: 300       # 5 minutes
+      
+    cost_threshold:
+      daily_threshold: 80.00   # 80% of daily limit
+      hourly_threshold: 8.00   # 80% of hourly limit
+      
+    model_unavailable:
+      consecutive_failures: 3
+      alert_immediately: true
+      
+  # Logging configuration
+  logging:
+    level: "INFO"
+    include_request_body: false
+    include_response_body: false
+    include_headers: true
+    log_slow_requests: true
+    slow_request_threshold: 5000  # milliseconds
+
+# Security Configuration
+security:
+  # Rate limiting per API key
+  rate_limiting:
+    enable: true
+    default_rpm: 100    # requests per minute
+    default_tpm: 10000  # tokens per minute
+    burst_allowance: 10 # additional requests in burst
+    
+  # API key validation
+  api_key_validation:
+    require_api_key: true
+    validate_key_format: true
+    check_key_permissions: true
+    
+  # Request validation
+  request_validation:
+    max_tokens: 8192
+    max_prompt_length: 32768
+    allowed_content_types: ["application/json"]
+    validate_json_schema: true
+    
+  # Response filtering
+  response_filtering:
+    filter_sensitive_data: true
+    redact_api_keys: true
+    sanitize_errors: true
+
+# Environment-specific Overrides
+environments:
+  development:
+    logging:
+      level: "DEBUG"
+      include_request_body: true
+      include_response_body: true
+    cost_optimization:
+      enable_cost_routing: false
+    security:
+      require_api_key: false
+      
+  staging:
+    cost_optimization:
+      daily_limit: 50.00
+      hourly_limit: 5.00
+    performance:
+      caching:
+        ttl: 1800  # 30 minutes
+        
+  production:
+    security:
+      rate_limiting:
+        default_rpm: 500
+        default_tpm: 50000
+    monitoring:
+      alerts:
+        high_error_rate:
+          threshold: 0.01  # 1% error rate
+        cost_threshold:
+          daily_threshold: 90.00
+          hourly_threshold: 9.00

@@ -5,12 +5,18 @@
 
 set -e
 
+# Load environment variables if .env exists
+if [ -f .env ]; then
+    echo "📄 Loading environment variables from .env..."
+    export $(grep -v '^#' .env | xargs)
+fi
+
 echo "🔧 Creating OAuth2 applications in Authentik..."
 
 # Configuration
-AUTHENTIK_BASE_URL="https://localhost:9443"
-ADMIN_USERNAME="admin@localhost"
-ADMIN_PASSWORD="change-me-authentik-admin"
+AUTHENTIK_BASE_URL=${AUTHENTIK_BASE_URL:-https://localhost:9443}
+ADMIN_USERNAME=${AUTHENTIK_BOOTSTRAP_EMAIL:-admin@localhost}
+ADMIN_PASSWORD=${AUTHENTIK_BOOTSTRAP_PASSWORD:-change-me-authentik-admin}
 
 # Check if Authentik is accessible
 if ! curl -k -s "$AUTHENTIK_BASE_URL" > /dev/null; then

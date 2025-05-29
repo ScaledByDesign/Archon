@@ -1,6 +1,6 @@
 # Task ID: 13
 # Title: Integrate LiteLLM for Model Management
-# Status: pending
+# Status: in-progress
 # Dependencies: 1, 6
 # Priority: high
 # Description: Implement LiteLLM proxy for managing multiple LLM providers and local models.
@@ -11,17 +11,33 @@ Set up LiteLLM proxy in docker-compose.yml. Configure support for multiple LLM p
 Test integration with different LLM providers. Verify model routing and load balancing functionality. Benchmark inference performance across different models. Test fallback mechanisms for provider outages.
 
 # Subtasks:
-## 1. LiteLLM Installation and Basic Setup [pending]
+## 1. LiteLLM Installation and Basic Setup [done]
 ### Dependencies: None
 ### Description: Install LiteLLM and set up the initial configuration for accessing multiple LLM providers
 ### Details:
 Install LiteLLM using pip, set up environment variables for API keys (OpenAI, Anthropic, etc.), and create a basic config.yaml file structure for the LiteLLM proxy server
 
-## 2. Provider Configuration [pending]
+## 2. Provider Configuration [in-progress]
 ### Dependencies: 13.1
 ### Description: Configure multiple LLM providers with their specific parameters
 ### Details:
 Set up model-specific configurations in config.yaml including API bases, keys, temperatures, and other provider-specific parameters for services like OpenAI, Azure, and Anthropic
+<info added on 2025-05-29T00:24:46.910Z>
+Implemented advanced routing strategies for model management using LiteLLM's Router capabilities. Added weighted distribution across model deployments with the following configurations:
+
+1. Set up usage-based routing for production environments with Redis integration to track TPM/RPM across deployments
+2. Configured latency-based routing as fallback strategy to optimize response times
+3. Implemented cost-based routing for budget-sensitive operations
+4. Added retry mechanisms with configurable wait times (retry_after=5s) for handling failed requests
+5. Created model groups with appropriate fallback chains:
+   - Primary groups: fast, vision, local, code, embeddings, budget
+   - Each group configured with multiple deployment options of the same model type
+6. Documented provider-specific parameters including temperature settings, max tokens, and other tuning options
+7. Added simple-shuffle strategy for development environments to balance load without Redis dependency
+8. Implemented prompt caching optimization to reduce costs and latency by routing similar prompts to the same deployment
+
+All configurations stored in config.yaml with environment variable references for sensitive credentials.
+</info added on 2025-05-29T00:24:46.910Z>
 
 ## 3. Model Routing Logic Implementation [pending]
 ### Dependencies: 13.2

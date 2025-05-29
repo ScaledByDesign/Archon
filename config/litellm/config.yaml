@@ -1,0 +1,379 @@
+# LiteLLM Proxy Configuration for Production RAG System
+# This configuration supports multiple LLM providers with load balancing and fallbacks
+
+model_list:
+  # OpenAI Models
+  - model_name: gpt-4
+    litellm_params:
+      model: gpt-4
+      api_key: os.environ/OPENAI_API_KEY
+      api_base: https://api.openai.com/v1
+      max_tokens: 4096
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+      supports_vision: false
+      input_cost_per_token: 0.00003
+      output_cost_per_token: 0.00006
+
+  - model_name: gpt-4-turbo
+    litellm_params:
+      model: gpt-4-turbo-preview
+      api_key: os.environ/OPENAI_API_KEY
+      api_base: https://api.openai.com/v1
+      max_tokens: 4096
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+      supports_vision: true
+      input_cost_per_token: 0.00001
+      output_cost_per_token: 0.00003
+
+  - model_name: gpt-4-vision
+    litellm_params:
+      model: gpt-4-vision-preview
+      api_key: os.environ/OPENAI_API_KEY
+      api_base: https://api.openai.com/v1
+      max_tokens: 4096
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+      supports_vision: true
+      input_cost_per_token: 0.00001
+      output_cost_per_token: 0.00003
+
+  - model_name: gpt-3.5-turbo
+    litellm_params:
+      model: gpt-3.5-turbo
+      api_key: os.environ/OPENAI_API_KEY
+      api_base: https://api.openai.com/v1
+      max_tokens: 4096
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+      supports_vision: false
+      input_cost_per_token: 0.0000005
+      output_cost_per_token: 0.0000015
+
+  # OpenAI Embeddings
+  - model_name: text-embedding-3-large
+    litellm_params:
+      model: text-embedding-3-large
+      api_key: os.environ/OPENAI_API_KEY
+      api_base: https://api.openai.com/v1
+    model_info:
+      mode: embedding
+      input_cost_per_token: 0.00000013
+      max_input_tokens: 8191
+      output_vector_size: 3072
+
+  - model_name: text-embedding-3-small
+    litellm_params:
+      model: text-embedding-3-small
+      api_key: os.environ/OPENAI_API_KEY
+      api_base: https://api.openai.com/v1
+    model_info:
+      mode: embedding
+      input_cost_per_token: 0.00000002
+      max_input_tokens: 8191
+      output_vector_size: 1536
+
+  # Azure OpenAI Models (if available)
+  - model_name: azure-gpt-4
+    litellm_params:
+      model: azure/gpt-4
+      api_key: os.environ/AZURE_OPENAI_API_KEY
+      api_base: os.environ/AZURE_OPENAI_ENDPOINT
+      api_version: "2024-02-15-preview"
+      max_tokens: 4096
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+      supports_vision: false
+
+  # Anthropic Models
+  - model_name: claude-3-opus
+    litellm_params:
+      model: claude-3-opus-20240229
+      api_key: os.environ/ANTHROPIC_API_KEY
+      api_base: https://api.anthropic.com
+      max_tokens: 4096
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_parallel_function_calling: false
+      supports_vision: true
+      input_cost_per_token: 0.000015
+      output_cost_per_token: 0.000075
+
+  - model_name: claude-3-sonnet
+    litellm_params:
+      model: claude-3-sonnet-20240229
+      api_key: os.environ/ANTHROPIC_API_KEY
+      api_base: https://api.anthropic.com
+      max_tokens: 4096
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_parallel_function_calling: false
+      supports_vision: true
+      input_cost_per_token: 0.000003
+      output_cost_per_token: 0.000015
+
+  - model_name: claude-3-haiku
+    litellm_params:
+      model: claude-3-haiku-20240307
+      api_key: os.environ/ANTHROPIC_API_KEY
+      api_base: https://api.anthropic.com
+      max_tokens: 4096
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_parallel_function_calling: false
+      supports_vision: true
+      input_cost_per_token: 0.00000025
+      output_cost_per_token: 0.00000125
+
+  # Google Models
+  - model_name: gemini-pro
+    litellm_params:
+      model: gemini/gemini-pro
+      api_key: os.environ/GOOGLE_API_KEY
+      max_tokens: 4096
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_parallel_function_calling: false
+      supports_vision: false
+      input_cost_per_token: 0.0000005
+      output_cost_per_token: 0.0000015
+
+  - model_name: gemini-pro-vision
+    litellm_params:
+      model: gemini/gemini-pro-vision
+      api_key: os.environ/GOOGLE_API_KEY
+      max_tokens: 4096
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_parallel_function_calling: false
+      supports_vision: true
+      input_cost_per_token: 0.0000005
+      output_cost_per_token: 0.0000015
+
+  # Cohere Models
+  - model_name: command-r-plus
+    litellm_params:
+      model: cohere/command-r-plus
+      api_key: os.environ/COHERE_API_KEY
+      max_tokens: 4096
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_parallel_function_calling: false
+      supports_vision: false
+      input_cost_per_token: 0.000003
+      output_cost_per_token: 0.000015
+
+  - model_name: command-r
+    litellm_params:
+      model: cohere/command-r
+      api_key: os.environ/COHERE_API_KEY
+      max_tokens: 4096
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_parallel_function_calling: false
+      supports_vision: false
+      input_cost_per_token: 0.0000005
+      output_cost_per_token: 0.0000015
+
+  # Cohere Embeddings
+  - model_name: embed-english-v3
+    litellm_params:
+      model: cohere/embed-english-v3.0
+      api_key: os.environ/COHERE_API_KEY
+    model_info:
+      mode: embedding
+      input_cost_per_token: 0.0000001
+      max_input_tokens: 512
+      output_vector_size: 1024
+
+  # Local Ollama Models
+  # Commented out - models not installed in Ollama
+  # - model_name: mistral-7b
+  #   litellm_params:
+  #     model: ollama/mistral:7b
+  #     api_base: http://ollama:11434
+  #     temperature: 0.7
+  #   model_info:
+  #     mode: chat
+  #     supports_function_calling: false
+  #     supports_parallel_function_calling: false
+  #     supports_vision: false
+  #     input_cost_per_token: 0
+  #     output_cost_per_token: 0
+
+  # - model_name: llama2-7b
+  #   litellm_params:
+  #     model: ollama/llama2:7b
+  #     api_base: http://ollama:11434
+  #     temperature: 0.7
+  #   model_info:
+  #     mode: chat
+  #     supports_function_calling: false
+  #     supports_parallel_function_calling: false
+  #     supports_vision: false
+  #     input_cost_per_token: 0
+  #     output_cost_per_token: 0
+
+  # - model_name: codellama-7b
+  #   litellm_params:
+  #     model: ollama/codellama:7b
+  #     api_base: http://ollama:11434
+  #     temperature: 0.1
+  #   model_info:
+  #     mode: chat
+  #     supports_function_calling: false
+  #     supports_parallel_function_calling: false
+  #     supports_vision: false
+  #     input_cost_per_token: 0
+  #     output_cost_per_token: 0
+
+  # - model_name: llama3-8b
+  #   litellm_params:
+  #     model: ollama/llama3:8b
+  #     api_base: http://ollama:11434
+  #     temperature: 0.7
+  #   model_info:
+  #     mode: chat
+  #     supports_function_calling: false
+  #     supports_parallel_function_calling: false
+  #     supports_vision: false
+  #     input_cost_per_token: 0
+  #     output_cost_per_token: 0
+
+  # Small local model for testing - ONLY INSTALLED MODEL
+  - model_name: llama3.2-1b
+    litellm_params:
+      model: ollama/llama3.2:1b
+      api_base: http://ollama:11434
+      temperature: 0.7
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_parallel_function_calling: false
+      supports_vision: false
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+
+  # Commented out - embedding model not installed
+  # - model_name: nomic-embed
+  #   litellm_params:
+  #     model: ollama/nomic-embed-text
+  #     api_base: http://ollama:11434
+  #   model_info:
+  #     mode: embedding
+  #     input_cost_per_token: 0
+  #     max_input_tokens: 8192
+  #     output_vector_size: 768
+
+# Router Configuration for Load Balancing
+router_settings:
+  routing_strategy: "least-busy"  # Options: simple-shuffle, least-busy, usage-based-routing
+  model_group_alias:
+    # High-performance models for complex tasks
+    "premium": ["gpt-4", "claude-3-opus", "azure-gpt-4"]
+    # Balanced performance models
+    "standard": ["gpt-4-turbo", "claude-3-sonnet", "gpt-3.5-turbo", "command-r-plus"]
+    # Fast and efficient models
+    "fast": ["claude-3-haiku", "gpt-3.5-turbo", "command-r", "gemini-pro"]
+    # Vision-capable models
+    "vision": ["gpt-4-vision", "gpt-4-turbo", "claude-3-opus", "claude-3-sonnet", "claude-3-haiku", "gemini-pro-vision"]
+    # Local models for privacy-sensitive tasks
+    "local": ["llama3.2-1b"]
+    # Code-specific models
+    "code": ["gpt-4", "claude-3-opus"]
+    # Embedding models
+    "embeddings": ["text-embedding-3-large", "text-embedding-3-small", "embed-english-v3"]
+    # Cost-effective models
+    "budget": ["gpt-3.5-turbo", "claude-3-haiku", "command-r", "gemini-pro"]
+
+# Fallback Configuration
+litellm_settings:
+  # Fallback models in case primary models fail
+  fallbacks: [
+    {"gpt-4": ["gpt-4-turbo", "claude-3-opus", "azure-gpt-4"]},
+    {"claude-3-opus": ["gpt-4", "claude-3-sonnet"]},
+    {"gpt-4-turbo": ["gpt-4", "claude-3-sonnet"]},
+    {"claude-3-sonnet": ["claude-3-haiku", "gpt-3.5-turbo"]},
+    {"gpt-4-vision": ["gpt-4-turbo", "claude-3-opus"]},
+    {"gemini-pro": ["gpt-3.5-turbo", "claude-3-haiku"]},
+    {"command-r-plus": ["command-r", "claude-3-sonnet"]},
+    {"text-embedding-3-large": ["text-embedding-3-small", "embed-english-v3"]},
+    {"mistral-7b": ["llama2-7b", "llama3-8b"]},
+    {"llama2-7b": ["mistral-7b", "llama3-8b"]},
+    {"nomic-embed": ["text-embedding-3-small"]}
+  ]
+  
+  # Request timeout settings
+  request_timeout: 600
+  
+  # Retry configuration
+  num_retries: 3
+  
+  # Rate limiting per model
+  rpm: 500  # requests per minute
+  tpm: 90000  # tokens per minute
+  
+  # Logging
+  set_verbose: true
+  
+  # Health check settings
+  health_check_interval: 300  # 5 minutes
+  
+  # Cost tracking
+  track_cost_per_model: true
+  track_cost_per_api_key: true
+
+# General Settings
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: null  # Use in-memory for now, can be configured later
+  
+  # CORS settings for web integration
+  allowed_origins: ["*"]
+  
+  # UI settings
+  ui_access_mode: "admin_only"
+  
+  # Custom headers
+  headers:
+    "X-LiteLLM-Version": "1.0.0"
+    "X-RAG-System": "Production"
+    "X-Provider-Routing": "enabled"
+
+# Environment-specific overrides
+environment_variables:
+  LITELLM_LOG: INFO
+  LITELLM_DROP_PARAMS: true
+  LITELLM_SET_VERBOSE: true
+  LITELLM_SUCCESS_CALLBACK: ["prometheus"]
+  LITELLM_FAILURE_CALLBACK: ["prometheus"]

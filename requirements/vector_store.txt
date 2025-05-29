@@ -1,0 +1,3 @@
+# Vector Store Dependencies
+qdrant-client>=1.6.0
+numpy>=1.24.0

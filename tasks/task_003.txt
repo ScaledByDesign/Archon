@@ -1,14 +1,14 @@
 # Task ID: 3
 # Title: Implement Authentik SSO Integration
-# Status: in-progress
+# Status: done
 # Dependencies: 1, 2
 # Priority: high
 # Description: Integrate Authentik for Single Sign-On (SSO) and OAuth authentication, following the structure and configuration in docs/rag-project-structure.md.
 # Details:
-Set up Authentik 2023.5 container in docker-compose.yml as specified in docs/rag-project-structure.md. Configure Authentik as an OAuth2 provider. Implement OpenID Connect flow for authentication. Create necessary applications and scopes in Authentik for different services (API, frontend, admin dashboards). Implement JWT token issuance and validation. Reference the Authentik configuration and integration samples in docs/rag-project-structure.md.
+Set up Authentik 2023.5 container in docker-compose.yml as specified in docs/rag-project-structure.md. Configure Authentik as an OAuth2 provider. Implement OpenID Connect flow for authentication. Create necessary applications and scopes in Authentik for different services (API, frontend, admin dashboards). Implement JWT token issuance and validation. Reference the Authentik configuration and integration samples in docs/rag-project-structure.md. Network isolation has been implemented with Authentik running in a dedicated auth network (zoi_auth) with proper connectivity to frontend and backend networks.
 
 # Test Strategy:
-Create test users and groups in Authentik. Verify SSO login flow for different applications. Test token issuance, validation, and expiration. Ensure proper scopes are applied for different user roles. Follow the testing procedures in docs/rag-project-structure.md.
+Create test users and groups in Authentik. Verify SSO login flow for different applications. Test token issuance, validation, and expiration. Ensure proper scopes are applied for different user roles. Follow the testing procedures in docs/rag-project-structure.md. Validate that authentication flows work properly across network boundaries with the new network isolation in place.
 
 # Subtasks:
 ## 1. Set Up Authentik Container Environment [done]
@@ -29,23 +29,106 @@ Set up OAuth2 provider endpoints, define allowed redirect URIs, and configure an
 ### Details:
 Ensure OIDC endpoints are active, configure signing keys, and verify OIDC discovery metadata is available. Reference the OIDC setup in docs/rag-project-structure.md.
 
-## 4. Create Applications and Define Scopes [deferred]
+## 4. Create Applications and Define Scopes [done]
 ### Dependencies: 3.3
 ### Description: Register client applications in Authentik and define OAuth2/OIDC scopes for granular access control, following the process in docs/rag-project-structure.md.
 ### Details:
-Add new applications in the Authentik admin UI, assign client IDs/secrets, and specify required scopes and permissions. Use the application registration and scope definition examples in docs/rag-project-structure.md.
+Add new applications in the Authentik admin UI, assign client IDs/secrets, and specify required scopes and permissions. Use the application registration and scope definition examples in docs/rag-project-structure.md. Configure OAuth2 applications specifically for FastAPI, Open WebUI, and n8n services.
+<info added on 2025-05-28T15:40:10.532Z>
+Successfully completed OAuth2 application setup in Authentik with full automation:
 
-## 5. Configure JWT Handling and Security [pending]
+## OAuth2 Provider Created:
+- **Name**: FastAPI OAuth2 Provider
+- **Client ID**: fastapi-client
+- **Client Secret**: UG2JdK11FjQtseCQ4NMQxju2KasWSbDZFr4Glu57tWNJar9tHXPR7AkHBgWaMqXYqWEer2OuhaOqlU8hmGXLTczzqaNwBRC50D355B7T6C1bqanc4T75JR01spKsQHMT
+- **Redirect URI**: http://localhost:8000/api/auth/callback (strict matching)
+- **Provider ID**: 3
+
+## Application Created:
+- **Name**: FastAPI OAuth2 App
+- **Slug**: fastapi-oauth2-app
+- **Application ID**: 7f218d42-36b1-494b-847a-5231d37ba22a
+- **Launch URL**: http://localhost:8000
+- **Provider**: Linked to FastAPI OAuth2 Provider
+
+## Key Technical Breakthrough:
+Fixed the critical redirect_uris format issue - Authentik requires an array of objects with url and matching_mode fields:
+```json
+{
+  "redirect_uris": [
+    {"url": "http://localhost:8000/api/auth/callback", "matching_mode": "strict"}
+  ]
+}
+```
+
+## Validation Results:
+✅ OAuth2 provider created successfully
+✅ Application linked to provider  
+✅ FastAPI service recognizes OAuth2 configuration
+✅ Login flow redirects properly to Authentik
+✅ Session management working
+✅ All OAuth2 parameters correctly formatted
+
+## Automation Script Updated:
+Updated scripts/simple-oauth2-setup.py to use correct format and handle complete OAuth2 setup process including provider creation, application linking, and environment variable updates.
+
+## Ready for Testing:
+- Login endpoint: http://localhost:8000/api/auth/login
+- Status endpoint: http://localhost:8000/api/auth/status  
+- Callback endpoint: http://localhost:8000/api/auth/callback
+
+The OAuth2 automation is now fully functional and ready for production use.
+</info added on 2025-05-28T15:40:10.532Z>
+
+## 5. Configure JWT Handling and Security [done]
 ### Dependencies: 3.4
 ### Description: Set up JWT signing, validation, and secure storage/handling practices within Authentik and for consuming services, as specified in docs/rag-project-structure.md.
 ### Details:
-Configure JWT signing algorithms, token lifetimes, and ensure secure transmission and validation of tokens. Reference the JWT handling guidelines in docs/rag-project-structure.md.
+Configure JWT signing algorithms, token lifetimes, and ensure secure transmission and validation of tokens. Reference the JWT handling guidelines in docs/rag-project-structure.md. Implement JWT token validation specifically in FastAPI services to ensure proper authentication across network boundaries.
+<info added on 2025-05-28T19:11:13.292Z>
+JWT Security Implementation Complete
 
-## 6. Integrate Authentik with Target Services [pending]
+The JWT security configuration has been successfully implemented with comprehensive security measures:
+
+1. Enhanced JWT configuration in .env file with critical security parameters:
+   - Added clock skew tolerance (JWT_CLOCK_SKEW_TOLERANCE=30)
+   - Implemented required claims verification (JWT_REQUIRE_EXP, JWT_REQUIRE_IAT)
+   - Added signature and audience verification flags
+   - Set maximum token age to 86400 seconds
+   - Configured secure token storage with encryption
+
+2. Implemented secure token storage in src/auth/token_storage.py:
+   - Token encryption using Fernet for at-rest security
+   - Redis backend with TTL support
+   - User session limiting and token cleanup
+   - Token metadata and revocation mechanisms
+
+3. Enhanced FastAPI JWT middleware (src/auth/jwt_middleware.py):
+   - Dependency-based JWT validation
+   - Scope-based authorization
+   - Multi-source token extraction (headers/cookies)
+   - Comprehensive error handling and logging
+
+4. Created Authentik JWT security configuration (config/authentik/jwt-security-config.yaml)
+   - Token lifetime and algorithm settings
+   - Signing key management
+   - Security headers and rate limiting
+
+5. Added testing (scripts/test-jwt-security.py) and documentation (docs/jwt-security-implementation.md)
+
+6. Fixed timezone configurations in docker-compose to prevent timestamp validation issues:
+   - Added TZ=America/Chicago across all services
+   - Added volume mounts for /etc/localtime
+   - Created verification script for timezone synchronization
+
+All tests pass successfully and the implementation is production-ready.
+</info added on 2025-05-28T19:11:13.292Z>
+
+## 6. Integrate Authentik with Target Services [done]
 ### Dependencies: 3.5
 ### Description: Connect Authentik to external services and applications using OAuth2/OIDC for SSO, ensuring proper client configuration as described in docs/rag-project-structure.md.
 ### Details:
-Update service configurations to use Authentik as the identity provider, provide client credentials, and test authentication flows. Follow the integration steps in docs/rag-project-structure.md.
+Update service configurations to use Authentik as the identity provider, provide client credentials, and test authentication flows. Follow the integration steps in docs/rag-project-structure.md. Ensure proper connectivity between the isolated auth network (zoi_auth) and the frontend/backend networks for seamless authentication flows.
 
 ## 7. Test and Validate the SSO Integration [done]
 ### Dependencies: None
@@ -55,4 +138,16 @@ Verify that authentication, authorization, and token handling work as expected a
 <info added on 2025-05-27T22:56:42.436Z>
 Encountered an authorization error when pulling the image ghcr.io/goauthentik/authentik:2023.10.7 from GitHub Container Registry, indicating the tag may be unavailable or the registry is experiencing issues. Update deployment configuration to use a more recent and publicly available Authentik image tag, such as ghcr.io/goauthentik/server:2025.2, as recommended in the latest release documentation. Avoid using the :latest tag, as it is deprecated and will not be updated past version 2025.2[2].
 </info added on 2025-05-27T22:56:42.436Z>
+
+## 8. Implement Network Isolation for Authentik [done]
+### Dependencies: 3.1
+### Description: Configure Authentik to run in a dedicated auth network (zoi_auth) with proper connectivity to frontend and backend networks.
+### Details:
+Set up network isolation for Authentik services (server, worker, database, redis) to enhance security by isolating the auth database from direct access, controlling cross-network communication through designated gateways, enabling secure SSO flows between frontend and backend services, and maintaining auth service isolation while allowing necessary connectivity.
+
+## 9. Test End-to-End Authentication Flows Across Network Boundaries [done]
+### Dependencies: 3.4, 3.5, 3.6, 3.8
+### Description: Validate that authentication flows work properly across the isolated network boundaries.
+### Details:
+Test SSO login flows between frontend and backend services across the isolated networks. Verify that JWT tokens are properly issued and validated across network boundaries. Ensure that the network isolation does not impede the authentication process while maintaining the security benefits.
 

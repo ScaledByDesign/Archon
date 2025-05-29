@@ -1,6 +1,6 @@
 # Task ID: 5
 # Title: Implement Role-Based Access Control (RBAC)
-# Status: pending
+# Status: deferred
 # Dependencies: 3, 4
 # Priority: high
 # Description: Develop a RBAC system for fine-grained access control across the application.

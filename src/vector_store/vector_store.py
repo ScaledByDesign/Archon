@@ -13,13 +13,9 @@ from qdrant_client.http import models
 from qdrant_client.http.models import (
     VectorParams,
     Distance,
-    CollectionStatus,
     PointStruct,
     Filter,
     FieldCondition,
-    SearchRequest,
-    UpdateResult,
-    UpsertResult,
 )
 
 logger = logging.getLogger(__name__)

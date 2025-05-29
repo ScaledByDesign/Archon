@@ -1,6 +1,6 @@
 # Task ID: 4
 # Title: Develop API Key Authentication System
-# Status: pending
+# Status: deferred
 # Dependencies: 3
 # Priority: high
 # Description: Implement API key authentication for service-to-service communication, following the architecture and code samples in docs/rag-project-structure.md.

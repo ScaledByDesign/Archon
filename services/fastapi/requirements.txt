@@ -1,0 +1,59 @@
+# HashiCorp Vault Integration
+hvac>=2.1.0
+
+# FastAPI and Web Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+pydantic-settings>=2.0.0
+email-validator>=2.0.0
+
+# Database and Storage
+qdrant-client>=1.7.0
+motor>=3.3.0  # Async MongoDB
+redis>=5.0.0
+psycopg2-binary>=2.9.0
+sqlalchemy[asyncio]>=2.0.0
+asyncpg>=0.29.0
+
+# Authentication and Security
+python-jose[cryptography]>=3.3.0
+PyJWT>=2.8.0
+passlib[bcrypt]>=1.7.4
+python-multipart>=0.0.6
+itsdangerous>=2.1.0
+
+# LLM and AI
+openai>=1.3.0
+anthropic>=0.7.0
+litellm>=1.0.0
+tiktoken>=0.5.0
+
+# Vector Operations and ML
+numpy>=1.24.0
+scikit-learn>=1.3.0
+
+# HTTP and Networking
+httpx>=0.25.0
+aiohttp>=3.9.0
+
+# Task Queue and Background Jobs
+celery>=5.3.0
+kombu>=5.3.0
+
+# Utilities and Logging
+python-dotenv>=1.0.0
+structlog>=23.2.0
+rich>=13.7.0
+
+# Development and Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.12.0
+black>=23.11.0
+isort>=5.12.0
+mypy>=1.7.0
+
+# Monitoring and Observability
+prometheus-client>=0.19.0
+sentry-sdk[fastapi]>=1.38.0
