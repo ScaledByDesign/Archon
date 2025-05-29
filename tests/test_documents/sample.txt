@@ -1,0 +1,24 @@
+This is a sample text document for the Document Embedding Pipeline.
+
+It contains multiple paragraphs that will be processed by our pipeline.
+The text will be extracted, cleaned, chunked, and then converted to vector embeddings.
+
+This document serves as a test to ensure that our Document Embedding Pipeline
+can properly process text files and store them in the vector database.
+
+The RAG system will use these vector embeddings to perform semantic search and retrieval.
+When a user asks a question, the system will find the most relevant document chunks
+based on semantic similarity rather than just keyword matching.
+
+Vector embeddings capture the meaning and context of text, making them perfect
+for modern AI-powered search applications that need to understand user intent.
+
+Our pipeline is designed to handle various document formats, including:
+- Plain text files like this one
+- HTML documents 
+- Markdown files
+- PDF documents
+- Word documents (DOCX)
+
+Each document is processed in a streaming fashion through our pipeline components,
+ensuring efficient use of resources even with large document collections.

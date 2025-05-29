@@ -10,6 +10,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from src.secrets.vault_client import get_secret_manager, VaultClient, SecretManager
 from src.vector_store.vector_store import QdrantVectorStore
+from src.document_pipeline.document_processor import DocumentProcessor
 
 logger = logging.getLogger(__name__)
 security = HTTPBearer()
@@ -17,6 +18,7 @@ security = HTTPBearer()
 # Global instances (initialized in main.py)
 _secret_manager: Optional[SecretManager] = None
 _vector_store: Optional[QdrantVectorStore] = None
+_document_processor: Optional[DocumentProcessor] = None
 
 
 def set_global_secret_manager(secret_manager: SecretManager):
@@ -29,6 +31,12 @@ def set_global_vector_store(vector_store: QdrantVectorStore):
     """Set the global vector store instance"""
     global _vector_store
     _vector_store = vector_store
+
+
+def set_global_document_processor(document_processor: DocumentProcessor):
+    """Set the global document processor instance"""
+    global _document_processor
+    _document_processor = document_processor
 
 
 def get_secret_manager() -> SecretManager:
@@ -49,6 +57,16 @@ def get_vector_store() -> QdrantVectorStore:
             detail="Vector store not available"
         )
     return _vector_store
+
+
+def get_document_processor() -> DocumentProcessor:
+    """Dependency to get document processor"""
+    if not _document_processor:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Document processor not available"
+        )
+    return _document_processor
 
 
 async def get_authenticated_user(

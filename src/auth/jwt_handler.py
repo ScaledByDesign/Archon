@@ -10,7 +10,7 @@ import httpx
 import json
 import logging
 from typing import Dict, Any, Optional, List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 import os
@@ -70,7 +70,7 @@ class JWKSManager:
         
     async def get_jwks(self) -> Dict[str, Any]:
         """Fetch JWKS from Authentik, with caching"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         
         # Check if cache is valid
         if (self._cache_timestamp and 
@@ -228,9 +228,9 @@ class JWTValidator:
         
         # Validate custom claims
         if 'auth_time' in claims:
-            auth_time = datetime.fromtimestamp(claims['auth_time'])
+            auth_time = datetime.fromtimestamp(claims['auth_time'], timezone.utc)
             max_auth_age = timedelta(seconds=self.security_config.max_auth_age)  # max auth age in seconds
-            if datetime.utcnow() - auth_time > max_auth_age:
+            if datetime.now(timezone.utc) - auth_time > max_auth_age:
                 raise jwt.InvalidTokenError("Authentication too old")
         
         logger.debug(f"Token claims validation passed for {token_type} token")

@@ -31,11 +31,17 @@ from src.core import (
 from src.core.validators import HealthCheckResponse, ErrorResponse
 from src.config.settings import get_settings
 
+# Observability imports
+from src.observability.middleware import LangfuseMiddleware
+from src.observability.langfuse_client import langfuse_tracer
+from src.observability.litellm_wrapper import traced_llm
+
 # Existing imports
 from src.secrets.vault_client import get_secret_manager as create_secret_manager, VaultConfig, VaultClient, SecretManager
 from src.vector_store.vector_store import QdrantVectorStore, QdrantConfig
-from src.api.dependencies import set_global_secret_manager, set_global_vector_store, get_secret_manager, get_vector_store
-from src.api.routes import auth, search, oauth
+from src.api.dependencies import set_global_secret_manager, set_global_vector_store, get_secret_manager, get_vector_store, set_global_document_processor
+from src.api.routes import auth, search, oauth, document_routes
+from src.document_pipeline.document_processor import DocumentProcessor
 from src.auth.jwt_middleware import JWTMiddleware
 
 # Initialize structured logging
@@ -53,6 +59,7 @@ class CustomJSONEncoder(json.JSONEncoder):
 # Global variables for shared resources
 secret_manager: Optional[SecretManager] = None
 vector_store: Optional[QdrantVectorStore] = None
+document_processor: Optional[DocumentProcessor] = None
 app_config: Dict = {}
 
 
@@ -135,21 +142,32 @@ async def initialize_vector_store():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager"""
-    logger.info("Starting FastAPI application...")
+    global document_processor
     
+    # Initialize resources
+    await initialize_secrets()
+    await initialize_vector_store()
+    
+    # Initialize document processor
     try:
-        # Initialize core services
-        await initialize_databases()
-        await initialize_secrets()
-        await initialize_vector_store()
-        
-        logger.info("Application startup completed successfully")
-        yield
-        
+        logger.info("Initializing document processor...")
+        document_processor = DocumentProcessor(vector_store=vector_store)
+        await document_processor.setup()
+        set_global_document_processor(document_processor)
+        logger.info("Document processor initialized successfully")
     except Exception as e:
-        logger.error(f"Application startup failed: {e}")
-        raise
-    finally:
+        logger.error(f"Failed to initialize document processor: {e}")
+        logger.warning("Continuing without document processor")
+    
+    # Start application
+    yield
+    
+    # Cleanup resources
+    if vector_store:
+        try:
+            await vector_store.close()
+        except Exception as e:
+            logger.error(f"Error closing vector store: {e}")
         # Cleanup on shutdown
         logger.info("Shutting down application...")
         await close_databases()
@@ -201,6 +219,15 @@ def create_app() -> FastAPI:
         max_age=settings.auth.session_max_age,
         same_site="lax",
         https_only=settings.environment == "production"
+    )
+    
+    # Add observability middleware
+    app.add_middleware(
+        LangfuseMiddleware,
+        exclude_paths=["/health", "/metrics", "/favicon.ico"],
+        include_request_body=False,  # Set to True to capture request bodies in traces
+        include_response_body=False,  # Set to True to capture response bodies in traces
+        include_headers=False,        # Set to True to capture headers in traces
     )
     
     # Custom exception handlers
@@ -315,6 +342,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
     app.include_router(search.router, prefix="/api/search", tags=["Search"])
     app.include_router(oauth.router, prefix="/api/oauth", tags=["OAuth"])
+    app.include_router(document_routes.router, prefix="/api/documents", tags=["Documents"])
     
     return app
 

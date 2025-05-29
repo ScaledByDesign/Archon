@@ -219,12 +219,15 @@ services:
 
   # API Backend (Multiple Instances)
   fastapi-1: &fastapi
-    build: ./services/fastapi
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: unless-stopped
     ports:
       - "8000:8000"
     volumes:
       - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
       - ./requirements.txt:/app/requirements.txt:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
@@ -290,8 +293,11 @@ services:
 
   fastapi-2:
     <<: *fastapi
+    ports:
+      - "8010:8000"
     volumes:
       - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
       - ./requirements.txt:/app/requirements.txt:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
@@ -343,8 +349,11 @@ services:
 
   fastapi-3:
     <<: *fastapi
+    ports:
+      - "8020:8000"
     volumes:
       - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
       - ./requirements.txt:/app/requirements.txt:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
@@ -522,6 +531,98 @@ services:
     networks:
       - database_network
 
+  langfuse-db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: langfuse
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: ${LANGFUSE_DB_PASSWORD:-langfuse_password}
+      TZ: America/Chicago
+    volumes:
+      - langfuse_db:/var/lib/postgresql/data
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U langfuse -d langfuse"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - database_network
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.1-alpine
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_DB: langfuse
+      CLICKHOUSE_USER: langfuse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse_password}
+      TZ: America/Chicago
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "8123:8123"
+      - "9001:9000"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8123/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - database_network
+
+  langfuse:
+    image: langfuse/langfuse:3
+    restart: unless-stopped
+    depends_on:
+      langfuse-db:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      # Database
+      DATABASE_URL: postgresql://langfuse:${LANGFUSE_DB_PASSWORD:-langfuse_password}@langfuse-db:5432/langfuse
+      
+      # ClickHouse for analytics
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: langfuse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse_password}
+      
+      # Redis for caching and queues
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_AUTH: ""
+      
+      # Authentication
+      NEXTAUTH_URL: https://langfuse.${DOMAIN:-localhost}
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-langfuse_secret_change_me}
+      
+      # Langfuse Configuration
+      SALT: ${LANGFUSE_SALT:-langfuse_salt_change_me}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:-langfuse_encryption_key_change_me}
+      
+      # Optional: Enable telemetry (set to false for privacy)
+      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-true}
+      
+      # Timezone
+      TZ: America/Chicago
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.langfuse.rule=Host(`langfuse.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.langfuse.entrypoints=websecure"
+      - "traefik.http.routers.langfuse.tls=true"
+      - "traefik.http.services.langfuse.loadbalancer.server.port=3000"
+    networks:
+      - frontend_network
+      - backend_network
+      - database_network
+      - monitoring_network
+
   # UI Applications
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
@@ -568,24 +669,7 @@ services:
       - backend_network
       - frontend_network
 
-  # Monitoring
-  aim:
-    image: aimstack/aim:latest
-    restart: unless-stopped
-    environment:
-      TZ: America/Chicago
-    volumes:
-      - aim_data:/aim
-      - /etc/localtime:/etc/localtime:ro
-    command: ["up", "--host", "0.0.0.0", "--port", "43800"]
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.aim.rule=Host(`aim.${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.aim.entrypoints=websecure"
-      - "traefik.http.routers.aim.tls=true"
-    networks:
-      - monitoring_network
-
+  # LLM Observability
   healthchecks:
     image: healthchecks/healthchecks:latest
     restart: unless-stopped
@@ -714,8 +798,6 @@ services:
       - "traefik.docker.network=zoi_frontend"
 
 volumes:
-  aim_data:
-    name: aim_data
   authentik_db:
     name: authentik_db
   authentik_media:
@@ -726,8 +808,12 @@ volumes:
     name: authentik_templates
   backrest_cache:
     name: backrest_cache
+  clickhouse_data:
+    name: clickhouse_data
   dashy_data:
     name: dashy_data
+  langfuse_db:
+    name: langfuse_db
   mongo_episodic:
     name: mongo_episodic
   mongo_procedural:
