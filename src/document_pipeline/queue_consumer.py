@@ -14,8 +14,8 @@ from typing import Dict, Any, Optional, Callable, List
 import uuid
 from io import BytesIO
 
-# import aio_pika
-# from aio_pika.abc import AbstractIncomingMessage
+import aio_pika
+from aio_pika.abc import AbstractIncomingMessage
 
 from .document_processor import DocumentProcessor
 
@@ -66,15 +66,15 @@ class DocumentQueueConsumer:
         await self.processor.setup()
         
         # Connect to RabbitMQ
-        # self.connection = await aio_pika.connect_robust(self.rabbitmq_url)
+        self.connection = await aio_pika.connect_robust(self.rabbitmq_url)
         
         # Create channel
-        # self.channel = await self.connection.channel()
-        # await self.channel.set_qos(prefetch_count=self.prefetch_count)
+        self.channel = await self.connection.channel()
+        await self.channel.set_qos(prefetch_count=self.prefetch_count)
         
         # Declare queues
-        # await self.channel.declare_queue(self.queue_name, durable=True)
-        # await self.channel.declare_queue(self.error_queue_name, durable=True)
+        await self.channel.declare_queue(self.queue_name, durable=True)
+        await self.channel.declare_queue(self.error_queue_name, durable=True)
         
         logger.info(f"Connected to RabbitMQ, consuming from {self.queue_name}")
     
@@ -87,10 +87,10 @@ class DocumentQueueConsumer:
         self.running = True
         
         # Get queue
-        # queue = await self.channel.declare_queue(self.queue_name, durable=True)
+        queue = await self.channel.declare_queue(self.queue_name, durable=True)
         
         # Start consuming
-        # await queue.consume(self.process_message)
+        await queue.consume(self.process_message)
         
         logger.info("Started document queue consumer")
         
@@ -113,17 +113,17 @@ class DocumentQueueConsumer:
             await asyncio.gather(*self.tasks, return_exceptions=True)
         
         # Close channel and connection
-        # if self.channel:
-        #     await self.channel.close()
-        #     self.channel = None
+        if self.channel:
+            await self.channel.close()
+            self.channel = None
         
-        # if self.connection:
-        #     await self.connection.close()
-        #     self.connection = None
+        if self.connection:
+            await self.connection.close()
+            self.connection = None
         
         logger.info("Document queue consumer shut down")
     
-    async def process_message(self, message):
+    async def process_message(self, message: AbstractIncomingMessage):
         """Process a message from the queue
         
         Args:
@@ -136,62 +136,62 @@ class DocumentQueueConsumer:
         # Remove task when done
         task.add_done_callback(lambda t: self.tasks.remove(t) if t in self.tasks else None)
     
-    async def _handle_message(self, message):
+    async def _handle_message(self, message: AbstractIncomingMessage):
         """Handle a message from the queue
         
         Args:
             message: Incoming message
         """
-        # async with message.process():
-        #     body = message.body.decode()
+        async with message.process():
+            body = message.body.decode()
             
-        #     # Parse message
-        #     try:
-        #         data = json.loads(body)
-        #         logger.info(f"Received document processing message: {data.get('document_id', 'unknown')}")
+            # Parse message
+            try:
+                data = json.loads(body)
+                logger.info(f"Received document processing message: {data.get('document_id', 'unknown')}")
                 
-        #         # Extract message data
-        #         document_id = data.get("document_id", str(uuid.uuid4()))
-        #         filename = data.get("filename", f"document_{document_id}")
-        #         file_content_b64 = data.get("file_content")
-        #         metadata = data.get("metadata", {})
-        #         trace_id = data.get("trace_id")
+                # Extract message data
+                document_id = data.get("document_id", str(uuid.uuid4()))
+                filename = data.get("filename", f"document_{document_id}")
+                file_content_b64 = data.get("file_content")
+                metadata = data.get("metadata", {})
+                trace_id = data.get("trace_id")
                 
-        #         # Check retry count
-        #         retry_count = data.get("retry_count", 0)
+                # Check retry count
+                retry_count = data.get("retry_count", 0)
                 
-        #         # Decode file content
-        #         if file_content_b64:
-        #             file_content = base64.b64decode(file_content_b64)
-        #         else:
-        #             raise ValueError("No file content provided")
+                # Decode file content
+                if file_content_b64:
+                    file_content = base64.b64decode(file_content_b64)
+                else:
+                    raise ValueError("No file content provided")
                 
-        #         # Process document
-        #         result = await self.processor.process_document(
-        #             file_content=BytesIO(file_content),
-        #             filename=filename,
-        #             metadata=metadata,
-        #             document_id=document_id,
-        #             trace_id=trace_id
-        #         )
+                # Process document
+                result = await self.processor.process_document(
+                    file_content=BytesIO(file_content),
+                    filename=filename,
+                    metadata=metadata,
+                    document_id=document_id,
+                    trace_id=trace_id
+                )
                 
-        #         logger.info(f"Document processed successfully: {document_id}")
+                logger.info(f"Document processed successfully: {document_id}")
                 
-        #     except Exception as e:
-        #         logger.error(f"Error processing document: {str(e)}")
+            except Exception as e:
+                logger.error(f"Error processing document: {str(e)}")
                 
-        #         # Retry if not exceeded max retries
-        #         if retry_count < self.max_retries:
-        #             # Increment retry count
-        #             data["retry_count"] = retry_count + 1
-        #             data["last_error"] = str(e)
+                # Retry if not exceeded max retries
+                if retry_count < self.max_retries:
+                    # Increment retry count
+                    data["retry_count"] = retry_count + 1
+                    data["last_error"] = str(e)
                     
-        #             # Send to queue with delay
-        #             await self._requeue_with_delay(data, retry_count)
-        #         else:
-        #             # Send to error queue
-        #             data["error"] = str(e)
-        #             await self._send_to_error_queue(data)
+                    # Send to queue with delay
+                    await self._requeue_with_delay(data, retry_count)
+                else:
+                    # Send to error queue
+                    data["error"] = str(e)
+                    await self._send_to_error_queue(data)
     
     async def _requeue_with_delay(self, data, retry_count):
         """Requeue a message with delay
@@ -201,24 +201,24 @@ class DocumentQueueConsumer:
             retry_count: Current retry count
         """
         # Calculate delay (exponential backoff)
-        # delay_seconds = min(60, 5 * (2 ** retry_count))
+        delay_seconds = min(60, 5 * (2 ** retry_count))
         
         # Create exchange and queue for delayed messages
-        # exchange = await self.channel.declare_exchange("delayed", "x-delayed-message", durable=True, arguments={
-        #     "x-delayed-type": "direct"
-        # })
+        exchange = await self.channel.declare_exchange("delayed", "x-delayed-message", durable=True, arguments={
+            "x-delayed-type": "direct"
+        })
         
         # Create message with delay header
-        # message_body = json.dumps(data).encode()
-        # message = aio_pika.Message(
-        #     body=message_body,
-        #     delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
-        #     headers={"x-delay": delay_seconds * 1000}  # delay in ms
-        # )
+        message_body = json.dumps(data).encode()
+        message = aio_pika.Message(
+            body=message_body,
+            delivery_mode=aio_pika.DeliveryMode.PERSISTENT,
+            headers={"x-delay": delay_seconds * 1000}  # delay in ms
+        )
         
         # Publish to delayed exchange
-        # await exchange.publish(message, routing_key=self.queue_name)
-        # logger.info(f"Requeued document with ID {data.get('document_id')} for retry in {delay_seconds}s")
+        await exchange.publish(message, routing_key=self.queue_name)
+        logger.info(f"Requeued document with ID {data.get('document_id')} for retry in {delay_seconds}s")
     
     async def _send_to_error_queue(self, data):
         """Send a message to the error queue
@@ -227,18 +227,18 @@ class DocumentQueueConsumer:
             data: Message data
         """
         # Add timestamp
-        # data["error_timestamp"] = time.time()
+        data["error_timestamp"] = time.time()
         
         # Create message
-        # message_body = json.dumps(data).encode()
-        # message = aio_pika.Message(
-        #     body=message_body,
-        #     delivery_mode=aio_pika.DeliveryMode.PERSISTENT
-        # )
+        message_body = json.dumps(data).encode()
+        message = aio_pika.Message(
+            body=message_body,
+            delivery_mode=aio_pika.DeliveryMode.PERSISTENT
+        )
         
         # Publish to error queue
-        # await self.channel.default_exchange.publish(message, routing_key=self.error_queue_name)
-        # logger.error(f"Sent document with ID {data.get('document_id')} to error queue after max retries")
+        await self.channel.default_exchange.publish(message, routing_key=self.error_queue_name)
+        logger.error(f"Sent document with ID {data.get('document_id')} to error queue after max retries")
     
     async def enqueue_document(
         self,
@@ -282,15 +282,15 @@ class DocumentQueueConsumer:
         }
         
         # Create message
-        # message_body = json.dumps(data).encode()
-        # message = aio_pika.Message(
-        #     body=message_body,
-        #     delivery_mode=aio_pika.DeliveryMode.PERSISTENT
-        # )
+        message_body = json.dumps(data).encode()
+        message = aio_pika.Message(
+            body=message_body,
+            delivery_mode=aio_pika.DeliveryMode.PERSISTENT
+        )
         
         # Publish to queue
-        # await self.channel.default_exchange.publish(message, routing_key=self.queue_name)
-        # logger.info(f"Enqueued document for processing: {document_id}")
+        await self.channel.default_exchange.publish(message, routing_key=self.queue_name)
+        logger.info(f"Enqueued document for processing: {document_id}")
         
         return document_id
 

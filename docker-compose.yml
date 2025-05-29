@@ -2,26 +2,6 @@ version: '3.8'
 
 services:
   # Authentication
-  authentik-db:
-    image: postgres:15-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_PASSWORD: ${PG_PASS:-secretpass}
-      POSTGRES_USER: authentik
-      POSTGRES_DB: authentik
-      TZ: America/Chicago
-    volumes:
-      - authentik_db:/var/lib/postgresql/data
-      - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U authentik"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - auth_network
-      - backend_network
-
   authentik-redis:
     image: redis:7-alpine
     restart: unless-stopped
@@ -47,7 +27,7 @@ services:
     environment:
       AUTHENTIK_REDIS__HOST: authentik-redis
       AUTHENTIK_REDIS__PASSWORD: ${AUTHENTIK_REDIS_PASS:-redispass}
-      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__HOST: postgres
       AUTHENTIK_POSTGRESQL__USER: authentik
       AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:-secretpass}
@@ -67,7 +47,7 @@ services:
       - "9000:9000"
       - "9443:9443"
     depends_on:
-      - authentik-db
+      - postgres
       - authentik-redis
     labels:
       - "traefik.enable=true"
@@ -93,7 +73,7 @@ services:
     environment:
       AUTHENTIK_REDIS__HOST: authentik-redis
       AUTHENTIK_REDIS__PASSWORD: ${AUTHENTIK_REDIS_PASS:-redispass}
-      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__HOST: postgres
       AUTHENTIK_POSTGRESQL__USER: authentik
       AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:-secretpass}
@@ -108,7 +88,7 @@ services:
     env_file:
       - ./config/authentik/authentik.env
     depends_on:
-      - authentik-db
+      - postgres
       - authentik-redis
     healthcheck:
       test: ["CMD-SHELL", "ak healthcheck"]
@@ -119,6 +99,31 @@ services:
     networks:
       - auth_network
       - backend_network
+
+  # Shared PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASS:-secretpass}
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      TZ: America/Chicago
+      # Initialize multiple databases
+      POSTGRES_MULTIPLE_DATABASES: authentik,fastapi,healthchecks,langfuse
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./config/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - auth_network
+      - backend_network
+      - database_network
 
   # Reverse Proxy
   traefik:
@@ -235,22 +240,21 @@ services:
       - VAULT_ROLE_ID=${VAULT_ROLE_ID}
       - VAULT_SECRET_ID=${VAULT_SECRET_ID}
       - VAULT_ROOT_TOKEN=${VAULT_ROOT_TOKEN}
-      - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=0
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=fastapi
+      - POSTGRES_PASSWORD=${PG_PASS}
+      - POSTGRES_DB=fastapi
       - MONGODB_URL=mongodb://mongo-episodic:27017,mongo-procedural:27017
       - MONGODB_HOST=mongo-episodic
       - MONGODB_PORT=27017
       - MONGODB_USERNAME=${MONGO_USER:-admin}
       - MONGODB_PASSWORD=${MONGO_PASS:-secretpass}
       - MONGODB_DATABASE=episodic
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_DB=0
-      - POSTGRES_HOST=authentik-db
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=authentik
-      - POSTGRES_PASSWORD=${PG_PASS}
-      - POSTGRES_DB=authentik
       - QDRANT_URL=http://qdrant:6333
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
       - LITELLM_URL=http://litellm:8000
@@ -272,6 +276,8 @@ services:
       - TRUSTED_HOSTS=${TRUSTED_HOSTS:-localhost,127.0.0.1,*.localhost}
       - TZ=America/Chicago
     depends_on:
+      postgres:
+        condition: service_healthy
       vault:
         condition: service_healthy
       redis:
@@ -305,22 +311,21 @@ services:
       - VAULT_ROLE_ID=${VAULT_ROLE_ID}
       - VAULT_SECRET_ID=${VAULT_SECRET_ID}
       - VAULT_ROOT_TOKEN=${VAULT_ROOT_TOKEN}
-      - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=0
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=fastapi
+      - POSTGRES_PASSWORD=${PG_PASS}
+      - POSTGRES_DB=fastapi
       - MONGODB_URL=mongodb://mongo-episodic:27017,mongo-procedural:27017
       - MONGODB_HOST=mongo-episodic
       - MONGODB_PORT=27017
       - MONGODB_USERNAME=${MONGO_USER:-admin}
       - MONGODB_PASSWORD=${MONGO_PASS:-secretpass}
       - MONGODB_DATABASE=episodic
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_DB=0
-      - POSTGRES_HOST=authentik-db
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=authentik
-      - POSTGRES_PASSWORD=${PG_PASS}
-      - POSTGRES_DB=authentik
       - QDRANT_URL=http://qdrant:6333
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
       - LITELLM_URL=http://litellm:8000
@@ -341,6 +346,15 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:8080,http://localhost:8000}
       - TRUSTED_HOSTS=${TRUSTED_HOSTS:-localhost,127.0.0.1,*.localhost}
       - TZ=America/Chicago
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - backend_network
       - frontend_network
@@ -361,22 +375,21 @@ services:
       - VAULT_ROLE_ID=${VAULT_ROLE_ID}
       - VAULT_SECRET_ID=${VAULT_SECRET_ID}
       - VAULT_ROOT_TOKEN=${VAULT_ROOT_TOKEN}
-      - REDIS_URL=redis://redis:6379
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_DB=0
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=fastapi
+      - POSTGRES_PASSWORD=${PG_PASS}
+      - POSTGRES_DB=fastapi
       - MONGODB_URL=mongodb://mongo-episodic:27017,mongo-procedural:27017
       - MONGODB_HOST=mongo-episodic
       - MONGODB_PORT=27017
       - MONGODB_USERNAME=${MONGO_USER:-admin}
       - MONGODB_PASSWORD=${MONGO_PASS:-secretpass}
       - MONGODB_DATABASE=episodic
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_DB=0
-      - POSTGRES_HOST=authentik-db
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=authentik
-      - POSTGRES_PASSWORD=${PG_PASS}
-      - POSTGRES_DB=authentik
       - QDRANT_URL=http://qdrant:6333
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
       - LITELLM_URL=http://litellm:8000
@@ -397,6 +410,15 @@ services:
       - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:8080,http://localhost:8000}
       - TRUSTED_HOSTS=${TRUSTED_HOSTS:-localhost,127.0.0.1,*.localhost}
       - TZ=America/Chicago
+    depends_on:
+      postgres:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     networks:
       - backend_network
       - frontend_network
@@ -531,25 +553,6 @@ services:
     networks:
       - database_network
 
-  langfuse-db:
-    image: postgres:15-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: langfuse
-      POSTGRES_USER: langfuse
-      POSTGRES_PASSWORD: ${LANGFUSE_DB_PASSWORD:-langfuse_password}
-      TZ: America/Chicago
-    volumes:
-      - langfuse_db:/var/lib/postgresql/data
-      - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U langfuse -d langfuse"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - database_network
-
   clickhouse:
     image: clickhouse/clickhouse-server:24.1-alpine
     restart: unless-stopped
@@ -576,7 +579,7 @@ services:
     image: langfuse/langfuse:3
     restart: unless-stopped
     depends_on:
-      langfuse-db:
+      postgres:
         condition: service_healthy
       clickhouse:
         condition: service_healthy
@@ -584,7 +587,7 @@ services:
         condition: service_healthy
     environment:
       # Database
-      DATABASE_URL: postgresql://langfuse:${LANGFUSE_DB_PASSWORD:-langfuse_password}@langfuse-db:5432/langfuse
+      DATABASE_URL: postgresql://langfuse:${PG_PASS:-secretpass}@postgres:5432/langfuse
       
       # ClickHouse for analytics
       CLICKHOUSE_URL: http://clickhouse:8123
@@ -676,10 +679,10 @@ services:
     environment:
       - ALLOWED_HOSTS=*
       - DB=postgres
-      - DB_HOST=authentik-db
+      - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=healthchecks
-      - DB_USER=authentik
+      - DB_USER=healthchecks
       - DB_PASSWORD=${PG_PASS:-secretpass}
       - EMAIL_HOST=${EMAIL_HOST}
       - EMAIL_PORT=${EMAIL_PORT}
@@ -692,7 +695,7 @@ services:
     volumes:
       - /etc/localtime:/etc/localtime:ro
     depends_on:
-      authentik-db:
+      postgres:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
@@ -798,8 +801,6 @@ services:
       - "traefik.docker.network=zoi_frontend"
 
 volumes:
-  authentik_db:
-    name: authentik_db
   authentik_media:
     name: authentik_media
   authentik_redis:
@@ -812,8 +813,6 @@ volumes:
     name: clickhouse_data
   dashy_data:
     name: dashy_data
-  langfuse_db:
-    name: langfuse_db
   mongo_episodic:
     name: mongo_episodic
   mongo_procedural:
@@ -824,6 +823,8 @@ volumes:
     name: ollama_data
   open_webui:
     name: open_webui
+  postgres_data:
+    name: postgres_data
   qdrant_data:
     name: qdrant_data
   rabbitmq_data:
