@@ -72,7 +72,7 @@ async def initialize_secrets():
         
         # Get Vault configuration from environment
         vault_config = VaultConfig(
-            address=os.getenv("VAULT_ADDR", "http://vault:8200"),
+            url=os.getenv("VAULT_ADDR", "http://vault:8200"),
             role_id=os.getenv("VAULT_ROLE_ID"),
             secret_id=os.getenv("VAULT_SECRET_ID"),
             mount_point=os.getenv("VAULT_MOUNT_POINT", "auth/approle")
