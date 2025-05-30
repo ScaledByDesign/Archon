@@ -1,32 +1,39 @@
 version: '3.8'
 
 services:
-  # Authentication
-  authentik-redis:
-    image: redis:7-alpine
+  # PostgreSQL Database for Authentik
+  postgres:
+    image: postgres:15-alpine
     restart: unless-stopped
-    command: redis-server --requirepass ${AUTHENTIK_REDIS_PASS:-redispass}
     environment:
+      POSTGRES_PASSWORD: ${PG_PASS:-secretpass}
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
       TZ: America/Chicago
+      # Initialize multiple databases
+      POSTGRES_MULTIPLE_DATABASES: authentik,fastapi,healthchecks,langfuse,flowise
     volumes:
-      - authentik_redis:/data
+      - postgres_data:/var/lib/postgresql/data
+      - ./config/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - auth_network
       - backend_network
+      - database_network
 
+  # Authentication
   authentik-server:
     image: ghcr.io/goauthentik/server:2025.2
     restart: unless-stopped
     command: server
     environment:
-      AUTHENTIK_REDIS__HOST: authentik-redis
-      AUTHENTIK_REDIS__PASSWORD: ${AUTHENTIK_REDIS_PASS:-redispass}
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_REDIS__PASSWORD: ${REDIS_PASSWORD}
       AUTHENTIK_POSTGRESQL__HOST: postgres
       AUTHENTIK_POSTGRESQL__USER: authentik
       AUTHENTIK_POSTGRESQL__NAME: authentik
@@ -48,7 +55,7 @@ services:
       - "9443:9443"
     depends_on:
       - postgres
-      - authentik-redis
+      - redis
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.authentik.rule=Host(`auth.${DOMAIN:-localhost}`)"
@@ -71,8 +78,8 @@ services:
     restart: unless-stopped
     command: worker
     environment:
-      AUTHENTIK_REDIS__HOST: authentik-redis
-      AUTHENTIK_REDIS__PASSWORD: ${AUTHENTIK_REDIS_PASS:-redispass}
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_REDIS__PASSWORD: ${REDIS_PASSWORD}
       AUTHENTIK_POSTGRESQL__HOST: postgres
       AUTHENTIK_POSTGRESQL__USER: authentik
       AUTHENTIK_POSTGRESQL__NAME: authentik
@@ -89,7 +96,7 @@ services:
       - ./config/authentik/authentik.env
     depends_on:
       - postgres
-      - authentik-redis
+      - redis
     healthcheck:
       test: ["CMD-SHELL", "ak healthcheck"]
       start_period: 30s
@@ -99,31 +106,6 @@ services:
     networks:
       - auth_network
       - backend_network
-
-  # Shared PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_PASSWORD: ${PG_PASS:-secretpass}
-      POSTGRES_USER: postgres
-      POSTGRES_DB: postgres
-      TZ: America/Chicago
-      # Initialize multiple databases
-      POSTGRES_MULTIPLE_DATABASES: authentik,fastapi,healthchecks,langfuse
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./config/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
-      - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - auth_network
-      - backend_network
-      - database_network
 
   # Reverse Proxy
   traefik:
@@ -176,7 +158,7 @@ services:
       - redis_data:/data
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -250,7 +232,7 @@ services:
       - POSTGRES_USER=fastapi
       - POSTGRES_PASSWORD=${PG_PASS}
       - POSTGRES_DB=fastapi
-      - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo-episodic:27017,mongo-procedural:27017
+      - MONGODB_URI=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo-episodic:27017
       - MONGODB_HOST=mongo-episodic
       - MONGODB_PORT=27017
       - MONGODB_USERNAME=${MONGO_USER:-admin}
@@ -322,7 +304,7 @@ services:
       - POSTGRES_USER=fastapi
       - POSTGRES_PASSWORD=${PG_PASS}
       - POSTGRES_DB=fastapi
-      - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo-episodic:27017,mongo-procedural:27017
+      - MONGODB_URI=mongodb://admin:${MONGO_PASS:-change-me-mongo-pass}@mongo-episodic:27017,mongo-procedural:27017
       - MONGODB_HOST=mongo-episodic
       - MONGODB_PORT=27017
       - MONGODB_USERNAME=${MONGO_USER:-admin}
@@ -387,7 +369,7 @@ services:
       - POSTGRES_USER=fastapi
       - POSTGRES_PASSWORD=${PG_PASS}
       - POSTGRES_DB=fastapi
-      - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo-episodic:27017,mongo-procedural:27017
+      - MONGODB_URI=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo-episodic:27017,mongo-procedural:27017
       - MONGODB_HOST=mongo-episodic
       - MONGODB_PORT=27017
       - MONGODB_USERNAME=${MONGO_USER:-admin}
@@ -433,7 +415,7 @@ services:
     build: ./services/workers
     restart: unless-stopped
     environment:
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - MONGODB_URL=mongodb://mongo-episodic:27017,mongo-procedural:27017
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
       - TZ=America/Chicago
@@ -537,6 +519,86 @@ services:
     networks:
       - database_network
 
+  # Langfuse - AI observability and analytics platform
+  langfuse:
+    image: langfuse/langfuse:3
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      # Database connection
+      DATABASE_URL: postgresql://langfuse:${PG_PASS:-secretpass}@postgres:5432/langfuse
+      
+      # ClickHouse configuration for analytics
+      CLICKHOUSE_PASSWORD: "langfuse_clickhouse_2024"
+      CLICKHOUSE_URL: ${CLICKHOUSE_URL:-http://clickhouse:8123}
+      CLICKHOUSE_MIGRATION_URL: clickhouse://default:langfuse_clickhouse_2024@clickhouse:9000
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_CLUSTER_ENABLED: false
+      
+      # Authentication configuration - use localhost for external access
+      NEXTAUTH_URL: http://localhost:3000
+      
+      # Security salt
+      SALT: p3X2E9sWr1uJo8kAZC7nVFdyWl0kURbK5cz1mY9aGqBqvRLpEMpEyT0KVV7U6gcn
+
+      ENCRYPTION_KEY: 3e0a15c9f51bbf0ab9c861a1f7a05f90277d8f4c4e4d7f915cd8830f35c7a3f5
+      NEXTAUTH_SECRET: uVP0LmtKQhz6Z9BsnHtrmX35cMgO3XbLkeuYzYXb0C4VFL4NNoUwN9pU9yW8dTeN
+      LANGFUSE_SALT: p3X2E9sWr1uJo8kAZC7nVFdyWl0kURbK5cz1mY9aGqBqvRLpEMpEyT0KVV7U6gcn
+      
+      # Node.js environment for production stability
+      NODE_ENV: production
+      
+      # Optional: Disable email verification for development
+      NEXTAUTH_DISABLE_EMAIL_VERIFICATION: "true"
+
+      LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-}
+      LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_INIT_ORG_NAME:-}
+      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_INIT_PROJECT_ID:-}
+      LANGFUSE_INIT_PROJECT_NAME: ${LANGFUSE_INIT_PROJECT_NAME:-}
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_INIT_PROJECT_PUBLIC_KEY:-}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_INIT_PROJECT_SECRET_KEY:-}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-}
+      LANGFUSE_INIT_USER_NAME: ${LANGFUSE_INIT_USER_NAME:-}
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-}
+
+      TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-true}
+      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-true}
+
+    networks:
+      - app_network
+      - database_network
+
+  # ClickHouse - Optional analytics database for Langfuse
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.1-alpine
+    restart: unless-stopped
+    environment:
+      CLICKHOUSE_DB: langfuse
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: "langfuse_clickhouse_2024"
+      TZ: America/Chicago
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./config/clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./config/clickhouse/users.xml:/etc/clickhouse-server/users.xml:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "8123:8123"
+      - "9001:9000"
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - database_network
+
   qdrant:
     image: qdrant/qdrant:latest
     restart: unless-stopped
@@ -548,86 +610,14 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
       - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/readyz"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    # Temporarily disable health check due to curl not being available in container
+    # healthcheck:
+    #   test: ["CMD", "curl", "-f", "http://localhost:6333/readyz"]
+    #   interval: 10s
+    #   timeout: 5s
+    #   retries: 5
     networks:
       - database_network
-
-  clickhouse:
-    image: clickhouse/clickhouse-server:24.1-alpine
-    restart: unless-stopped
-    environment:
-      CLICKHOUSE_DB: langfuse
-      CLICKHOUSE_USER: langfuse
-      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse_password}
-      TZ: America/Chicago
-    volumes:
-      - clickhouse_data:/var/lib/clickhouse
-      - /etc/localtime:/etc/localtime:ro
-    ports:
-      - "8123:8123"
-      - "9001:9000"
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8123/ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - database_network
-
-  langfuse:
-    image: langfuse/langfuse:3
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      clickhouse:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    environment:
-      # Database
-      DATABASE_URL: postgresql://langfuse:${PG_PASS:-secretpass}@postgres:5432/langfuse
-      
-      # ClickHouse for analytics
-      CLICKHOUSE_URL: http://clickhouse:8123
-      CLICKHOUSE_USER: langfuse
-      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse_password}
-      
-      # Redis for caching and queues
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_AUTH: ""
-      
-      # Authentication
-      NEXTAUTH_URL: https://langfuse.${DOMAIN:-localhost}
-      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-langfuse_secret_change_me}
-      
-      # Langfuse Configuration
-      SALT: ${LANGFUSE_SALT:-langfuse_salt_change_me}
-      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY:-langfuse_encryption_key_change_me}
-      
-      # Optional: Enable telemetry (set to false for privacy)
-      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-true}
-      
-      # Timezone
-      TZ: America/Chicago
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.langfuse.rule=Host(`langfuse.${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.langfuse.entrypoints=websecure"
-      - "traefik.http.routers.langfuse.tls=true"
-      - "traefik.http.services.langfuse.loadbalancer.server.port=3000"
-    networks:
-      - frontend_network
-      - backend_network
-      - database_network
-      - monitoring_network
 
   # UI Applications
   open-webui:
@@ -686,7 +676,7 @@ services:
       - DB_PORT=5432
       - DB_NAME=healthchecks
       - DB_USER=healthchecks
-      - DB_PASSWORD=${PG_PASS:-secretpass}
+      - DB_PASSWORD=${PG_PASS}
       - EMAIL_HOST=${EMAIL_HOST}
       - EMAIL_PORT=${EMAIL_PORT}
       - EMAIL_USE_TLS=True
@@ -803,11 +793,44 @@ services:
       - "traefik.http.services.dashy.loadbalancer.server.port=8080"
       - "traefik.docker.network=zoi_frontend"
 
+  # Flowise - Low-code LLM orchestration platform
+  flowise:
+    image: flowiseai/flowise:latest
+    restart: unless-stopped
+    environment:
+      - DATABASE_TYPE=postgres
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_NAME=flowise
+      - DATABASE_USER=flowise
+      - DATABASE_PASSWORD=${PG_PASS:-secretpass}
+      - FLOWISE_USERNAME=${FLOWISE_USERNAME:-admin}
+      - FLOWISE_PASSWORD=${FLOWISE_PASSWORD:-secretpass}
+      - PORT=3000
+      - CORS_ORIGINS=*
+      - IFRAME_ORIGINS=*
+      - TZ=America/Chicago
+    ports:
+      - "3001:3000"
+    volumes:
+      - flowise_data:/root/.flowise
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.flowise.rule=Host(`flowise.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.flowise.entrypoints=websecure"
+      - "traefik.http.routers.flowise.tls=true"
+    networks:
+      - backend_network
+      - frontend_network
+      - database_network
+
 volumes:
   authentik_media:
     name: authentik_media
-  authentik_redis:
-    name: authentik_redis
   authentik_templates:
     name: authentik_templates
   backrest_cache:
@@ -816,6 +839,8 @@ volumes:
     name: clickhouse_data
   dashy_data:
     name: dashy_data
+  flowise_data:
+    name: flowise_data
   mongo_episodic:
     name: mongo_episodic
   mongo_procedural:
@@ -893,3 +918,9 @@ networks:
   # Legacy default network for backward compatibility
   default:
     name: rag_network
+  app_network:
+    name: zoi_app
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.26.0.0/24

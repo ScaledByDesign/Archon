@@ -25,8 +25,8 @@ app.conf.update(
     enable_utc=True,
 )
 
-# Auto-discover tasks
-app.autodiscover_tasks(['tasks'])
+# Auto-discover tasks (commented out until tasks are added)
+# app.autodiscover_tasks(['tasks'])
 
 @app.task
 def health_check():
@@ -34,4 +34,5 @@ def health_check():
     return "Worker is healthy"
 
 if __name__ == '__main__':
-    app.start()
+    # Start the worker with proper arguments
+    app.worker_main(['worker', '--loglevel=info', '--concurrency=1'])

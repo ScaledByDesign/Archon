@@ -23,4 +23,4 @@ RUN useradd --create-home --shell /bin/bash worker
 USER worker
 
 # Default command
-CMD ["python", "worker.py"]
+CMD ["celery", "-A", "worker", "worker", "--loglevel=info", "--concurrency=1"]
