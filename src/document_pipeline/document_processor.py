@@ -25,13 +25,6 @@ from .embedding_generator import EmbeddingGenerator, EmbeddingConfig
 from src.vector_store.vector_store import QdrantVectorStore
 from src.db.mongodb_client import MongoDBClient
 
-# Import observability
-try:
-    from src.observability.langfuse_tracer import LangfuseTracer
-    LANGFUSE_AVAILABLE = True
-except ImportError:
-    LANGFUSE_AVAILABLE = False
-
 logger = logging.getLogger(__name__)
 
 
@@ -86,7 +79,7 @@ class DocumentProcessorConfig:
     embedding_config: EmbeddingConfig = field(default_factory=EmbeddingConfig)
     
     # Tracing configuration
-    enable_tracing: bool = True
+    enable_tracing: bool = False
     
     @classmethod
     def from_env(cls) -> "DocumentProcessorConfig":
@@ -116,7 +109,7 @@ class DocumentProcessorConfig:
             store_in_vector_db=os.getenv("DOCUMENT_STORE_IN_VECTOR_DB", "true").lower() == "true",
             chunking_config=chunking_config,
             embedding_config=embedding_config,
-            enable_tracing=os.getenv("ENABLE_TRACING", "true").lower() == "true"
+            enable_tracing=os.getenv("ENABLE_TRACING", "false").lower() == "true"
         )
 
 
@@ -155,12 +148,6 @@ class DocumentProcessor:
         self.cleaner = TextCleaner()
         self.chunker = DocumentChunker(config=self.config.chunking_config)
         self.embedding_generator = EmbeddingGenerator(config=self.config.embedding_config)
-        
-        # Initialize tracer if Langfuse is available
-        self.tracer = None
-        if self.config.enable_tracing and LANGFUSE_AVAILABLE:
-            self.tracer = LangfuseTracer()
-            logger.info("Langfuse tracing enabled for document processing")
     
     async def setup(self):
         """Set up necessary infrastructure for document processing"""
@@ -221,18 +208,6 @@ class DocumentProcessor:
         # Initialize processing stats
         stats = ProcessingStats()
         
-        # Create trace if enabled
-        trace = None
-        if self.tracer:
-            trace = self.tracer.start_trace(
-                name="document_processing",
-                id=trace_id or document_id,
-                metadata={
-                    "document_id": document_id,
-                    "filename": filename
-                }
-            )
-        
         try:
             # Store document record in MongoDB
             await self.mongodb_client.insert_document(
@@ -246,12 +221,11 @@ class DocumentProcessor:
             await self._update_document(document_metadata)
             
             # Use the extractor to get text content
-            with trace.span("text_extraction") if trace else nullcontext():
-                extraction_result = self.extractor.extract_text(
-                    file_content=file_content,
-                    filename=filename,
-                    document_id=document_id
-                )
+            extraction_result = self.extractor.extract_text(
+                file_content=file_content,
+                filename=filename,
+                document_id=document_id
+            )
             
             # Update stats
             stats.extraction_time_ms = int((time.time() - start_time) * 1000)
@@ -271,8 +245,7 @@ class DocumentProcessor:
                 document_metadata["status"] = ProcessingStatus.CLEANING
                 await self._update_document(document_metadata)
                 
-                with trace.span("text_cleaning") if trace else nullcontext():
-                    cleaned_text = self.cleaner.clean_text(extraction_result.text)
+                cleaned_text = self.cleaner.clean_text(extraction_result.text)
                 
                 # Update stats
                 stats.cleaning_time_ms = int((time.time() - start_time) * 1000)
@@ -285,12 +258,11 @@ class DocumentProcessor:
                 document_metadata["status"] = ProcessingStatus.CHUNKING
                 await self._update_document(document_metadata)
                 
-                with trace.span("document_chunking") if trace else nullcontext():
-                    chunks = self.chunker.chunk_document(
-                        text=cleaned_text,
-                        metadata=document_metadata,
-                        document_id=document_id
-                    )
+                chunks = self.chunker.chunk_document(
+                    text=cleaned_text,
+                    metadata=document_metadata,
+                    document_id=document_id
+                )
                 
                 # Update stats
                 stats.chunking_time_ms = int((time.time() - start_time) * 1000)
@@ -329,11 +301,10 @@ class DocumentProcessor:
                 # Extract text content from chunks
                 chunk_texts = [chunk["content"] for chunk in chunks]
                 
-                with trace.span("embedding_generation") if trace else nullcontext():
-                    embeddings, _ = self.embedding_generator.generate_document_chunks(
-                        chunks=chunk_texts,
-                        metadata=None
-                    )
+                embeddings, _ = self.embedding_generator.generate_document_chunks(
+                    chunks=chunk_texts,
+                    metadata=None
+                )
                 
                 # Update stats
                 stats.embedding_time_ms = int((time.time() - start_time) * 1000)
@@ -375,11 +346,10 @@ class DocumentProcessor:
                         })
                 
                 # Insert points into vector store
-                with trace.span("vector_indexing") if trace else nullcontext():
-                    await self.vector_store.upsert_points(
-                        collection_name=self.config.vector_collection,
-                        points=points
-                    )
+                await self.vector_store.upsert_points(
+                    collection_name=self.config.vector_collection,
+                    points=points
+                )
                 
                 # Update stats
                 stats.indexing_time_ms = int((time.time() - start_time) * 1000)
@@ -412,16 +382,6 @@ class DocumentProcessor:
             # Log success
             logger.info(f"Document processed successfully: {document_id}")
             
-            # Complete trace
-            if trace:
-                trace.end(
-                    output={
-                        "document_id": document_id,
-                        "status": "completed",
-                        "stats": asdict(stats)
-                    }
-                )
-            
             return document_metadata
             
         except Exception as e:
@@ -443,20 +403,6 @@ class DocumentProcessor:
             # Log error
             logger.error(f"Document processing failed: {error_message}")
             logger.debug(error_traceback)
-            
-            # Complete trace with error
-            if trace:
-                trace.end(
-                    output={
-                        "document_id": document_id,
-                        "status": "failed",
-                        "error": error_message
-                    },
-                    error={
-                        "message": error_message,
-                        "traceback": error_traceback
-                    }
-                )
             
             return document_metadata
     
@@ -535,17 +481,6 @@ class DocumentProcessor:
         Returns:
             List of document metadata with processing results
         """
-        # Create trace if enabled
-        trace = None
-        if self.tracer:
-            trace = self.tracer.start_trace(
-                name="document_batch_processing",
-                id=trace_id or str(uuid.uuid4()),
-                metadata={
-                    "batch_size": len(documents)
-                }
-            )
-        
         # Process documents in parallel
         tasks = []
         for file_content, filename, metadata in documents:
@@ -574,16 +509,6 @@ class DocumentProcessor:
                 })
             else:
                 processed_results.append(result)
-        
-        # Complete trace
-        if trace:
-            trace.end(
-                output={
-                    "batch_size": len(documents),
-                    "successful": sum(1 for r in processed_results if r["status"] == ProcessingStatus.COMPLETED),
-                    "failed": sum(1 for r in processed_results if r["status"] == ProcessingStatus.FAILED)
-                }
-            )
         
         return processed_results
 

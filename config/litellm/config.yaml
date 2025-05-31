@@ -375,12 +375,6 @@ litellm_settings:
   set_verbose: true
   log_level: "INFO"
   
-  # Langfuse observability integration
-  callbacks: ["langfuse"]
-  langfuse_host: os.environ/LANGFUSE_HOST
-  langfuse_public_key: os.environ/LANGFUSE_PUBLIC_KEY
-  langfuse_secret_key: os.environ/LANGFUSE_SECRET_KEY
-  
   # Health check settings optimized for M4 Mac Mini
   health_check_interval: 180  # 3 minutes (faster for local models)
   

@@ -1,6 +1,6 @@
 """
 FastAPI Backend for Production RAG System
-Integrates with HashiCorp Vault, Qdrant, and other services
+Integrates with Qdrant, and other services
 """
 
 import asyncio
@@ -32,15 +32,9 @@ from src.core.validators import HealthCheckResponse, ErrorResponse
 from src.core.service_manager import service_manager
 from src.config.settings import get_settings
 
-# Observability imports
-from src.observability.middleware import LangfuseMiddleware
-from src.observability.langfuse_client import langfuse_tracer
-from src.observability.litellm_wrapper import traced_llm
-
 # Existing imports
-from src.zoi_secrets.vault_client import get_secret_manager as create_secret_manager, VaultConfig, VaultClient, SecretManager
 from src.vector_store.vector_store import QdrantVectorStore, QdrantConfig
-from src.api.dependencies import set_global_secret_manager, set_global_vector_store, get_secret_manager, get_vector_store, set_global_document_processor
+from src.api.dependencies import set_global_vector_store, get_vector_store, set_global_document_processor
 from src.api.routes import auth, search, oauth, document_routes
 from src.document_pipeline.document_processor import DocumentProcessor
 from src.auth.jwt_middleware import JWTMiddleware
@@ -58,46 +52,9 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 
 # Global variables for shared resources
-secret_manager: Optional[SecretManager] = None
 vector_store: Optional[QdrantVectorStore] = None
 document_processor: Optional[DocumentProcessor] = None
 app_config: Dict = {}
-
-
-async def initialize_secrets():
-    """Initialize secret manager and load application configuration"""
-    global secret_manager, app_config
-    
-    try:
-        logger.info("Initializing secret manager...")
-        
-        # Get Vault configuration from environment
-        vault_config = VaultConfig.from_env()
-        
-        # Create Vault client (authentication happens automatically)
-        vault_client = VaultClient(vault_config)
-        
-        # Create secret manager
-        secret_manager = create_secret_manager(vault_client)
-        set_global_secret_manager(secret_manager)
-        
-        # Load application configuration
-        try:
-            app_config = secret_manager.get_secret("app/config")
-            logger.info("Secret manager initialized successfully with app config from Vault")
-        except Exception as config_error:
-            logger.warning(f"Could not load app config from Vault: {config_error}")
-            app_config = None  # Use default configuration
-            logger.info("Secret manager initialized successfully with default config")
-        
-    except Exception as e:
-        logger.error(f"Failed to initialize secret manager: {e}")
-        # Continue without Vault in development mode
-        if os.getenv("ENVIRONMENT", "development") == "development":
-            logger.warning("Running in development mode without Vault")
-            secret_manager = None
-        else:
-            raise
 
 
 async def initialize_vector_store():
@@ -107,17 +64,8 @@ async def initialize_vector_store():
     try:
         logger.info("Initializing vector store...")
         
-        if secret_manager:
-            # Get Qdrant configuration from Vault
-            try:
-                qdrant_config_dict = secret_manager.get_secret("qdrant/config")
-                qdrant_url = qdrant_config_dict.get("url", "http://qdrant:6333")
-            except Exception as e:
-                logger.warning(f"Could not load Qdrant config from Vault: {e}")
-                qdrant_url = os.getenv("QDRANT_URL", "http://qdrant:6333")
-        else:
-            # Fallback to environment variables
-            qdrant_url = os.getenv("QDRANT_URL", "http://qdrant:6333")
+        # Get Qdrant configuration from environment
+        qdrant_url = os.getenv("QDRANT_URL", "http://qdrant:6333")
         
         # Parse URL to extract components
         from urllib.parse import urlparse
@@ -150,8 +98,7 @@ async def lifespan(app: FastAPI):
     # Initialize databases first
     await initialize_databases()
     
-    # Initialize secrets
-    await initialize_secrets()
+    # Initialize vector store
     await initialize_vector_store()
     
     # Initialize service manager
@@ -225,15 +172,6 @@ def create_app() -> FastAPI:
         https_only=settings.environment == "production"
     )
     
-    # Add observability middleware
-    app.add_middleware(
-        LangfuseMiddleware,
-        exclude_paths=["/health", "/metrics", "/favicon.ico"],
-        include_request_body=False,  # Set to True to capture request bodies in traces
-        include_response_body=False,  # Set to True to capture response bodies in traces
-        include_headers=False,        # Set to True to capture headers in traces
-    )
-    
     # Custom exception handlers
     @app.exception_handler(APIError)
     async def api_error_handler(request: Request, exc: APIError):
@@ -304,17 +242,6 @@ def create_app() -> FastAPI:
             except Exception as e:
                 logger.warning(f"Database health check failed: {e}")
                 components["database"] = "unhealthy"
-            
-            # Check secret manager
-            if secret_manager:
-                try:
-                    secret_manager.get_secret("app/config")
-                    components["vault"] = "healthy"
-                except Exception as e:
-                    logger.warning(f"Vault health check failed: {e}")
-                    components["vault"] = "unhealthy"
-            else:
-                components["vault"] = "not_configured"
             
             # Check vector store
             if vector_store:

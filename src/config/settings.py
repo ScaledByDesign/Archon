@@ -78,21 +78,6 @@ class DatabaseSettings(BaseSettings):
         )
 
 
-class VaultSettings(BaseSettings):
-    """HashiCorp Vault configuration"""
-    
-    vault_addr: str = Field(default="http://localhost:8200", env="VAULT_ADDR")
-    vault_token: Optional[str] = Field(default=None, env="VAULT_TOKEN")
-    vault_role_id: Optional[str] = Field(default=None, env="VAULT_ROLE_ID")
-    vault_secret_id: Optional[str] = Field(default=None, env="VAULT_SECRET_ID")
-    vault_verify_ssl: bool = Field(default=True, env="VAULT_VERIFY_SSL")
-    vault_namespace: Optional[str] = Field(default=None, env="VAULT_NAMESPACE")
-    
-    # Secret paths
-    vault_secret_path: str = Field(default="secret/data/rag-system", env="VAULT_SECRET_PATH")
-    vault_database_path: str = Field(default="database/creds", env="VAULT_DATABASE_PATH")
-
-
 class QdrantSettings(BaseSettings):
     """Qdrant vector database configuration"""
     
@@ -266,7 +251,6 @@ class AppSettings(BaseSettings):
     
     # Component Settings
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
-    vault: VaultSettings = Field(default_factory=VaultSettings)
     qdrant: QdrantSettings = Field(default_factory=QdrantSettings)
     auth: AuthSettings = Field(default_factory=AuthSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)

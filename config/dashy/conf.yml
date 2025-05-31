@@ -125,12 +125,6 @@ sections:
         statusCheck: true
         statusUrl:  'https://chat.${DOMAIN}/health'
 
-      - title: 'Langfuse Observability'
-        url: 'https://logs.${DOMAIN}'
-        icon: 'fas fa-chart-line'
-        statusCheck: true
-        statusUrl:  'https://logs.${DOMAIN}/api/health'
-
   - name: '🔄 Workflows & Queue'
     icon: 'fas fa-project-diagram'
     items:

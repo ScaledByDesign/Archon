@@ -4,11 +4,11 @@ Provides shared dependencies for authentication, database connections, etc.
 """
 
 import logging
+import os
 from typing import Optional
 from fastapi import HTTPException, Depends, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from src.zoi_secrets.vault_client import get_secret_manager, VaultClient, SecretManager
 from src.vector_store.vector_store import QdrantVectorStore
 from src.document_pipeline.document_processor import DocumentProcessor
 
@@ -16,15 +16,8 @@ logger = logging.getLogger(__name__)
 security = HTTPBearer()
 
 # Global instances (initialized in main.py)
-_secret_manager: Optional[SecretManager] = None
 _vector_store: Optional[QdrantVectorStore] = None
 _document_processor: Optional[DocumentProcessor] = None
-
-
-def set_global_secret_manager(secret_manager: SecretManager):
-    """Set the global secret manager instance"""
-    global _secret_manager
-    _secret_manager = secret_manager
 
 
 def set_global_vector_store(vector_store: QdrantVectorStore):
@@ -37,16 +30,6 @@ def set_global_document_processor(document_processor: DocumentProcessor):
     """Set the global document processor instance"""
     global _document_processor
     _document_processor = document_processor
-
-
-def get_secret_manager() -> SecretManager:
-    """Dependency to get secret manager"""
-    if not _secret_manager:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Secret manager not available"
-        )
-    return _secret_manager
 
 
 def get_vector_store() -> QdrantVectorStore:
@@ -69,9 +52,8 @@ def get_document_processor() -> DocumentProcessor:
     return _document_processor
 
 
-async def get_authenticated_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    secrets: SecretManager = Depends(get_secret_manager)
+def get_authenticated_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
     """
     Dependency to get authenticated user from JWT token
@@ -80,41 +62,35 @@ async def get_authenticated_user(
     try:
         import jwt
         
-        # Get JWT configuration
-        jwt_config = secrets.vault_client.get_secret_dict('app/jwt')
+        # Get JWT configuration from environment variables
+        jwt_secret_key = os.environ.get('JWT_SECRET_KEY')
+        jwt_algorithm = os.environ.get('JWT_ALGORITHM', 'HS256')
         
         # Decode token
         payload = jwt.decode(
             credentials.credentials,
-            jwt_config['secret_key'],
-            algorithms=[jwt_config.get('algorithm', 'HS256')]
+            jwt_secret_key,
+            algorithms=[jwt_algorithm]
         )
         
         return {
             'user_id': payload.get('user_id'),
             'username': payload.get('sub'),
             'roles': payload.get('roles', []),
-            'permissions': payload.get('permissions', [])
+            'scopes': payload.get('scopes', [])
         }
         
-    except jwt.PyJWTError as e:
-        logger.warning(f"JWT validation failed: {e}")
+    except Exception as e:
+        logger.warning(f"Authentication failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
+            detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
-        )
-    except Exception as e:
-        logger.error(f"Authentication error: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Authentication service error"
         )
 
 
 def get_optional_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
-    secrets: SecretManager = Depends(get_secret_manager)
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False))
 ):
     """
     Optional authentication dependency - returns user if token is provided and valid
@@ -125,25 +101,24 @@ def get_optional_user(
     try:
         import jwt
         
-        jwt_config = secrets.vault_client.get_secret_dict('app/jwt')
+        jwt_secret_key = os.environ.get('JWT_SECRET_KEY')
+        jwt_algorithm = os.environ.get('JWT_ALGORITHM', 'HS256')
         
         payload = jwt.decode(
             credentials.credentials,
-            jwt_config['secret_key'],
-            algorithms=[jwt_config.get('algorithm', 'HS256')]
+            jwt_secret_key,
+            algorithms=[jwt_algorithm]
         )
         
         return {
             'user_id': payload.get('user_id'),
             'username': payload.get('sub'),
             'roles': payload.get('roles', []),
-            'permissions': payload.get('permissions', [])
+            'scopes': payload.get('scopes', [])
         }
         
-    except jwt.PyJWTError:
-        return None
     except Exception as e:
-        logger.error(f"Optional authentication error: {e}")
+        logger.warning(f"Optional authentication failed: {e}")
         return None
 
 
@@ -152,7 +127,7 @@ def require_permission(permission: str):
     Dependency factory to require specific permission
     """
     def permission_checker(user: dict = Depends(get_authenticated_user)):
-        if permission not in user.get('permissions', []):
+        if permission not in user.get('scopes', []):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail=f"Permission '{permission}' required"

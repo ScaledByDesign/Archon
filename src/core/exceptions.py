@@ -237,24 +237,6 @@ class BadRequestError(BaseAPIException):
         )
 
 
-class VaultError(BaseAPIException):
-    """Raised when Vault operations fail"""
-    
-    def __init__(
-        self,
-        detail: str = "Vault operation failed",
-        operation: Optional[str] = None,
-        headers: Optional[Dict[str, Any]] = None
-    ):
-        super().__init__(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail=detail,
-            headers=headers,
-            error_code="VAULT_ERROR",
-            context={"operation": operation}
-        )
-
-
 class VectorStoreError(BaseAPIException):
     """Raised when vector store operations fail"""
     

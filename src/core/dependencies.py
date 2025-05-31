@@ -12,7 +12,6 @@ from src.core.database import DatabaseManager, get_database_manager
 from src.core.security import verify_session_token
 from src.core.exceptions import AuthenticationError, AuthorizationError
 from src.config.settings import get_settings
-from src.zoi_secrets.vault_client import get_secret_manager
 
 
 logger = logging.getLogger(__name__)
@@ -199,16 +198,6 @@ async def get_database_helper(
         Database manager
     """
     return db_manager
-
-
-async def get_secret_manager_dependency():
-    """
-    Get secret manager dependency
-    
-    Returns:
-        Secret manager instance
-    """
-    return await get_secret_manager()
 
 
 async def validate_api_key(

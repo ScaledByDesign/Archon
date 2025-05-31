@@ -18,17 +18,6 @@ from src.document_pipeline.queue_consumer import DocumentQueueConsumer
 from src.db.mongodb_client import MongoDBClient
 from src.core.service_manager import get_document_processor, get_mongodb_client, get_queue_consumer
 
-# Import observability
-try:
-    from src.observability.langfuse_middleware import trace_request
-    LANGFUSE_AVAILABLE = True
-except ImportError:
-    LANGFUSE_AVAILABLE = False
-    def trace_request(name, metadata=None):
-        def decorator(func):
-            return func
-        return decorator
-
 logger = logging.getLogger(__name__)
 
 # Models
@@ -148,7 +137,6 @@ async def get_mongodb_client_dep():
     summary="Upload and process a document",
     description="Upload a document for processing. The document will be processed asynchronously."
 )
-@trace_request("document_upload") if LANGFUSE_AVAILABLE else lambda x: x
 async def upload_document(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
@@ -220,7 +208,6 @@ async def upload_document(
     summary="Get document status",
     description="Get the processing status and metadata for a document."
 )
-@trace_request("get_document") if LANGFUSE_AVAILABLE else lambda x: x
 async def get_document(
     document_id: str,
     processor: DocumentProcessor = Depends(get_document_processor_dep)
@@ -261,7 +248,6 @@ async def get_document(
     summary="Search for similar documents",
     description="Search for document chunks similar to the provided query."
 )
-@trace_request("search_documents") if LANGFUSE_AVAILABLE else lambda x: x
 async def search_documents(
     request: DocumentSearchRequest,
     processor: DocumentProcessor = Depends(get_document_processor_dep)
@@ -292,7 +278,6 @@ async def search_documents(
     summary="List documents",
     description="List all documents with optional filtering and pagination."
 )
-@trace_request("list_documents") if LANGFUSE_AVAILABLE else lambda x: x
 async def list_documents(
     status: Optional[str] = Query(None, description="Filter by processing status"),
     skip: int = Query(0, ge=0, description="Number of documents to skip"),
@@ -340,7 +325,6 @@ async def list_documents(
     summary="Delete a document",
     description="Delete a document and all its chunks and vector embeddings."
 )
-@trace_request("delete_document") if LANGFUSE_AVAILABLE else lambda x: x
 async def delete_document(
     document_id: str,
     mongodb_client: MongoDBClient = Depends(get_mongodb_client_dep),

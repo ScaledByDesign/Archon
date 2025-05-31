@@ -11,7 +11,7 @@ services:
       POSTGRES_DB: postgres
       TZ: America/Chicago
       # Initialize multiple databases
-      POSTGRES_MULTIPLE_DATABASES: authentik,fastapi,healthchecks,langfuse,flowise
+      POSTGRES_MULTIPLE_DATABASES: authentik,fastapi,healthchecks,flowise
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./config/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
@@ -218,11 +218,6 @@ services:
       - ./requirements.txt:/app/requirements.txt:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
-      - VAULT_ADDR=http://vault:8200
-      - VAULT_TOKEN=${VAULT_TOKEN}
-      - VAULT_ROLE_ID=${VAULT_ROLE_ID}
-      - VAULT_SECRET_ID=${VAULT_SECRET_ID}
-      - VAULT_ROOT_TOKEN=${VAULT_ROOT_TOKEN}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -232,12 +227,12 @@ services:
       - POSTGRES_USER=fastapi
       - POSTGRES_PASSWORD=${PG_PASS}
       - POSTGRES_DB=fastapi
-      - MONGODB_URI=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo-episodic:27017
-      - MONGODB_HOST=mongo-episodic
+      - MONGODB_URI=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo:27017
+      - MONGODB_HOST=mongo
       - MONGODB_PORT=27017
       - MONGODB_USERNAME=${MONGO_USER:-admin}
       - MONGODB_PASSWORD=${MONGO_PASS:-change-me-mongo-pass}
-      - MONGODB_DATABASE=episodic
+      - MONGODB_DATABASE=rag_system
       - QDRANT_URL=http://qdrant:6333
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
       - LITELLM_URL=http://litellm:8000
@@ -261,11 +256,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      vault:
-        condition: service_healthy
       redis:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      mongo:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
@@ -280,149 +275,21 @@ services:
       - database_network
       - infrastructure_network
 
-  fastapi-2:
-    <<: *fastapi
-    ports:
-      - "8010:8000"
-    volumes:
-      - ./src:/app/src:ro
-      - ./tests:/app/tests:ro
-      - ./requirements.txt:/app/requirements.txt:ro
-      - /etc/localtime:/etc/localtime:ro
-    environment:
-      - VAULT_ADDR=http://vault:8200
-      - VAULT_TOKEN=${VAULT_TOKEN}
-      - VAULT_ROLE_ID=${VAULT_ROLE_ID}
-      - VAULT_SECRET_ID=${VAULT_SECRET_ID}
-      - VAULT_ROOT_TOKEN=${VAULT_ROOT_TOKEN}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_DB=0
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=fastapi
-      - POSTGRES_PASSWORD=${PG_PASS}
-      - POSTGRES_DB=fastapi
-      - MONGODB_URI=mongodb://admin:${MONGO_PASS:-change-me-mongo-pass}@mongo-episodic:27017,mongo-procedural:27017
-      - MONGODB_HOST=mongo-episodic
-      - MONGODB_PORT=27017
-      - MONGODB_USERNAME=${MONGO_USER:-admin}
-      - MONGODB_PASSWORD=${MONGO_PASS:-change-me-mongo-pass}
-      - MONGODB_DATABASE=episodic
-      - QDRANT_URL=http://qdrant:6333
-      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
-      - LITELLM_URL=http://litellm:8000
-      - AUTHENTIK_URL=https://authentik-server:9443
-      - INSTANCE_ID=2
-      - FASTAPI_OAUTH_CLIENT_ID=${FASTAPI_OAUTH_CLIENT_ID}
-      - FASTAPI_OAUTH_CLIENT_SECRET=${FASTAPI_OAUTH_CLIENT_SECRET}
-      - FASTAPI_OAUTH_REDIRECT_URI=${FASTAPI_OAUTH_REDIRECT_URI}
-      - SESSION_SECRET_KEY=${SESSION_SECRET_KEY}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
-      - JWT_ALGORITHM=${JWT_ALGORITHM:-RS256}
-      - JWT_EXPIRATION_TIME=${JWT_EXPIRATION_TIME:-3600}
-      - JWT_REFRESH_EXPIRATION_TIME=${JWT_REFRESH_EXPIRATION_TIME:-86400}
-      - JWT_ISSUER=${JWT_ISSUER:-rag-system}
-      - JWT_AUDIENCE=${JWT_AUDIENCE:-rag-system-api}
-      - OAUTH_SCOPE=${OAUTH_SCOPE:-openid email profile rag:api}
-      - OAUTH_PROVIDER_URL=${OAUTH_PROVIDER_URL:-https://authentik-server:9443}
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:8080,http://localhost:8000}
-      - TRUSTED_HOSTS=${TRUSTED_HOSTS:-localhost,127.0.0.1,*.localhost}
-      - TZ=America/Chicago
-    depends_on:
-      postgres:
-        condition: service_healthy
-      vault:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - backend_network
-      - frontend_network
-      - database_network
-      - infrastructure_network
-
-  fastapi-3:
-    <<: *fastapi
-    ports:
-      - "8020:8000"
-    volumes:
-      - ./src:/app/src:ro
-      - ./tests:/app/tests:ro
-      - ./requirements.txt:/app/requirements.txt:ro
-      - /etc/localtime:/etc/localtime:ro
-    environment:
-      - VAULT_ADDR=http://vault:8200
-      - VAULT_TOKEN=${VAULT_TOKEN}
-      - VAULT_ROLE_ID=${VAULT_ROLE_ID}
-      - VAULT_SECRET_ID=${VAULT_SECRET_ID}
-      - VAULT_ROOT_TOKEN=${VAULT_ROOT_TOKEN}
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - REDIS_DB=0
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=fastapi
-      - POSTGRES_PASSWORD=${PG_PASS}
-      - POSTGRES_DB=fastapi
-      - MONGODB_URI=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo-episodic:27017,mongo-procedural:27017
-      - MONGODB_HOST=mongo-episodic
-      - MONGODB_PORT=27017
-      - MONGODB_USERNAME=${MONGO_USER:-admin}
-      - MONGODB_PASSWORD=${MONGO_PASS:-change-me-mongo-pass}
-      - MONGODB_DATABASE=episodic
-      - QDRANT_URL=http://qdrant:6333
-      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
-      - LITELLM_URL=http://litellm:8000
-      - AUTHENTIK_URL=https://authentik-server:9443
-      - INSTANCE_ID=3
-      - FASTAPI_OAUTH_CLIENT_ID=${FASTAPI_OAUTH_CLIENT_ID}
-      - FASTAPI_OAUTH_CLIENT_SECRET=${FASTAPI_OAUTH_CLIENT_SECRET}
-      - FASTAPI_OAUTH_REDIRECT_URI=${FASTAPI_OAUTH_REDIRECT_URI}
-      - SESSION_SECRET_KEY=${SESSION_SECRET_KEY}
-      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-your-jwt-secret-key-change-in-production}
-      - JWT_ALGORITHM=${JWT_ALGORITHM:-RS256}
-      - JWT_EXPIRATION_TIME=${JWT_EXPIRATION_TIME:-3600}
-      - JWT_REFRESH_EXPIRATION_TIME=${JWT_REFRESH_EXPIRATION_TIME:-86400}
-      - JWT_ISSUER=${JWT_ISSUER:-rag-system}
-      - JWT_AUDIENCE=${JWT_AUDIENCE:-rag-system-api}
-      - OAUTH_SCOPE=${OAUTH_SCOPE:-openid email profile rag:api}
-      - OAUTH_PROVIDER_URL=${OAUTH_PROVIDER_URL:-https://authentik-server:9443}
-      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:3000,http://localhost:8080,http://localhost:8000}
-      - TRUSTED_HOSTS=${TRUSTED_HOSTS:-localhost,127.0.0.1,*.localhost}
-      - TZ=America/Chicago
-    depends_on:
-      postgres:
-        condition: service_healthy
-      vault:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - backend_network
-      - frontend_network
-      - database_network
-      - infrastructure_network
-
   # Worker for async tasks
   worker:
     build: ./services/workers
     restart: unless-stopped
     environment:
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
-      - MONGODB_URL=mongodb://mongo-episodic:27017,mongo-procedural:27017
+      - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo:27017/rag_system
       - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
       - TZ=America/Chicago
     volumes:
       - /etc/localtime:/etc/localtime:ro
     depends_on:
       rabbitmq:
+        condition: service_healthy
+      mongo:
         condition: service_healthy
     deploy:
       replicas: 2
@@ -481,118 +348,19 @@ services:
       - backend_network
 
   # Databases
-  mongo-episodic:
+  mongo:
     image: mongo:7
     restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-change-me-mongo-pass}
-      MONGO_INITDB_DATABASE: episodic
       TZ: America/Chicago
     volumes:
-      - mongo_episodic:/data/db
+      - mongo_data:/data/db
+      - ./config/mongodb/init-multiple-databases.js:/docker-entrypoint-initdb.d/init-multiple-databases.js:ro
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - database_network
-
-  mongo-procedural:
-    image: mongo:7
-    restart: unless-stopped
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-change-me-mongo-pass}
-      MONGO_INITDB_DATABASE: procedural
-      TZ: America/Chicago
-    volumes:
-      - mongo_procedural:/data/db
-      - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - database_network
-
-  # Langfuse - AI observability and analytics platform
-  langfuse:
-    image: langfuse/langfuse:3
-    restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
-      clickhouse:
-        condition: service_healthy
-    ports:
-      - "3000:3000"
-    environment:
-      # Database connection
-      DATABASE_URL: postgresql://langfuse:${PG_PASS:-secretpass}@postgres:5432/langfuse
-      
-      # ClickHouse configuration for analytics
-      CLICKHOUSE_PASSWORD: "langfuse_clickhouse_2024"
-      CLICKHOUSE_URL: ${CLICKHOUSE_URL:-http://clickhouse:8123}
-      CLICKHOUSE_MIGRATION_URL: clickhouse://default:langfuse_clickhouse_2024@clickhouse:9000
-      CLICKHOUSE_USER: default
-      CLICKHOUSE_CLUSTER_ENABLED: false
-      
-      # Authentication configuration - use localhost for external access
-      NEXTAUTH_URL: http://localhost:3000
-      
-      # Security salt
-      SALT: p3X2E9sWr1uJo8kAZC7nVFdyWl0kURbK5cz1mY9aGqBqvRLpEMpEyT0KVV7U6gcn
-
-      ENCRYPTION_KEY: 3e0a15c9f51bbf0ab9c861a1f7a05f90277d8f4c4e4d7f915cd8830f35c7a3f5
-      NEXTAUTH_SECRET: uVP0LmtKQhz6Z9BsnHtrmX35cMgO3XbLkeuYzYXb0C4VFL4NNoUwN9pU9yW8dTeN
-      LANGFUSE_SALT: p3X2E9sWr1uJo8kAZC7nVFdyWl0kURbK5cz1mY9aGqBqvRLpEMpEyT0KVV7U6gcn
-      
-      # Node.js environment for production stability
-      NODE_ENV: production
-      
-      # Optional: Disable email verification for development
-      NEXTAUTH_DISABLE_EMAIL_VERIFICATION: "true"
-
-      LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-}
-      LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_INIT_ORG_NAME:-}
-      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_INIT_PROJECT_ID:-}
-      LANGFUSE_INIT_PROJECT_NAME: ${LANGFUSE_INIT_PROJECT_NAME:-}
-      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_INIT_PROJECT_PUBLIC_KEY:-}
-      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_INIT_PROJECT_SECRET_KEY:-}
-      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-}
-      LANGFUSE_INIT_USER_NAME: ${LANGFUSE_INIT_USER_NAME:-}
-      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-}
-
-      TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-true}
-      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-true}
-
-    networks:
-      - app_network
-      - database_network
-
-  # ClickHouse - Optional analytics database for Langfuse
-  clickhouse:
-    image: clickhouse/clickhouse-server:24.1-alpine
-    restart: unless-stopped
-    environment:
-      CLICKHOUSE_DB: langfuse
-      CLICKHOUSE_USER: default
-      CLICKHOUSE_PASSWORD: "langfuse_clickhouse_2024"
-      TZ: America/Chicago
-    volumes:
-      - clickhouse_data:/var/lib/clickhouse
-      - ./config/clickhouse/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-      - ./config/clickhouse/users.xml:/etc/clickhouse-server/users.xml:ro
-      - /etc/localtime:/etc/localtime:ro
-    ports:
-      - "8123:8123"
-      - "9001:9000"
-    healthcheck:
-      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -713,8 +481,7 @@ services:
       - ./volumes/backups:/data
       - backrest_cache:/cache
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - mongo_episodic:/backup/mongo_episodic:ro
-      - mongo_procedural:/backup/mongo_procedural:ro
+      - mongo_data:/backup/mongo:ro
       - qdrant_data:/backup/qdrant:ro
       - /etc/localtime:/etc/localtime:ro
     labels:
@@ -725,42 +492,6 @@ services:
     networks:
       - infrastructure_network
       - database_network
-
-  # Secret Management
-  vault:
-    image: hashicorp/vault:1.15
-    restart: unless-stopped
-    cap_add:
-      - IPC_LOCK
-    ports:
-      - "8200:8200"
-    environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_ROOT_TOKEN:-vault-root-token}
-      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
-      - VAULT_ADDR=http://0.0.0.0:8200
-      - VAULT_API_ADDR=http://vault:8200
-      - VAULT_LOG_LEVEL=info
-      - TZ=America/Chicago
-    volumes:
-      - vault_data:/vault/data
-      - vault_logs:/vault/logs
-      - ./config/vault:/vault/config:ro
-      - /etc/localtime:/etc/localtime:ro
-    command: ["vault", "server", "-dev", "-dev-root-token-id=${VAULT_ROOT_TOKEN:-vault-root-token}"]
-    healthcheck:
-      test: ["CMD", "vault", "status"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.vault.rule=Host(`vault.${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.vault.entrypoints=websecure"
-      - "traefik.http.routers.vault.tls=true"
-      - "traefik.http.services.vault.loadbalancer.server.port=8200"
-    networks:
-      - infrastructure_network
-      - backend_network
 
   # Dashboard Service
   dashy:
@@ -835,16 +566,12 @@ volumes:
     name: authentik_templates
   backrest_cache:
     name: backrest_cache
-  clickhouse_data:
-    name: clickhouse_data
   dashy_data:
     name: dashy_data
   flowise_data:
     name: flowise_data
-  mongo_episodic:
-    name: mongo_episodic
-  mongo_procedural:
-    name: mongo_procedural
+  mongo_data:
+    name: mongo_data
   n8n_data:
     name: n8n_data
   ollama_data:
@@ -861,10 +588,6 @@ volumes:
     name: redis_data
   traefik_certs:
     name: traefik_certs
-  vault_data:
-    name: vault_data
-  vault_logs:
-    name: vault_logs
 
 networks:
   # Frontend services network
@@ -907,7 +630,7 @@ networks:
       config:
         - subnet: 172.24.0.0/24
   
-  # Infrastructure services network (Traefik, Vault, etc.)
+  # Infrastructure services network (Traefik, etc.)
   infrastructure_network:
     name: zoi_infrastructure
     driver: bridge
