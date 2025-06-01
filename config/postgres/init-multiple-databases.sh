@@ -8,8 +8,17 @@ function create_user_and_database() {
 	echo "  Creating user '$user' and database '$database'..."
 	psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
 	    CREATE USER $user WITH PASSWORD '$POSTGRES_PASSWORD';
-	    CREATE DATABASE $database;
+	    CREATE DATABASE $database OWNER $user;
 	    GRANT ALL PRIVILEGES ON DATABASE $database TO $user;
+EOSQL
+	
+	# Grant schema permissions for the newly created database
+	echo "  Granting schema permissions for database '$database'..."
+	psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$database" <<-EOSQL
+	    GRANT ALL ON SCHEMA public TO $user;
+	    GRANT CREATE ON SCHEMA public TO $user;
+	    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $user;
+	    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $user;
 EOSQL
 }
 

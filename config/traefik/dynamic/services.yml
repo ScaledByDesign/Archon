@@ -1,14 +1,9 @@
 # Dynamic Services Configuration
 http:
   services:
-    # FastAPI Load Balancer
+    # FastAPI Backend Service
     fastapi-backend:
       loadBalancer:
-        sticky:
-          cookie:
-            name: server
-            secure: true
-            httpOnly: true
         healthCheck:
           path: /health
           interval: 30s
@@ -16,8 +11,6 @@ http:
           scheme: http
         servers:
           - url: "http://fastapi-1:8000"
-          - url: "http://fastapi-2:8000"
-          - url: "http://fastapi-3:8000"
 
     # Error Pages Service
     error-pages:

@@ -20,164 +20,209 @@ appConfig:
   staticCaching: true
 
   # ─── Enable iframe embedding & proxy ───────────────────────────────────
-  enableIframes: true            # allow tiles of type “iframe”
-  widgetsAlwaysUseProxy: true    # route iframe requests through Dashy’s own proxy to avoid CORS issues
+  enableIframes: true            # allow tiles of type "iframe"
+  widgetsAlwaysUseProxy: true    # route iframe requests through Dashy's own proxy to avoid CORS issues
 
 sections:
 
-  - name: '🎯 Core API'
+  - name: '🎯 Core API & Services'
     icon: 'fas fa-server'
     items:
-      - title: 'FastAPI (primary)'
-        url: 'https://api.${DOMAIN}/docs'
+      - title: 'FastAPI Main'
+        url: 'http://localhost:8000'
         description: 'RAG query & action API'
         icon: 'hl-fastapi'
         statusCheck: true
-        statusUrl:  'https://api.${DOMAIN}/health'
+        statusUrl: 'http://localhost:8000/health'
         tags: ['api','docs']
 
-      - title: 'FastAPI (secondary)'
-        url: 'https://api2.${DOMAIN}/health'
-        description: 'Load-balanced replica'
-        icon: 'hl-fastapi'
-        statusCheck: true
-        statusUrl:  'https://api2.${DOMAIN}/health'
-        tags: ['api','ha']
-
-      - title: 'OpenAPI Swagger'
-        url: 'https://api.${DOMAIN}/docs'
+      - title: 'FastAPI Docs'
+        url: 'http://localhost:8000/docs'
+        description: 'OpenAPI/Swagger documentation'
         icon: 'fas fa-book-open'
         statusCheck: false
+        tags: ['docs','api']
 
-      - title: 'ReDoc'
-        url: 'https://api.${DOMAIN}/redoc'
-        icon: 'fas fa-file-code'
-        statusCheck: false
+      - title: 'LiteLLM Proxy'
+        url: 'http://localhost:4000'
+        description: 'Multi-model LLM gateway'
+        icon: 'fas fa-route'
+        statusCheck: true
+        statusUrl: 'http://localhost:4000/health'
+        tags: ['ai','proxy']
 
-  - name: '🔐 Auth & Security'
+  - name: '🔐 Authentication & Security'
     icon: 'fas fa-shield-alt'
     items:
       - title: 'Authentik SSO'
-        url: 'https://auth.${DOMAIN}'
+        url: 'http://localhost:9000'
+        description: 'Identity & access management'
         icon: 'hl-authentik'
         statusCheck: true
-        statusUrl:  'https://auth.${DOMAIN}/application/api'
+        statusUrl: 'http://localhost:9000/api/v3/root/config/'
         tags: ['auth','sso']
 
-      - title: 'HashiCorp Vault'
-        url: 'https://vault.${DOMAIN}'
-        icon: 'hl-vault'
-        statusCheck: true
-        statusUrl:  'https://vault.${DOMAIN}/v1/sys/health'
-        tags: ['secrets']
+      - title: 'Authentik HTTPS'
+        url: 'https://localhost:9443'
+        description: 'Secure authentication portal'
+        icon: 'hl-authentik'
+        statusCheck: false
+        tags: ['auth','https']
 
-  - name: '🗄️ Storage & DB'
+  - name: '🤖 AI & Automation Platforms'
+    icon: 'fas fa-brain'
+    items:
+      - title: 'SuperAGI'
+        url: 'http://localhost:3001'
+        description: 'Autonomous AI agent platform'
+        icon: 'fas fa-robot'
+        statusCheck: false
+        tags: ['ai','autonomous']
+
+      - title: 'SuperCoder Frontend'
+        url: 'http://localhost:3002'
+        description: 'AI-powered coding assistant'
+        icon: 'fas fa-code'
+        statusCheck: false
+        tags: ['ai','coding']
+
+      - title: 'SuperCoder Python IDE'
+        url: 'http://localhost:5001'
+        description: 'Integrated development environment'
+        icon: 'fab fa-python'
+        statusCheck: false
+        tags: ['ide','python']
+
+      - title: 'SuperCoder Workspace'
+        url: 'http://localhost:8082'
+        description: 'Workspace management service'
+        icon: 'fas fa-folder-tree'
+        statusCheck: false
+        tags: ['workspace','management']
+
+      - title: 'Gitness (Git Server)'
+        url: 'http://localhost:8085'
+        description: 'Git repository management'
+        icon: 'fab fa-git-alt'
+        statusCheck: true
+        statusUrl: 'http://localhost:8085/api/v1/system/version'
+        tags: ['git','scm']
+
+      - title: 'Open WebUI'
+        url: 'http://localhost:8080'
+        description: 'Web interface for AI models'
+        icon: 'fas fa-comments'
+        statusCheck: false
+        tags: ['ai','chat']
+
+  - name: '🗄️ Storage & Databases'
     icon: 'fas fa-database'
     items:
       - title: 'Qdrant Vector DB'
-        url: 'https://qdrant.${DOMAIN}'
+        url: 'http://localhost:6333'
+        description: 'Vector similarity search engine'
         icon: 'fas fa-vector-square'
         statusCheck: true
-        statusUrl:  'https://qdrant.${DOMAIN}/health'
-
-      - title: 'MongoDB Episodic'
-        url: 'https://mongo-epi.${DOMAIN}'
-        icon: 'hl-mongodb'
-        statusCheck: true
-        statusUrl:  'https://mongo-epi.${DOMAIN}/health'
-
-      - title: 'MongoDB Procedural'
-        url: 'https://mongo-proc.${DOMAIN}'
-        icon: 'hl-mongodb'
-        statusCheck: true
-        statusUrl:  'https://mongo-proc.${DOMAIN}/health'
+        statusUrl: 'http://localhost:6333/'
+        tags: ['vector','search']
 
       - title: 'Redis Insight'
-        url: 'https://redis-insight.${DOMAIN}'
+        url: 'http://localhost:8002'
+        description: 'Redis database management'
         icon: 'hl-redis'
-        statusCheck: true
-        statusUrl:  'https://redis-insight.${DOMAIN}/'
+        statusCheck: false
+        tags: ['redis','cache']
 
       - title: 'Backrest Backup'
-        url: 'https://backup.${DOMAIN}'
+        url: 'http://localhost:9898'
+        description: 'Backup management system'
         icon: 'fas fa-archive'
-        statusCheck: true
-        statusUrl:  'https://backup.${DOMAIN}/api/v1/config'
+        statusCheck: false
+        tags: ['backup','storage']
 
-  - name: '🤖 AI & Models'
-    icon: 'fas fa-brain'
-    items:
-      - title: 'LiteLLM Proxy'
-        url: 'https://litellm.${DOMAIN}'
-        icon: 'fas fa-route'
-        statusCheck: true
-        statusUrl:  'https://litellm.${DOMAIN}/health'
-
-      - title: 'Ollama Local Models'
-        url: 'https://ollama.${DOMAIN}'
-        icon: 'fas fa-microchip'
-        statusCheck: true
-        statusUrl:  'https://ollama.${DOMAIN}/api/tags'
-
-      - title: 'OpenWebUI Chat'
-        url: 'https://chat.${DOMAIN}'
-        icon: 'fas fa-comments'
-        statusCheck: true
-        statusUrl:  'https://chat.${DOMAIN}/health'
-
-  - name: '🔄 Workflows & Queue'
+  - name: '🔄 Workflows & Message Queue'
     icon: 'fas fa-project-diagram'
     items:
-      - title: 'n8n Workflow Engine'
-        url: 'https://n8n.${DOMAIN}'
+      - title: 'n8n Workflows'
+        url: 'http://localhost:5678'
+        description: 'Workflow automation engine'
         icon: 'hl-n8n'
-        statusCheck: true
-        statusUrl:  'https://n8n.${DOMAIN}/healthz'
+        statusCheck: false
+        tags: ['automation','workflows']
 
       - title: 'RabbitMQ Management'
-        url: 'https://rmq.${DOMAIN}'
+        url: 'http://localhost:15672'
+        description: 'Message queue administration'
         icon: 'hl-rabbitmq'
         statusCheck: true
-        statusUrl:  'https://rmq.${DOMAIN}/api/overview'
+        statusUrl: 'http://localhost:15672/api/overview'
+        tags: ['queue','messaging']
 
-  - name: '🌐 Infra & Networking'
+  - name: '🌐 Infrastructure & Networking'
     icon: 'fas fa-network-wired'
     items:
       - title: 'Traefik Dashboard'
-        url: 'https://traefik.${DOMAIN}'
+        url: 'http://localhost:8080'
+        description: 'Reverse proxy & load balancer'
         icon: 'hl-traefik'
         statusCheck: true
-        statusUrl:  'https://traefik.${DOMAIN}/api/rawdata'
+        statusUrl: 'http://localhost:8080/api/rawdata'
+        tags: ['proxy','routing']
+
+      - title: 'Dashy Dashboard'
+        url: 'http://localhost:4001'
+        description: 'This dashboard'
+        icon: 'fas fa-tachometer-alt'
+        statusCheck: false
+        tags: ['dashboard','monitoring']
 
   - name: '📊 System Monitoring'
     icon: 'fas fa-chart-pie'
     items:
-      - title: 'API Latency (Grafana)'
-        type: 'iframe'
-        url: 'https://grafana.${DOMAIN}/d-solo/rag/api-latency?panelId=1&orgId=1'
-        description: '95th percentile /query latency'
-
-      - title: 'Queue Depth'
-        type: 'iframe'
-        url: 'https://grafana.${DOMAIN}/d-solo/rag/rabbitmq?panelId=4&orgId=1'
-        description: 'Pending RabbitMQ tasks'
-
-      - title: 'Container Stats'
-        type: 'iframe'
-        url: 'https://grafana.${DOMAIN}/d-solo/rag/docker-stats?panelId=2&orgId=1'
-        description: 'CPU & RAM usage per container'
-
-  - name: '⚙️ Dev & Ops'
-    icon: 'fas fa-tools'
-    items:
-      - title: 'Portainer'
-        url: 'https://portainer.${DOMAIN}'
-        icon: 'fas fa-docker'
-        statusCheck: true
-        statusUrl:  'https://portainer.${DOMAIN}/api/status'
-
       - title: 'Healthchecks'
-        url: 'https://health.${DOMAIN}'
+        url: 'http://localhost:8001'
+        description: 'Service health monitoring'
         icon: 'fas fa-heartbeat'
+        statusCheck: false
+        tags: ['health','monitoring']
+
+      - title: 'Container Status'
+        type: 'iframe'
+        url: 'http://localhost:8080/dashboard'
+        description: 'Live container status via Traefik'
+        height: 400
+
+  - name: '⚙️ System Status'
+    icon: 'fas fa-tools'
+    displayData:
+      sortBy: 'status'
+      rows: 1
+      cols: 4
+    items:
+      - title: 'PostgreSQL'
+        description: 'Primary database'
+        icon: 'hl-postgresql'
         statusCheck: true
-        statusUrl:  'https://health.${DOMAIN}/api/health'
+        statusUrl: 'http://localhost:8000/health'
+        tags: ['database','core']
+
+      - title: 'Redis'
+        description: 'Cache & session store'
+        icon: 'hl-redis'
+        statusCheck: true
+        statusUrl: 'http://localhost:8000/health'
+        tags: ['cache','core']
+
+      - title: 'MongoDB'
+        description: 'Document database'
+        icon: 'hl-mongodb'
+        statusCheck: true
+        statusUrl: 'http://localhost:8000/health'
+        tags: ['database','documents']
+
+      - title: 'Worker Processes'
+        description: 'Background task workers'
+        icon: 'fas fa-cogs'
+        statusCheck: true
+        statusUrl: 'http://localhost:8000/health'
+        tags: ['workers','processing']

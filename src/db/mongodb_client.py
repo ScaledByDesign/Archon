@@ -80,7 +80,7 @@ class MongoDBConfig(BaseModel):
     def from_env(cls) -> "MongoDBConfig":
         """Create MongoDB config from environment variables"""
         # Get MongoDB URI from environment
-        uri = os.getenv("MONGODB_URI", "mongodb://mongo-episodic:27017,mongo-procedural:27017")
+        uri = os.getenv("MONGODB_URI", "mongodb://admin:change-me-mongo-pass@mongo:27017/?authSource=admin")
         
         # Construct config
         return cls(
