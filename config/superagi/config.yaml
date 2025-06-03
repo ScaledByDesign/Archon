@@ -9,7 +9,7 @@ HUGGING_API_TOKEN: YOUR_HUGGING_FACE_API_TOKEN
 
 # For locally hosted LLMs comment out the next line and uncomment the one after
 # to configure a local llm point your browser to 127.0.0.1:7860 and click on the model tab in text generation web ui.
-OPENAI_API_BASE: https://api.openai.com/v1
+OPENAI_API_BASE: http://litellm:4000/v1
 #OPENAI_API_BASE: "http://super__tgwui:5001/v1"
 
 # "gpt-3.5-turbo-0301": 4032, "gpt-4-0314": 8092, "gpt-3.5-turbo": 4032, "gpt-4": 8092, "gpt-4-32k": 32768, "gpt-4-32k-0314": 32768, "llama":2048, "mpt-7b-storywriter":45000
@@ -63,8 +63,16 @@ ENCRYPTION_KEY: abcdefghijklmnopqrstuvwxyz123456
 # If you are using docker or web hosted uncomment the next two lines and comment the third one
 # WEAVIATE_URL: YOUR_WEAVIATE_URL
 # WEAVIATE_API_KEY: YOUR_WEAVIATE_API_KEY
-WEAVIATE_USE_EMBEDDED: true
+# Disable Weaviate embedded for Qdrant usage
+WEAVIATE_USE_EMBEDDED: false
 
+#QDRANT
+# Qdrant vector database configuration for Docker setup
+QDRANT_HOST_NAME: qdrant
+QDRANT_PORT: 6333
+
+# Vector Store Configuration - Enable Qdrant as default
+VECTOR_STORE: qdrant
 
 #####################------------------TOOLS KEY-------------------------########################
 #If you have google api key and CSE key, use this
