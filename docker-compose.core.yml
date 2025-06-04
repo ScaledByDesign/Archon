@@ -98,10 +98,14 @@ services:
     ports:
       - "4000:4000"
     environment:
-      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-sk-1234}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - TZ=America/Chicago
+      - LITELLM_SALT_KEY=${LITELLM_SALT_KEY:-sk-XXXXXXXX}
+      - DATABASE_URL=postgresql://${PG_USER:-postgres}:${PG_PASS:-secretpass}@postgres:5432/postgres
+      - PORT=4000
+      - STORE_MODEL_IN_DB="True"
     volumes:
       - ./config/litellm/config.yaml:/app/config.yaml
     command: ["--config", "/app/config.yaml"]
