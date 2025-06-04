@@ -85,23 +85,73 @@ services:
     container_name: traefik
     restart: unless-stopped
     command:
-      - "--api.dashboard=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - traefik_certs:/certs
-    networks:
-      - frontend_network
-      - backend_network
+      - "--configFile=/etc/traefik/traefik.yml"
     ports:
       - "80:80"
       - "443:443"
-      - "8080:8080"
+      - "8080:8080"  # Dashboard port
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./config/traefik/dynamic:/configuration/dynamic:ro
+      - ./config/traefik/certs:/certs:ro
+      - traefik_certs:/letsencrypt
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - DOMAIN=${DOMAIN:-localhost}
+      - ACME_EMAIL=${ACME_EMAIL}
+      - TZ=America/Chicago
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=dashboard-auth@file"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - frontend_network
+      - backend_network
+      - infrastructure_network
 
   # FastAPI Services
+  fastapi:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fastapi
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./requirements.txt:/app/requirements.txt:ro
+    env_file:
+      - .env
+      - ./config/fastapi/.env
+    depends_on:
+      - postgres
+      - redis
+      - mongo
+      - qdrant
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`api.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.tls=true"
+      - "traefik.http.routers.api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.api.loadbalancer.server.port=8000"
+    networks:
+      - backend_network
+      - frontend_network
+      - database_network
+      - infrastructure_network
+
   worker:
     build:
       context: .
@@ -129,13 +179,30 @@ services:
     image: lissy93/dashy:latest
     container_name: dashy
     restart: unless-stopped
+    ports:
+      - "4001:8080"
     volumes:
-      - ./config/dashy/conf.yml:/app/public/conf.yml:ro
-      - dashy_data:/app/public
+      - ./config/dashy/conf.yml:/app/user-data/conf.yml:ro
+      - dashy_data:/app/user-data/icons
+    environment:
+      - NODE_ENV=production
+      - UID=1000
+      - GID=1000
+      - CONFIG_PATH=/app/user-data/conf.yml
+    healthcheck:
+      test: ["CMD", "node", "/app/services/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     networks:
       - frontend_network
-    ports:
-      - "4001:80"
+      - monitoring_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashy.rule=Host(`dashy.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.dashy.entrypoints=web"
+      - "traefik.http.services.dashy.loadbalancer.server.port=8080"
 
 volumes:
   postgres_data:
@@ -151,4 +218,8 @@ networks:
   backend_network:
     driver: bridge
   database_network:
+    driver: bridge
+  infrastructure_network:
+    driver: bridge
+  monitoring_network:
     driver: bridge
