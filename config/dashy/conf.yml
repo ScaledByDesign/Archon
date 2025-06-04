@@ -79,35 +79,6 @@ sections:
         statusCheck: false
         tags: ['ai','autonomous']
 
-      - title: 'SuperCoder Frontend'
-        url: 'http://localhost:3002'
-        description: 'AI-powered coding assistant'
-        icon: 'fas fa-code'
-        statusCheck: false
-        tags: ['ai','coding']
-
-      - title: 'SuperCoder Python IDE'
-        url: 'http://localhost:5001'
-        description: 'Integrated development environment'
-        icon: 'fab fa-python'
-        statusCheck: false
-        tags: ['ide','python']
-
-      - title: 'SuperCoder Workspace'
-        url: 'http://localhost:8082'
-        description: 'Workspace management service'
-        icon: 'fas fa-folder-tree'
-        statusCheck: false
-        tags: ['workspace','management']
-
-      - title: 'Gitness (Git Server)'
-        url: 'http://localhost:8085'
-        description: 'Git repository management'
-        icon: 'fab fa-git-alt'
-        statusCheck: true
-        statusUrl: 'http://localhost:8085/api/v1/system/version'
-        tags: ['git','scm']
-
       - title: 'Open WebUI'
         url: 'http://localhost:8080'
         description: 'Web interface for AI models'

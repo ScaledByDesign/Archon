@@ -17,9 +17,6 @@ echo "🔧 CHECKING ENVIRONMENT VARIABLES..."
 
 required_vars=(
     "ENCRYPTION_KEY"
-    "AI_DEVELOPER_DB_NAME" 
-    "AI_DEVELOPER_DB_HOST"
-    "AI_DEVELOPER_DB_PASSWORD"
     "REDIS_PASSWORD"
     "MONGODB_URI"
     "POSTGRES_PASSWORD"
@@ -48,8 +45,6 @@ echo "📁 CHECKING CONFIGURATION FILES..."
 
 config_files=(
     "config/superagi/config.yaml"
-    "config/supercoder/startup.sh"
-    "config/supercoder/startup-worker.sh"
     "config/postgres/init-multiple-databases.sh"
     "config/mongodb/init-multiple-databases.js"
 )
