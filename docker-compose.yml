@@ -281,7 +281,6 @@ services:
       TZ: America/Chicago
       OLLAMA_NUM_PARALLEL: 1
       OLLAMA_MAX_LOADED_MODELS: 1
-      OLLAMA_FLASH_ATTENTION: false
     volumes:
       - ollama_data:/root/.ollama
       - /etc/localtime:/etc/localtime:ro
