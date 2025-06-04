@@ -464,8 +464,9 @@ services:
       - frontend_network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashy.rule=Host(`dashy.localhost`)"
-      - "traefik.http.routers.dashy.entrypoints=web"
+      - "traefik.http.routers.dashy.rule=Host(`dashy.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.dashy.entrypoints=websecure"
+      - "traefik.http.routers.dashy.tls=true"
       - "traefik.http.services.dashy.loadbalancer.server.port=8080"
       - "traefik.docker.network=zoi_frontend"
 
