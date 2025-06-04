@@ -107,24 +107,5 @@ http:
         accessControlMaxAge: 100
         addVaryHeader: true
 
-  # Middleware Chains
-  middlewareChains:
-    # Standard chain for web services
-    web-secure:
-      - secure-headers
-      - gzip
-      - rate-limit
-
-    # API chain with CORS and API rate limiting
-    api-secure:
-      - secure-headers
-      - cors
-      - gzip
-      - api-rate-limit
-
-    # Admin chain with authentication and IP filtering
-    admin-secure:
-      - admin-whitelist
-      - dashboard-auth
-      - secure-headers
-      - gzip
+  # Note: Middleware chains are defined directly in service labels
+  # Example: traefik.http.routers.service.middlewares=secure-headers,gzip,rate-limit
