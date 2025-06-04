@@ -33,12 +33,15 @@ entryPoints:
     forwardedHeaders:
       insecure: true
 
+  metrics:
+    address: :8080
+
 # Providers
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
-    network: rag_network
+    network: zoi_frontend_network
     watch: true
   
   file:
