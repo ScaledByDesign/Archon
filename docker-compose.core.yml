@@ -3,18 +3,26 @@ version: '3.8'
 services:
   # Core Infrastructure
   postgres:
-    image: postgres:16
+    image: postgres:15-alpine
     container_name: postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${PG_PASS:-secretpass}
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+      TZ: America/Chicago
       POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_MULTIPLE_DATABASES}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./config/postgresql/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
+      - ./config/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
+      - backend_network
       - database_network
     ports:
       - "5432:5432"
@@ -23,11 +31,21 @@ services:
     image: redis:7-alpine
     container_name: redis
     restart: unless-stopped
-    command: redis-server --requirepass ${REDIS_PASSWORD}
+    command: redis-server /usr/local/etc/redis/redis.conf
+    environment:
+      TZ: America/Chicago
     volumes:
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
       - redis_data:/data
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - backend_network
+      - database_network
     ports:
       - "6379:6379"
 
@@ -36,11 +54,18 @@ services:
     container_name: mongo
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USER}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-change-me-mongo-pass}
+      TZ: America/Chicago
     volumes:
       - mongo_data:/data/db
       - ./config/mongodb/init-multiple-databases.js:/docker-entrypoint-initdb.d/init-multiple-databases.js:ro
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - database_network
     ports:
@@ -50,12 +75,22 @@ services:
     image: qdrant/qdrant:latest
     container_name: qdrant
     restart: unless-stopped
-    volumes:
-      - qdrant_data:/qdrant/storage
-    networks:
-      - backend_network
     ports:
       - "6333:6333"
+      - "6334:6334"
+    environment:
+      TZ: America/Chicago
+    volumes:
+      - qdrant_data:/qdrant/storage
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:6333/readyz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - backend_network
+      - database_network
 
   # LLM Proxy
   litellm:
@@ -135,10 +170,14 @@ services:
       - .env
       - ./config/fastapi/.env
     depends_on:
-      - postgres
-      - redis
-      - mongo
-      - qdrant
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=Host(`api.${DOMAIN:-localhost}`)"
@@ -159,20 +198,26 @@ services:
     container_name: fastapi-worker
     restart: unless-stopped
     environment:
-      - MONGODB_URL=mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@mongo:27017/${MONGODB_DATABASE}
+      - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo:27017/${MONGODB_DATABASE}
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - QDRANT_URL=http://qdrant:6333
+      - TZ=America/Chicago
     volumes:
       - ./src:/app/src:ro
       - ./config:/app/config:ro
+      - /etc/localtime:/etc/localtime:ro
     networks:
       - backend_network
       - database_network
     depends_on:
-      - postgres
-      - redis
-      - mongo
-      - qdrant
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
 
   # Optional Services
   dashy:
