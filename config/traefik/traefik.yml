@@ -6,6 +6,7 @@ global:
 api:
   dashboard: true
   debug: true
+  insecure: true
 
 # Entry Points
 entryPoints:
@@ -30,6 +31,9 @@ entryPoints:
 
   metrics:
     address: :8080
+
+  traefik:
+    address: :8081
 
 # Providers
 providers:
