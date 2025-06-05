@@ -110,10 +110,11 @@ services:
       - ./config/litellm/config.yaml:/app/config.yaml
     command: ["--config", "/app/config.yaml"]
     healthcheck:
-      test: ["CMD-SHELL", "timeout 5 python -c 'import socket; s=socket.socket(); s.connect((\"localhost\", 4000)); s.close()' || exit 1"]
-      interval: 10s
-      timeout: 5s
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/4000' && echo 'OK' || exit 1"]
+      interval: 30s
+      timeout: 10s
       retries: 5
+      start_period: 40s
     networks:
       - backend_network
 
@@ -197,10 +198,18 @@ services:
     container_name: fastapi-worker
     restart: unless-stopped
     environment:
-      - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo:27017/${MONGODB_DATABASE}
+      - MONGODB_URI=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo:27017
+      - MONGODB_HOST=mongo
+      - MONGODB_PORT=27017
+      - MONGODB_USERNAME=${MONGO_USER:-admin}
+      - MONGODB_PASSWORD=${MONGO_PASS:-change-me-mongo-pass}
+      - MONGODB_DATABASE=rag_system
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
       - QDRANT_URL=http://qdrant:6333
       - TZ=America/Chicago
+    env_file:
+      - .env
+      - ./config/fastapi/.env
     volumes:
       - ./src:/app/src:ro
       - ./config:/app/config:ro
