@@ -27,6 +27,20 @@ http:
         referrerPolicy: same-origin
         permissionsPolicy: geolocation=(),midi=(),sync-xhr=(),microphone=(),camera=(),magnetometer=(),gyroscope=(),fullscreen=(self),payment=()
 
+    # Authentik Forward Auth (Application-based)
+    authentik-forward-auth:
+      forwardAuth:
+        address: "http://authentik-server:9000/application/o/traefik-forward-auth/"
+        trustForwardHeader: true
+        authResponseHeadersRegex: "^X-authentik-.*"
+
+    # Authentik Outpost (for apps that need special handling)
+    authentik-outpost:
+      forwardAuth:
+        address: "http://authentik-server:9000/application/o/traefik-forward-auth/"
+        trustForwardHeader: true
+        authResponseHeadersRegex: "^X-authentik-.*"
+
     # Rate Limiting
     rate-limit:
       rateLimit:

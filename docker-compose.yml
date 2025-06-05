@@ -26,7 +26,7 @@ services:
 
   # Authentication
   authentik-server:
-    image: ghcr.io/goauthentik/server:2025.2
+    image: ghcr.io/goauthentik/server:latest
     restart: unless-stopped
     command: server
     volumes:
@@ -61,7 +61,7 @@ services:
       - backend_network
 
   authentik-worker:
-    image: ghcr.io/goauthentik/server:2025.2
+    image: ghcr.io/goauthentik/server:latest
     restart: unless-stopped
     command: worker
     volumes:

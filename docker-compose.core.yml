@@ -90,6 +90,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.qdrant.rule=Host(`qdrant.${DOMAIN:-localhost}`)"
       - "traefik.http.routers.qdrant.entrypoints=websecure"
+      - "traefik.http.routers.qdrant.middlewares=authentik-forward-auth@file"
       # - "traefik.http.routers.qdrant.tls.certresolver=letsencrypt"
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
     networks:
@@ -125,6 +126,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.llm.rule=Host(`llm.${DOMAIN:-localhost}`)"
       - "traefik.http.routers.llm.entrypoints=websecure"
+      - "traefik.http.routers.llm.middlewares=authentik-forward-auth@file"
       # - "traefik.http.routers.llm.tls.certresolver=letsencrypt"
       - "traefik.http.services.llm.loadbalancer.server.port=4000"
     networks:
@@ -199,6 +201,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=Host(`api.${DOMAIN:-localhost}`)"
       - "traefik.http.routers.api.entrypoints=websecure"
+      - "traefik.http.routers.api.middlewares=authentik-forward-auth@file"
       # - "traefik.http.routers.api.tls.certresolver=letsencrypt"
       - "traefik.http.services.api.loadbalancer.server.port=8000"
     networks:
@@ -267,12 +270,13 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.dashy.rule=Host(`dashy.${DOMAIN:-localhost}`)"
       - "traefik.http.routers.dashy.entrypoints=websecure"
+      - "traefik.http.routers.dashy.middlewares=authentik-forward-auth@file"
       # - "traefik.http.routers.dashy.tls.certresolver=letsencrypt"
       - "traefik.http.services.dashy.loadbalancer.server.port=8080"
 
   # Authentication & Identity Provider
   authentik-server:
-    image: ghcr.io/goauthentik/server:2025.2
+    image: ghcr.io/goauthentik/server:latest
     container_name: authentik-server
     restart: unless-stopped
     command: server
@@ -310,7 +314,7 @@ services:
       - backend_network
 
   authentik-worker:
-    image: ghcr.io/goauthentik/server:2025.2
+    image: ghcr.io/goauthentik/server:latest
     container_name: authentik-worker
     restart: unless-stopped
     command: worker
