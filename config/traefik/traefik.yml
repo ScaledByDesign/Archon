@@ -21,8 +21,7 @@ entryPoints:
   websecure:
     address: :443
     http:
-      tls:
-        certResolver: letsencrypt
+      tls: {}
     # Enable PROXY protocol for proper client IP forwarding
     proxyProtocol:
       insecure: true
@@ -45,16 +44,17 @@ providers:
     watch: true
 
 # Certificate Resolvers
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      email: admin@zoi.cc
-      storage: /letsencrypt/acme.json
-      keyType: EC256
-      httpChallenge:
-        entryPoint: web
-      # Uncomment for staging (testing)
-      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+# Certificate resolvers for automatic SSL
+# Disabled for development - enable when DNS is configured
+# certificatesResolvers:
+#   letsencrypt:
+#     acme:
+#       tlsChallenge: {}
+#       email: admin@zoi.cc
+#       storage: /letsencrypt/acme.json
+#       keyType: EC256
+#       # Use staging for development to avoid rate limits
+#       caServer: https://acme-staging-v02.api.letsencrypt.org/directory
 
 # Logs
 log:
