@@ -37,12 +37,12 @@ class DatabaseSettings(BaseSettings):
     redis_db: int = Field(default=0, env="REDIS_DB")
     redis_ssl: bool = Field(default=False, env="REDIS_SSL")
     
-    # PostgreSQL Settings (for Authentik)
+    # PostgreSQL Settings (for FastAPI application data)
     postgres_host: str = Field(default="localhost", env="POSTGRES_HOST")
     postgres_port: int = Field(default=5432, env="POSTGRES_PORT")
     postgres_username: str = Field(default="postgres", env="POSTGRES_USER")
     postgres_password: str = Field(default="postgres", env="POSTGRES_PASSWORD")
-    postgres_database: str = Field(default="authentik", env="POSTGRES_DB")
+    postgres_database: str = Field(default="fastapi", env="POSTGRES_DB")
     
     @property
     def mongodb_url(self) -> str:
