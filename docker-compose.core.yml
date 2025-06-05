@@ -286,7 +286,7 @@ services:
       - ./config/authentik/.env
     ports:
       - "9000:9000"
-      - "9443:9443"
+      - "9444:9443"
     depends_on:
       - postgres
       - redis
