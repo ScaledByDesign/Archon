@@ -29,41 +29,41 @@ sections:
     icon: 'fas fa-server'
     items:
       - title: 'FastAPI Main'
-        url: 'http://localhost:8000'
+        url: 'https://api.zoi.cc'
         description: 'RAG query & action API'
         icon: 'hl-fastapi'
         statusCheck: true
-        statusUrl: 'http://localhost:8000/health'
+        statusUrl: 'https://api.zoi.cc/health'
         tags: ['api','docs']
 
       - title: 'FastAPI Docs'
-        url: 'http://localhost:8000/docs'
+        url: 'https://api.zoi.cc/docs'
         description: 'OpenAPI/Swagger documentation'
         icon: 'fas fa-book-open'
         statusCheck: false
         tags: ['docs','api']
 
       - title: 'LiteLLM Proxy'
-        url: 'http://localhost:4000'
+        url: 'https://llm.zoi.cc'
         description: 'Multi-model LLM gateway'
         icon: 'fas fa-route'
         statusCheck: true
-        statusUrl: 'http://localhost:4000/health'
+        statusUrl: 'https://llm.zoi.cc/health'
         tags: ['ai','proxy']
 
   - name: '🔐 Authentication & Security'
     icon: 'fas fa-shield-alt'
     items:
       - title: 'Authentik SSO'
-        url: 'http://localhost:9000'
+        url: 'https://auth.zoi.cc'
         description: 'Identity & access management'
         icon: 'hl-authentik'
         statusCheck: true
-        statusUrl: 'http://localhost:9000/api/v3/root/config/'
+        statusUrl: 'https://auth.zoi.cc/api/v3/root/config/'
         tags: ['auth','sso']
 
       - title: 'Authentik HTTPS'
-        url: 'https://localhost:9443'
+        url: 'https://auth.zoi.cc'
         description: 'Secure authentication portal'
         icon: 'hl-authentik'
         statusCheck: false
@@ -73,14 +73,14 @@ sections:
     icon: 'fas fa-brain'
     items:
       - title: 'SuperAGI'
-        url: 'http://localhost:3001'
+        url: 'https://agi.zoi.cc'
         description: 'Autonomous AI agent platform'
         icon: 'fas fa-robot'
         statusCheck: false
         tags: ['ai','autonomous']
 
       - title: 'Open WebUI'
-        url: 'http://localhost:8080'
+        url: 'https://webui.zoi.cc'
         description: 'Web interface for AI models'
         icon: 'fas fa-comments'
         statusCheck: false
@@ -90,22 +90,22 @@ sections:
     icon: 'fas fa-database'
     items:
       - title: 'Qdrant Vector DB'
-        url: 'http://localhost:6333'
+        url: 'https://qdrant.zoi.cc'
         description: 'Vector similarity search engine'
         icon: 'fas fa-vector-square'
         statusCheck: true
-        statusUrl: 'http://localhost:6333/'
+        statusUrl: 'https://qdrant.zoi.cc/'
         tags: ['vector','search']
 
       - title: 'Redis Insight'
-        url: 'http://localhost:8002'
+        url: 'https://redis.zoi.cc'
         description: 'Redis database management'
         icon: 'hl-redis'
         statusCheck: false
         tags: ['redis','cache']
 
       - title: 'Backrest Backup'
-        url: 'http://localhost:9898'
+        url: 'https://backup.zoi.cc'
         description: 'Backup management system'
         icon: 'fas fa-archive'
         statusCheck: false
@@ -115,33 +115,33 @@ sections:
     icon: 'fas fa-project-diagram'
     items:
       - title: 'n8n Workflows'
-        url: 'http://localhost:5678'
+        url: 'https://n8n.zoi.cc'
         description: 'Workflow automation engine'
         icon: 'hl-n8n'
         statusCheck: false
         tags: ['automation','workflows']
 
       - title: 'RabbitMQ Management'
-        url: 'http://localhost:15672'
+        url: 'https://rabbitmq.zoi.cc'
         description: 'Message queue administration'
         icon: 'hl-rabbitmq'
         statusCheck: true
-        statusUrl: 'http://localhost:15672/api/overview'
+        statusUrl: 'https://rabbitmq.zoi.cc/api/overview'
         tags: ['queue','messaging']
 
   - name: '🌐 Infrastructure & Networking'
     icon: 'fas fa-network-wired'
     items:
       - title: 'Traefik Dashboard'
-        url: 'http://localhost:8080'
+        url: 'https://traefik.zoi.cc'
         description: 'Reverse proxy & load balancer'
         icon: 'hl-traefik'
         statusCheck: true
-        statusUrl: 'http://localhost:8080/api/rawdata'
+        statusUrl: 'https://traefik.zoi.cc/api/rawdata'
         tags: ['proxy','routing']
 
       - title: 'Dashy Dashboard'
-        url: 'http://localhost:4001'
+        url: 'https://dashy.zoi.cc'
         description: 'This dashboard'
         icon: 'fas fa-tachometer-alt'
         statusCheck: false
@@ -151,7 +151,7 @@ sections:
     icon: 'fas fa-chart-pie'
     items:
       - title: 'Healthchecks'
-        url: 'http://localhost:8001'
+        url: 'https://healthchecks.zoi.cc'
         description: 'Service health monitoring'
         icon: 'fas fa-heartbeat'
         statusCheck: false
@@ -159,7 +159,7 @@ sections:
 
       - title: 'Container Status'
         type: 'iframe'
-        url: 'http://localhost:8080/dashboard'
+        url: 'https://traefik.zoi.cc/dashboard'
         description: 'Live container status via Traefik'
         height: 400
 
@@ -174,26 +174,26 @@ sections:
         description: 'Primary database'
         icon: 'hl-postgresql'
         statusCheck: true
-        statusUrl: 'http://localhost:8000/health'
+        statusUrl: 'https://api.zoi.cc/health'
         tags: ['database','core']
 
       - title: 'Redis'
         description: 'Cache & session store'
         icon: 'hl-redis'
         statusCheck: true
-        statusUrl: 'http://localhost:8000/health'
+        statusUrl: 'https://api.zoi.cc/health'
         tags: ['cache','core']
 
       - title: 'MongoDB'
         description: 'Document database'
         icon: 'hl-mongodb'
         statusCheck: true
-        statusUrl: 'http://localhost:8000/health'
+        statusUrl: 'https://api.zoi.cc/health'
         tags: ['database','documents']
 
       - title: 'Worker Processes'
         description: 'Background task workers'
         icon: 'fas fa-cogs'
         statusCheck: true
-        statusUrl: 'http://localhost:8000/health'
+        statusUrl: 'https://api.zoi.cc/health'
         tags: ['workers','processing']

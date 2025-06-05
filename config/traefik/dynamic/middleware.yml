@@ -100,12 +100,27 @@ http:
           - "OPTIONS"
           - "PATCH"
         accessControlAllowOriginList:
-          - "https://localhost"
-          - "https://*.localhost"
+          - "*"
         accessControlExposeHeaders:
           - "*"
         accessControlMaxAge: 100
         addVaryHeader: true
+
+    # Admin services security (combines auth + whitelist + headers)
+    admin-secure:
+      chain:
+        middlewares:
+          - admin-whitelist
+          - dashboard-auth
+          - secure-headers
+
+    # Web services security (headers + rate limiting)
+    web-secure:
+      chain:
+        middlewares:
+          - secure-headers
+          - rate-limit
+          - gzip
 
   # Note: Middleware chains are defined directly in service labels
   # Example: traefik.http.routers.service.middlewares=secure-headers,gzip,rate-limit

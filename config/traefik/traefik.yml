@@ -23,10 +23,6 @@ entryPoints:
     http:
       tls:
         certResolver: letsencrypt
-        domains:
-          - main: "*.${DOMAIN}"
-            sans:
-              - "${DOMAIN}"
     # Enable PROXY protocol for proper client IP forwarding
     proxyProtocol:
       insecure: true

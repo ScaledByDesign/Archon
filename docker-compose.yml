@@ -159,6 +159,12 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.redis.rule=Host(`redis.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.redis.entrypoints=websecure"
+      - "traefik.http.routers.redis.tls.certresolver=letsencrypt"
+      - "traefik.http.services.redis.loadbalancer.server.port=8001"
     networks:
       - backend_network
       - monitoring_network
@@ -183,6 +189,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rabbitmq.rule=Host(`rabbitmq.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.rabbitmq.entrypoints=websecure"
+      - "traefik.http.routers.rabbitmq.tls.certresolver=letsencrypt"
+      - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
     networks:
       - backend_network
 
@@ -328,12 +340,12 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
       - /etc/localtime:/etc/localtime:ro
-    # Temporarily disable health check due to curl not being available in container
-    # healthcheck:
-    #   test: ["CMD", "curl", "-f", "http://localhost:6333/readyz"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 5
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qdrant.rule=Host(`qdrant.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.qdrant.entrypoints=websecure"
+      - "traefik.http.routers.qdrant.tls.certresolver=letsencrypt"
+      - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
     networks:
       - database_network
 
@@ -351,9 +363,10 @@ services:
       - /etc/localtime:/etc/localtime:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.webui.rule=Host(`chat.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.webui.rule=Host(`webui.${DOMAIN:-localhost}`)"
       - "traefik.http.routers.webui.entrypoints=websecure"
-      - "traefik.http.routers.webui.tls=true"
+      - "traefik.http.routers.webui.tls.certresolver=letsencrypt"
+      - "traefik.http.services.webui.loadbalancer.server.port=8080"
     networks:
       - frontend_network
       - backend_network
@@ -497,9 +510,9 @@ services:
     command: ["/app/wait-for-it.sh", "postgres:5432", "-t", "60", "--", "/app/entrypoint.sh"]
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.superagi-api.rule=Host(`superagi.${DOMAIN:-localhost}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.superagi-api.rule=Host(`agi.${DOMAIN:-localhost}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.superagi-api.entrypoints=websecure"
-      - "traefik.http.routers.superagi-api.tls=true"
+      - "traefik.http.routers.superagi-api.tls.certresolver=letsencrypt"
       - "traefik.http.routers.superagi-api.service=superagi-backend"
       - "traefik.http.services.superagi-backend.loadbalancer.server.port=8001"
       - "traefik.docker.network=zoi_frontend_network"
@@ -551,9 +564,9 @@ services:
       - backend_network
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.superagi-frontend.rule=Host(`superagi.${DOMAIN:-localhost}`) && !PathPrefix(`/api`)"
+      - "traefik.http.routers.superagi-frontend.rule=Host(`agi.${DOMAIN:-localhost}`) && !PathPrefix(`/api`)"
       - "traefik.http.routers.superagi-frontend.entrypoints=websecure"
-      - "traefik.http.routers.superagi-frontend.tls=true"
+      - "traefik.http.routers.superagi-frontend.tls.certresolver=letsencrypt"
       - "traefik.http.routers.superagi-frontend.service=superagi-frontend"
       - "traefik.http.services.superagi-frontend.loadbalancer.server.port=3000"
       - "traefik.docker.network=zoi_frontend_network"
