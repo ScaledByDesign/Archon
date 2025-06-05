@@ -211,6 +211,8 @@ services:
         condition: service_healthy
       mongo:
         condition: service_healthy
+      qdrant:
+        condition: service_started
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=Host(`api.${DOMAIN:-localhost}`)"
@@ -228,17 +230,17 @@ services:
   worker:
     build: ./services/workers
     restart: unless-stopped
-    environment:
-      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379
-      - MONGODB_URL=mongodb://${MONGO_USER:-admin}:${MONGO_PASS:-change-me-mongo-pass}@mongo:27017/rag_system
-      - RABBITMQ_URL=amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASS:-secretpass}@rabbitmq:5672
-      - TZ=America/Chicago
+    env_file:
+      - .env
+      - ./config/fastapi/.env
     volumes:
       - /etc/localtime:/etc/localtime:ro
     depends_on:
       rabbitmq:
         condition: service_healthy
       mongo:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     deploy:
       replicas: 2
