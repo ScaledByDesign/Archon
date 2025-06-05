@@ -348,6 +348,7 @@ services:
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
     networks:
       - database_network
+      - frontend_network
 
   # UI Applications
   open-webui:
