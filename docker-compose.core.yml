@@ -95,6 +95,7 @@ services:
     networks:
       - backend_network
       - database_network
+      - frontend_network
 
   # LLM Proxy
   litellm:
@@ -128,6 +129,7 @@ services:
       - "traefik.http.services.llm.loadbalancer.server.port=4000"
     networks:
       - backend_network
+      - frontend_network
 
   traefik:
     image: traefik:v3.0
