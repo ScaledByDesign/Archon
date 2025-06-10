@@ -6,47 +6,38 @@ http:
       headers:
         accessControlAllowMethods:
           - GET
-          - OPTIONS
-          - PUT
           - POST
+          - PUT
           - DELETE
-          - PATCH
+          - OPTIONS
         accessControlAllowOriginList:
-          - https://localhost
-          - https://*.localhost
+          - "https://*.localhost"
+          - "https://*.zoi.local"
         accessControlMaxAge: 100
         addVaryHeader: true
         browserXssFilter: true
         contentTypeNosniff: true
+        customFrameOptionsValue: "SAMEORIGIN"
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
         forceSTSHeader: true
-        frameDeny: true
+        frameDeny: false
+        hostsProxyHeaders:
+          - "X-Forwarded-Host"
+        isDevelopment: false
+        publicKey: ""
+        referrerPolicy: "strict-origin-when-cross-origin"
+        sslForceHost: true
+        sslRedirect: true
         stsIncludeSubdomains: true
         stsPreload: true
         stsSeconds: 31536000
-        customFrameOptionsValue: SAMEORIGIN
-        referrerPolicy: same-origin
-        permissionsPolicy: geolocation=(),midi=(),sync-xhr=(),microphone=(),camera=(),magnetometer=(),gyroscope=(),fullscreen=(self),payment=()
 
-    # Authentik Forward Auth (Outpost Endpoint) - CORRECT ENDPOINT PER DOCS
+    # Authentik Forward Authentication with clean redirects
     authentik-forward-auth:
       forwardAuth:
         address: "http://authentik-server:9000/outpost.goauthentik.io/auth/traefik"
         trustForwardHeader: true
-        # Forward all necessary headers to Authentik
-        authRequestHeaders:
-          - "Accept"
-          - "Authorization" 
-          - "Content-Type"
-          - "X-Forwarded-For"
-          - "X-Forwarded-Proto"
-          - "X-Forwarded-Host"
-          - "X-Forwarded-Uri"
-          - "X-Forwarded-Method"
-          - "X-Forwarded-Port"
-          - "X-Real-IP"
-          - "Host"
-          - "X-Original-URL"
-        # Get user context back from Authentik
         authResponseHeaders:
           - "X-authentik-username"
           - "X-authentik-groups" 
@@ -59,6 +50,14 @@ http:
           - "X-authentik-meta-provider"
           - "X-authentik-meta-app"
           - "X-authentik-meta-version"
+        # Clean authentication with minimal URL exposure
+        authRequestHeaders:
+          - "Accept"
+          - "User-Agent"
+          - "X-Forwarded-Host"
+          - "X-Forwarded-Proto"
+          - "X-Forwarded-Uri"
+          - "X-Real-IP"
 
     # Enhanced headers to ensure Authentik knows external hostname
     authentik-external-headers:
@@ -66,21 +65,22 @@ http:
         customRequestHeaders:
           X-Forwarded-Proto: "https"
           X-Forwarded-Port: "443"
+          # Clean redirect URL - remove sensitive parameters
+          X-Forwarded-Uri: ""
 
-    # Production-ready Authentik middleware chain
-    authentik-secure:
-      chain:
-        middlewares:
-          - authentik-external-headers
-          - authentik-forward-auth
-          - secure-headers
+    # Clean Redirect Middleware - Strip sensitive URL parameters
+    clean-redirect:
+      redirectRegex:
+        regex: "^(.*?)\\?(.*(?:next|redirect|state|code|token|session|auth|login|logout|callback|return|goto|continue|forward|target|destination|url|link|ref|referrer|origin|source|from|to|back|success|error|message|alert|notice|warning|info|debug|trace|log|id|uid|user|username|email|password|secret|key|api|access|refresh|bearer|oauth|saml|oidc|jwt|claim|scope|audience|issuer|subject|nonce|challenge|verifier|signature|hash|digest|checksum|csrf|xsrf|anti|forgery|protection).*)"
+        replacement: "${1}"
+        permanent: false
 
     # Rate Limiting
     rate-limit:
       rateLimit:
-        average: 100
-        period: 60s
-        burst: 50
+        average: 10
+        period: "1m"
+        burst: 20
         sourceCriterion:
           ipStrategy:
             depth: 1
@@ -163,6 +163,24 @@ http:
           - secure-headers
           - rate-limit
           - gzip
+
+    # Production-Ready Security Chain with Clean URLs
+    secure-auth-chain:
+      chain:
+        middlewares:
+          - "clean-redirect"
+          - "authentik-forward-auth"
+          - "secure-headers"
+          - "rate-limit"
+
+    # Production-ready Authentik middleware chain
+    authentik-secure:
+      chain:
+        middlewares:
+          - authentik-external-headers
+          - authentik-forward-auth
+          - clean-redirect
+          - secure-headers
 
   # Note: Middleware chains are defined directly in service labels
   # Example: traefik.http.routers.service.middlewares=secure-headers,gzip,rate-limit

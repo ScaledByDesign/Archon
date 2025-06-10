@@ -1,0 +1,21 @@
+http:
+  routers:
+    # Main Authentik router
+    authentik:
+      rule: "Host(`auth.zoi.local`)"
+      entryPoints:
+        - "web"
+      service: "authentik"
+      
+    # Outpost router for forward authentication
+    authentik-outpost:
+      rule: "PathPrefix(`/outpost.goauthentik.io/`)"
+      entryPoints:
+        - "web"
+      service: "authentik"
+
+  services:
+    authentik:
+      loadBalancer:
+        servers:
+          - url: "http://authentik-server:9000"

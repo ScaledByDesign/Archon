@@ -279,13 +279,13 @@ services:
     image: ghcr.io/goauthentik/server:latest
     container_name: authentik-server
     restart: unless-stopped
-    # Use default entrypoint for now - custom startup script can be added later
-    command: ["server"]
+    entrypoint: ["/bin/bash", "-c"]
+    command: ["(/blueprints/startup-scripts/apply-blueprints.sh &) && exec ak server"]
     volumes:
       - authentik_media:/media
       - authentik_templates:/templates
       - ./config/authentik/blueprints:/blueprints/custom
-      # - ./config/authentik/startup-scripts:/blueprints/startup-scripts:ro  # Disabled until script is created
+      - ./config/authentik/startup-scripts:/blueprints/startup-scripts:ro
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
@@ -304,10 +304,13 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.authentik.rule=Host(`auth.${DOMAIN:-localhost}`) || (HostRegexp(`{subdomain:[a-z0-9]+}.${DOMAIN:-localhost}`) && PathPrefix(`/outpost.goauthentik.io/`))"
+      - "traefik.http.routers.authentik.rule=Host(`auth.${DOMAIN:-localhost}`)"
       - "traefik.http.routers.authentik.entrypoints=web"
-      # - "traefik.http.routers.authentik.tls.certresolver=letsencrypt"
       - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+      # Outpost routing for forward auth
+      - "traefik.http.routers.authentik-outpost.rule=PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.authentik-outpost.entrypoints=web"
+      - "traefik.http.routers.authentik-outpost.service=authentik"
     healthcheck:
       test: ["CMD-SHELL", "ak healthcheck"]
       start_period: 30s

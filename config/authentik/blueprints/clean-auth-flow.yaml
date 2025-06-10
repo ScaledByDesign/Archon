@@ -1,0 +1,73 @@
+version: 1
+metadata:
+  name: Clean Authentication Flow
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+context:
+  traefik_domain: !Env [DOMAIN, "zoi.local"]
+entries:
+# Create a custom authentication flow with clean redirects
+- model: authentik_flows.flow
+  identifiers:
+    slug: clean-authentication-flow
+  attrs:
+    name: Clean Authentication Flow
+    title: Sign In
+    slug: clean-authentication-flow
+    designation: authentication
+    policy_engine_mode: all
+    # Clean URL configuration
+    layout: stacked
+    background: /static/dist/assets/images/flow_background.jpg
+
+# Create identification stage with minimal data exposure
+- model: authentik_stages_identification.identificationstage
+  identifiers:
+    name: clean-identification-stage
+  attrs:
+    name: clean-identification-stage
+    user_fields:
+      - username
+      - email
+    password_stage: !Find [authentik_stages_password.passwordstage, [name, default-authentication-password]]
+    case_insensitive_matching: true
+    show_matched_user: false
+    # Minimal enrollment flow
+    enrollment_flow: !Find [authentik_flows.flow, [slug, default-enrollment-flow]]
+    recovery_flow: !Find [authentik_flows.flow, [slug, default-recovery-flow]]
+
+# Bind identification stage to flow
+- model: authentik_flows.flowstagebinding
+  identifiers:
+    target: !Find [authentik_flows.flow, [slug, clean-authentication-flow]]
+    stage: !Find [authentik_stages_identification.identificationstage, [name, clean-identification-stage]]
+    order: 10
+  attrs:
+    target: !Find [authentik_flows.flow, [slug, clean-authentication-flow]]
+    stage: !Find [authentik_stages_identification.identificationstage, [name, clean-identification-stage]]
+    order: 10
+    policy_engine_mode: all
+
+# Bind password stage to flow
+- model: authentik_flows.flowstagebinding
+  identifiers:
+    target: !Find [authentik_flows.flow, [slug, clean-authentication-flow]]
+    stage: !Find [authentik_stages_password.passwordstage, [name, default-authentication-password]]
+    order: 20
+  attrs:
+    target: !Find [authentik_flows.flow, [slug, clean-authentication-flow]]
+    stage: !Find [authentik_stages_password.passwordstage, [name, default-authentication-password]]
+    order: 20
+    policy_engine_mode: all
+
+# Bind login stage to flow
+- model: authentik_flows.flowstagebinding
+  identifiers:
+    target: !Find [authentik_flows.flow, [slug, clean-authentication-flow]]
+    stage: !Find [authentik_stages_user_login.userloginstage, [name, default-authentication-login]]
+    order: 30
+  attrs:
+    target: !Find [authentik_flows.flow, [slug, clean-authentication-flow]]
+    stage: !Find [authentik_stages_user_login.userloginstage, [name, default-authentication-login]]
+    order: 30
+    policy_engine_mode: all
