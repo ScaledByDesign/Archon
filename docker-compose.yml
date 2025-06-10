@@ -269,8 +269,8 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.dashy.rule=Host(`dashy.${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.dashy.entrypoints=websecure"
-      - "traefik.http.routers.dashy.middlewares=authentik-forward-auth@file"
+      - "traefik.http.routers.dashy.entrypoints=web"
+      # - "traefik.http.routers.dashy.middlewares=authentik-forward-auth@file"  # Temporarily disabled for HTTP testing
       # - "traefik.http.routers.dashy.tls.certresolver=letsencrypt"
       - "traefik.http.services.dashy.loadbalancer.server.port=8080"
 
