@@ -1,8 +1,0 @@
-{
-  "engine": "gpt-4o-mini",
-  "workspaceRoot": ".",
-  "templateDir": "../ai-tools/prompts",
-  "pipelineDir": "../ai-tools/pipelines",
-  "boilerplateDir": "../ai-tools/snippets",
-  "onSave": ["runPipeline:code-review"]
-}

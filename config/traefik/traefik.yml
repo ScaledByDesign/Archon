@@ -29,12 +29,16 @@ entryPoints:
     forwardedHeaders:
       insecure: true
 
+  # Metrics entrypoint for Prometheus
+  metrics:
+    address: :8082
+
 # Providers
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
-    network: rag_network
+    network: zoi_backend_network
     watch: true
   
   file:

@@ -1,0 +1,418 @@
+{"level":"info","ts":1748539980.7229526,"msg":"backrest version 1.8.1@7a5030bb00f113170e1c09c45a4f2034a13a2809, using log directory: /data/processlogs"}
+{"level":"info","ts":1748539981.2662241,"msg":"restic binary \"/bin/restic\" in $PATH matches required version 0.18.0, it will be used for backrest commands"}
+{"level":"info","ts":1748539981.3917131,"msg":"applying oplog sqlite schema migration from storage schema 0 to 4"}
+{"level":"info","ts":1748539981.4176984,"msg":"oplog applying data migration","migration_no":0}
+{"level":"info","ts":1748539981.4336846,"msg":"oplog applying data migration","migration_no":1}
+{"level":"info","ts":1748539981.4371614,"msg":"oplog applying data migration","migration_no":2}
+{"level":"info","ts":1748539981.4439998,"msg":"oplog applying data migration","migration_no":3}
+{"level":"info","ts":1748539981.4471717,"msg":"oplog applying data migration","migration_no":4}
+{"level":"info","ts":1748539981.5939138,"msg":"scrubbing operation log for incomplete operations"}
+{"level":"info","ts":1748539981.598821,"msg":"scrubbed operation log for incomplete operations","duration":0.004898708,"incomplete_ops":0,"incomplete_repos":0,"deleted_ops":0}
+{"level":"info","ts":1748539981.600518,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748539981.6006815,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748539981.600742,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-29T12:33:02-05:00"}
+{"level":"info","ts":1748539981.6007836,"msg":"orchestrator created"}
+{"level":"info","ts":1748539981.6009252,"msg":"generating new auth secret"}
+{"level":"debug","ts":1748539981.6023517,"msg":"syncmanager no known host peers declared, sync client exiting early"}
+{"level":"info","ts":1748539981.6031272,"msg":"starting orchestrator loop"}
+{"level":"info","ts":1748539981.669315,"msg":"starting web server :9898"}
+{"level":"info","ts":1748539982.6041887,"msg":"running task","task":"collect garbage","runAt":"2025-05-29T12:33:02-05:00"}
+{"level":"info","ts":1748539982.6127412,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748539982.6141448,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748539982.615452,"logger":"collect garbage","msg":"task finished","duration":0.010206875}
+{"level":"info","ts":1748539982.6163461,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-30T12:33:02-05:00"}
+{"level":"info","ts":1748542924.9421406,"msg":"shutting down orchestrator loop, context cancelled."}
+{"level":"warn","ts":1748542924.967526,"msg":"attempting graceful shutdown, to force termination press Ctrl+C again"}
+{"level":"info","ts":1748542924.964625,"msg":"HTTP gateway shutdown"}
+{"level":"info","ts":1748543019.0984342,"msg":"backrest version 1.8.1@7a5030bb00f113170e1c09c45a4f2034a13a2809, using log directory: /data/processlogs"}
+{"level":"info","ts":1748543019.870993,"msg":"restic binary \"/bin/restic\" in $PATH matches required version 0.18.0, it will be used for backrest commands"}
+{"level":"info","ts":1748543020.0708983,"msg":"scrubbing operation log for incomplete operations"}
+{"level":"info","ts":1748543020.071488,"msg":"scrubbed operation log for incomplete operations","duration":0.000586792,"incomplete_ops":0,"incomplete_repos":0,"deleted_ops":0}
+{"level":"info","ts":1748543020.0730674,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748543020.0740194,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748543020.077646,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-29T13:23:41-05:00"}
+{"level":"info","ts":1748543020.0779078,"msg":"orchestrator created"}
+{"level":"debug","ts":1748543020.0786228,"msg":"syncmanager no known host peers declared, sync client exiting early"}
+{"level":"info","ts":1748543020.078947,"msg":"starting orchestrator loop"}
+{"level":"debug","ts":1748543020.082667,"msg":"loading auth secret from file"}
+{"level":"info","ts":1748543020.1793318,"msg":"starting web server :9898"}
+{"level":"info","ts":1748543021.0780268,"msg":"running task","task":"collect garbage","runAt":"2025-05-29T13:23:41-05:00"}
+{"level":"info","ts":1748543021.0951717,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748543021.097386,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748543021.0982735,"logger":"collect garbage","msg":"task finished","duration":0.018363458}
+{"level":"info","ts":1748543021.10046,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-30T13:23:41-05:00"}
+{"level":"info","ts":1748544618.1808395,"msg":"HTTP gateway shutdown"}
+{"level":"warn","ts":1748544618.1673927,"msg":"attempting graceful shutdown, to force termination press Ctrl+C again"}
+{"level":"info","ts":1748544618.1730244,"msg":"shutting down orchestrator loop, context cancelled."}
+{"level":"info","ts":1748711563.66287,"msg":"backrest version 1.8.1@7a5030bb00f113170e1c09c45a4f2034a13a2809, using log directory: /data/processlogs"}
+{"level":"info","ts":1748711564.0607421,"msg":"restic binary \"/bin/restic\" in $PATH matches required version 0.18.0, it will be used for backrest commands"}
+{"level":"info","ts":1748711564.782654,"msg":"scrubbing operation log for incomplete operations"}
+{"level":"info","ts":1748711564.8088753,"msg":"scrubbed operation log for incomplete operations","duration":0.026219583,"incomplete_ops":0,"incomplete_repos":0,"deleted_ops":0}
+{"level":"info","ts":1748711564.8742743,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748711564.8789473,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748711564.8811638,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T12:12:45-05:00"}
+{"level":"info","ts":1748711564.8813457,"msg":"orchestrator created"}
+{"level":"debug","ts":1748711564.8888886,"msg":"syncmanager no known host peers declared, sync client exiting early"}
+{"level":"info","ts":1748711564.8901708,"msg":"starting orchestrator loop"}
+{"level":"debug","ts":1748711564.892675,"msg":"loading auth secret from file"}
+{"level":"info","ts":1748711564.9683318,"msg":"starting web server :9898"}
+{"level":"info","ts":1748711565.8846343,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T12:12:45-05:00"}
+{"level":"info","ts":1748711565.8861856,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748711565.8923306,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748711565.8926044,"logger":"collect garbage","msg":"task finished","duration":0.007698458}
+{"level":"info","ts":1748711565.8928912,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T12:12:45-05:00"}
+{"level":"info","ts":1748712432.560169,"msg":"HTTP gateway shutdown"}
+{"level":"warn","ts":1748712432.558698,"msg":"attempting graceful shutdown, to force termination press Ctrl+C again"}
+{"level":"info","ts":1748712432.552149,"msg":"shutting down orchestrator loop, context cancelled."}
+{"level":"info","ts":1748722417.6413558,"msg":"backrest version 1.8.1@7a5030bb00f113170e1c09c45a4f2034a13a2809, using log directory: /data/processlogs"}
+{"level":"info","ts":1748722418.522158,"msg":"restic binary \"/bin/restic\" in $PATH matches required version 0.18.0, it will be used for backrest commands"}
+{"level":"info","ts":1748722418.6557233,"msg":"scrubbing operation log for incomplete operations"}
+{"level":"info","ts":1748722418.6560853,"msg":"scrubbed operation log for incomplete operations","duration":0.000363542,"incomplete_ops":0,"incomplete_repos":0,"deleted_ops":0}
+{"level":"info","ts":1748722418.668051,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748722418.670424,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748722418.6708755,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T15:13:39-05:00"}
+{"level":"info","ts":1748722418.6709962,"msg":"orchestrator created"}
+{"level":"debug","ts":1748722418.6729143,"msg":"loading auth secret from file"}
+{"level":"info","ts":1748722418.6766732,"msg":"starting orchestrator loop"}
+{"level":"debug","ts":1748722418.6767313,"msg":"syncmanager no known host peers declared, sync client exiting early"}
+{"level":"info","ts":1748722418.7491415,"msg":"starting web server :9898"}
+{"level":"info","ts":1748722419.6726978,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T15:13:39-05:00"}
+{"level":"info","ts":1748722419.6885278,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748722419.6888638,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748722419.6890953,"logger":"collect garbage","msg":"task finished","duration":0.016187125}
+{"level":"info","ts":1748722419.689459,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T15:13:39-05:00"}
+{"level":"warn","ts":1748722678.498836,"msg":"attempting graceful shutdown, to force termination press Ctrl+C again"}
+{"level":"info","ts":1748722678.4263153,"msg":"shutting down orchestrator loop, context cancelled."}
+{"level":"info","ts":1748722678.5259254,"msg":"HTTP gateway shutdown"}
+{"level":"info","ts":1748722779.4050503,"msg":"backrest version 1.8.1@7a5030bb00f113170e1c09c45a4f2034a13a2809, using log directory: /data/processlogs"}
+{"level":"info","ts":1748722780.2941508,"msg":"restic binary \"/bin/restic\" in $PATH matches required version 0.18.0, it will be used for backrest commands"}
+{"level":"info","ts":1748722781.9318588,"msg":"scrubbing operation log for incomplete operations"}
+{"level":"info","ts":1748722781.9343386,"msg":"scrubbed operation log for incomplete operations","duration":0.002503583,"incomplete_ops":0,"incomplete_repos":0,"deleted_ops":0}
+{"level":"info","ts":1748722781.944296,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748722781.9515958,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748722781.9625144,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T15:19:42-05:00"}
+{"level":"info","ts":1748722781.9779298,"msg":"orchestrator created"}
+{"level":"debug","ts":1748722781.9827669,"msg":"syncmanager no known host peers declared, sync client exiting early"}
+{"level":"debug","ts":1748722781.9936247,"msg":"loading auth secret from file"}
+{"level":"info","ts":1748722781.9982164,"msg":"starting orchestrator loop"}
+{"level":"info","ts":1748722782.2750952,"msg":"starting web server :9898"}
+{"level":"info","ts":1748722782.9732714,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T15:19:42-05:00"}
+{"level":"info","ts":1748722782.99102,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748722782.99533,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748722782.99891,"logger":"collect garbage","msg":"task finished","duration":0.024434333}
+{"level":"info","ts":1748722783.0031526,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T15:19:43-05:00"}
+{"level":"info","ts":1748723013.6959398,"msg":"HTTP gateway shutdown"}
+{"level":"info","ts":1748723013.6547337,"msg":"shutting down orchestrator loop, context cancelled."}
+{"level":"warn","ts":1748723013.7032757,"msg":"attempting graceful shutdown, to force termination press Ctrl+C again"}
+{"level":"info","ts":1748723116.1543589,"msg":"backrest version 1.8.1@7a5030bb00f113170e1c09c45a4f2034a13a2809, using log directory: /data/processlogs"}
+{"level":"info","ts":1748723124.7206147,"msg":"restic binary \"/bin/restic\" in $PATH matches required version 0.18.0, it will be used for backrest commands"}
+{"level":"info","ts":1748723127.1218553,"msg":"scrubbing operation log for incomplete operations"}
+{"level":"info","ts":1748723127.1357577,"msg":"scrubbed operation log for incomplete operations","duration":0.013934125,"incomplete_ops":0,"incomplete_repos":0,"deleted_ops":0}
+{"level":"info","ts":1748723127.3377323,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748723127.3524685,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748723127.3836086,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T15:25:28-05:00"}
+{"level":"info","ts":1748723127.3868155,"msg":"orchestrator created"}
+{"level":"debug","ts":1748723127.3904552,"msg":"syncmanager no known host peers declared, sync client exiting early"}
+{"level":"debug","ts":1748723127.3944857,"msg":"loading auth secret from file"}
+{"level":"info","ts":1748723127.3954117,"msg":"starting orchestrator loop"}
+{"level":"info","ts":1748723127.8126922,"msg":"starting web server :9898"}
+{"level":"info","ts":1748723128.3883157,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T15:25:28-05:00"}
+{"level":"info","ts":1748723128.4030778,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748723128.406714,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748723128.4069066,"logger":"collect garbage","msg":"task finished","duration":0.0166885}
+{"level":"info","ts":1748723128.4071078,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T15:25:28-05:00"}
+{"level":"info","ts":1748723414.1687038,"msg":"HTTP gateway shutdown"}
+{"level":"warn","ts":1748723414.160856,"msg":"attempting graceful shutdown, to force termination press Ctrl+C again"}
+{"level":"info","ts":1748723414.1658833,"msg":"shutting down orchestrator loop, context cancelled."}
+{"level":"info","ts":1748725433.0385082,"msg":"backrest version 1.8.1@7a5030bb00f113170e1c09c45a4f2034a13a2809, using log directory: /data/processlogs"}
+{"level":"info","ts":1748725433.4800086,"msg":"restic binary \"/bin/restic\" in $PATH matches required version 0.18.0, it will be used for backrest commands"}
+{"level":"info","ts":1748725433.7780035,"msg":"scrubbing operation log for incomplete operations"}
+{"level":"info","ts":1748725433.7784932,"msg":"scrubbed operation log for incomplete operations","duration":0.000491125,"incomplete_ops":0,"incomplete_repos":0,"deleted_ops":0}
+{"level":"info","ts":1748725433.7856834,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748725433.7917793,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748725433.7964664,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T16:03:54-05:00"}
+{"level":"info","ts":1748725433.8071136,"msg":"orchestrator created"}
+{"level":"debug","ts":1748725433.8089733,"msg":"syncmanager no known host peers declared, sync client exiting early"}
+{"level":"debug","ts":1748725433.8224347,"msg":"loading auth secret from file"}
+{"level":"info","ts":1748725433.823126,"msg":"starting orchestrator loop"}
+{"level":"info","ts":1748725433.8965712,"msg":"starting web server :9898"}
+{"level":"info","ts":1748725434.7968237,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T16:03:54-05:00"}
+{"level":"info","ts":1748725434.8025806,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748725434.8031173,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748725434.8036478,"logger":"collect garbage","msg":"task finished","duration":0.004965709}
+{"level":"info","ts":1748725434.8041518,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T16:03:54-05:00"}
+{"level":"warn","ts":1748728954.408608,"msg":"detected a clock jump, watchdog timer is off from realtime by 1720582ms, rescheduling all tasks"}
+{"level":"info","ts":1748728954.4163146,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748728954.4370754,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748728954.4375715,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T17:02:35-05:00"}
+{"level":"info","ts":1748728955.4524593,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T17:02:35-05:00"}
+{"level":"info","ts":1748728955.4683475,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748728955.4811149,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748728955.4825823,"logger":"collect garbage","msg":"task finished","duration":0.028464708}
+{"level":"info","ts":1748728955.483778,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T17:02:35-05:00"}
+{"level":"warn","ts":1748730186.3793585,"msg":"detected a clock jump, watchdog timer is off from realtime by 31950ms, rescheduling all tasks"}
+{"level":"info","ts":1748730186.3815415,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748730186.385063,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748730186.3852437,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T17:23:07-05:00"}
+{"level":"info","ts":1748730187.385975,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T17:23:07-05:00"}
+{"level":"info","ts":1748730187.3985362,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748730187.4016237,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748730187.401948,"logger":"collect garbage","msg":"task finished","duration":0.015581416}
+{"level":"info","ts":1748730187.4021943,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T17:23:07-05:00"}
+{"level":"warn","ts":1748733045.9171014,"msg":"detected a clock jump, watchdog timer is off from realtime by 1059520ms, rescheduling all tasks"}
+{"level":"info","ts":1748733045.9180956,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748733045.9207675,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748733045.9208808,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T18:10:46-05:00"}
+{"level":"info","ts":1748733046.9310331,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T18:10:46-05:00"}
+{"level":"info","ts":1748733046.9367318,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748733046.9391544,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748733046.939262,"logger":"collect garbage","msg":"task finished","duration":0.0080575}
+{"level":"info","ts":1748733046.9397016,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T18:10:46-05:00"}
+{"level":"warn","ts":1748737738.906723,"msg":"detected a clock jump, watchdog timer is off from realtime by 792959ms, rescheduling all tasks"}
+{"level":"info","ts":1748737738.9093583,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748737738.9163165,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748737738.9166,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T19:28:59-05:00"}
+{"level":"info","ts":1748737739.9249134,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T19:28:59-05:00"}
+{"level":"info","ts":1748737739.9347339,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748737739.9421127,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748737739.9424365,"logger":"collect garbage","msg":"task finished","duration":0.01696325}
+{"level":"info","ts":1748737739.942763,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T19:28:59-05:00"}
+{"level":"warn","ts":1748742700.2937112,"msg":"detected a clock jump, watchdog timer is off from realtime by 1361372ms, rescheduling all tasks"}
+{"level":"info","ts":1748742700.2947128,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748742700.2960925,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748742700.2961802,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T20:51:41-05:00"}
+{"level":"info","ts":1748742701.300574,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T20:51:41-05:00"}
+{"level":"info","ts":1748742701.30723,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748742701.311064,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748742701.311303,"logger":"collect garbage","msg":"task finished","duration":0.0100775}
+{"level":"info","ts":1748742701.311898,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T20:51:41-05:00"}
+{"level":"warn","ts":1748743151.1399133,"msg":"detected a clock jump, watchdog timer is off from realtime by 150846ms, rescheduling all tasks"}
+{"level":"info","ts":1748743151.1426241,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748743151.1445713,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748743151.1448395,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T20:59:12-05:00"}
+{"level":"info","ts":1748743152.145536,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T20:59:12-05:00"}
+{"level":"info","ts":1748743152.1508868,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748743152.1541276,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748743152.1543765,"logger":"collect garbage","msg":"task finished","duration":0.008405417}
+{"level":"info","ts":1748743152.154698,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T20:59:12-05:00"}
+{"level":"warn","ts":1748747927.6743908,"msg":"detected a clock jump, watchdog timer is off from realtime by 1176507ms, rescheduling all tasks"}
+{"level":"info","ts":1748747927.6765828,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748747927.6807754,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748747927.681811,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T22:18:48-05:00"}
+{"level":"info","ts":1748747928.684451,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T22:18:48-05:00"}
+{"level":"info","ts":1748747928.6931934,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748747928.6964536,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748747928.696851,"logger":"collect garbage","msg":"task finished","duration":0.011668416}
+{"level":"info","ts":1748747928.6973107,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T22:18:48-05:00"}
+{"level":"warn","ts":1748748912.1804488,"msg":"detected a clock jump, watchdog timer is off from realtime by 384512ms, rescheduling all tasks"}
+{"level":"info","ts":1748748912.1828938,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748748912.185918,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748748912.1862488,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T22:35:13-05:00"}
+{"level":"info","ts":1748748913.197536,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T22:35:13-05:00"}
+{"level":"info","ts":1748748913.20147,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748748913.2055004,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748748913.2057579,"logger":"collect garbage","msg":"task finished","duration":0.007713417}
+{"level":"info","ts":1748748913.2061648,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T22:35:13-05:00"}
+{"level":"warn","ts":1748749685.8291428,"msg":"detected a clock jump, watchdog timer is off from realtime by 473643ms, rescheduling all tasks"}
+{"level":"info","ts":1748749685.8353574,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748749685.8393981,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748749685.8397233,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T22:48:06-05:00"}
+{"level":"info","ts":1748749686.8453631,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T22:48:06-05:00"}
+{"level":"info","ts":1748749686.8473692,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748749686.8510487,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748749686.851182,"logger":"collect garbage","msg":"task finished","duration":0.005527667}
+{"level":"info","ts":1748749686.851383,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T22:48:06-05:00"}
+{"level":"warn","ts":1748753210.3568096,"msg":"detected a clock jump, watchdog timer is off from realtime by 495775ms, rescheduling all tasks"}
+{"level":"info","ts":1748753210.3606575,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748753210.3645215,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748753210.364966,"msg":"scheduled task","task":"collect garbage","runAt":"2025-05-31T23:46:51-05:00"}
+{"level":"info","ts":1748753211.365746,"msg":"running task","task":"collect garbage","runAt":"2025-05-31T23:46:51-05:00"}
+{"level":"info","ts":1748753211.370925,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748753211.374169,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748753211.3742645,"logger":"collect garbage","msg":"task finished","duration":0.0083465}
+{"level":"info","ts":1748753211.374621,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T23:46:51-05:00"}
+{"level":"warn","ts":1748757561.1626606,"msg":"detected a clock jump, watchdog timer is off from realtime by 4050808ms, rescheduling all tasks"}
+{"level":"info","ts":1748757561.1650445,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748757561.1670384,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748757561.1674025,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T00:59:22-05:00"}
+{"level":"info","ts":1748757562.1740088,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T00:59:22-05:00"}
+{"level":"info","ts":1748757562.1761627,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748757562.1785276,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748757562.178685,"logger":"collect garbage","msg":"task finished","duration":0.004413041}
+{"level":"info","ts":1748757562.1789083,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T00:59:22-05:00"}
+{"level":"warn","ts":1748758763.7853532,"msg":"detected a clock jump, watchdog timer is off from realtime by 902620ms, rescheduling all tasks"}
+{"level":"info","ts":1748758763.7875328,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748758763.7908456,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748758763.791384,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T01:19:24-05:00"}
+{"level":"info","ts":1748758764.7960312,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T01:19:24-05:00"}
+{"level":"info","ts":1748758764.8009224,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748758764.806231,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748758764.8065221,"logger":"collect garbage","msg":"task finished","duration":0.009932}
+{"level":"info","ts":1748758764.806822,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T01:19:24-05:00"}
+{"level":"warn","ts":1748762175.3953753,"msg":"detected a clock jump, watchdog timer is off from realtime by 2811612ms, rescheduling all tasks"}
+{"level":"info","ts":1748762175.3966813,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748762175.3989332,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748762175.399183,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T02:16:16-05:00"}
+{"level":"info","ts":1748762176.4023356,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T02:16:16-05:00"}
+{"level":"info","ts":1748762176.4067595,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748762176.411773,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748762176.4120219,"logger":"collect garbage","msg":"task finished","duration":0.00912775}
+{"level":"info","ts":1748762176.412346,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T02:16:16-05:00"}
+{"level":"warn","ts":1748769390.4841044,"msg":"detected a clock jump, watchdog timer is off from realtime by 915097ms, rescheduling all tasks"}
+{"level":"info","ts":1748769390.4859548,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748769390.4885597,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748769390.488928,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T04:16:31-05:00"}
+{"level":"info","ts":1748769391.490719,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T04:16:31-05:00"}
+{"level":"info","ts":1748769391.4953294,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748769391.5005403,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748769391.5008616,"logger":"collect garbage","msg":"task finished","duration":0.0096055}
+{"level":"info","ts":1748769391.501298,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T04:16:31-05:00"}
+{"level":"warn","ts":1748771347.4142606,"msg":"detected a clock jump, watchdog timer is off from realtime by 756951ms, rescheduling all tasks"}
+{"level":"info","ts":1748771347.416713,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748771347.418813,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748771347.419057,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T04:49:08-05:00"}
+{"level":"info","ts":1748771348.42639,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T04:49:08-05:00"}
+{"level":"info","ts":1748771348.428551,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748771348.4326077,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748771348.4327857,"logger":"collect garbage","msg":"task finished","duration":0.005957083}
+{"level":"info","ts":1748771348.4330356,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T04:49:08-05:00"}
+{"level":"warn","ts":1748773110.1721623,"msg":"detected a clock jump, watchdog timer is off from realtime by 1462759ms, rescheduling all tasks"}
+{"level":"info","ts":1748773110.174779,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748773110.1761713,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748773110.1764116,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T05:18:31-05:00"}
+{"level":"info","ts":1748773111.1769404,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T05:18:31-05:00"}
+{"level":"info","ts":1748773111.1807275,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748773111.1850786,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748773111.1853356,"logger":"collect garbage","msg":"task finished","duration":0.007601875}
+{"level":"info","ts":1748773111.1857538,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T05:18:31-05:00"}
+{"level":"warn","ts":1748775004.5591662,"msg":"detected a clock jump, watchdog timer is off from realtime by 994394ms, rescheduling all tasks"}
+{"level":"info","ts":1748775004.5614026,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748775004.563894,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748775004.564314,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T05:50:05-05:00"}
+{"level":"info","ts":1748775005.56528,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T05:50:05-05:00"}
+{"level":"info","ts":1748775005.5688162,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748775005.5734582,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748775005.5737813,"logger":"collect garbage","msg":"task finished","duration":0.007768417}
+{"level":"info","ts":1748775005.5742438,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T05:50:05-05:00"}
+{"level":"warn","ts":1748776602.898547,"msg":"detected a clock jump, watchdog timer is off from realtime by 998338ms, rescheduling all tasks"}
+{"level":"info","ts":1748776602.9011729,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748776602.90353,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748776602.9038973,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T06:16:43-05:00"}
+{"level":"info","ts":1748776603.908199,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T06:16:43-05:00"}
+{"level":"info","ts":1748776603.911367,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748776603.9168782,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748776603.9191623,"logger":"collect garbage","msg":"task finished","duration":0.010282125}
+{"level":"info","ts":1748776603.928139,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T06:16:43-05:00"}
+{"level":"warn","ts":1748790409.5951126,"msg":"detected a clock jump, watchdog timer is off from realtime by 2406731ms, rescheduling all tasks"}
+{"level":"info","ts":1748790409.597189,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748790409.5993574,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748790409.5995877,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T10:06:50-05:00"}
+{"level":"info","ts":1748790410.604707,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T10:06:50-05:00"}
+{"level":"info","ts":1748790410.609642,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748790410.6119924,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748790410.6123073,"logger":"collect garbage","msg":"task finished","duration":0.007010417}
+{"level":"info","ts":1748790410.6130424,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T10:06:50-05:00"}
+{"level":"warn","ts":1748794688.7196753,"msg":"detected a clock jump, watchdog timer is off from realtime by 679154ms, rescheduling all tasks"}
+{"level":"info","ts":1748794688.7225873,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748794688.7277303,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748794688.728249,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T11:18:09-05:00"}
+{"level":"info","ts":1748794689.7400913,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T11:18:09-05:00"}
+{"level":"info","ts":1748794689.7443287,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748794689.7488294,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748794689.7490952,"logger":"collect garbage","msg":"task finished","duration":0.007938833}
+{"level":"info","ts":1748794689.7495568,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T11:18:09-05:00"}
+{"level":"warn","ts":1748795695.815905,"msg":"detected a clock jump, watchdog timer is off from realtime by 707096ms, rescheduling all tasks"}
+{"level":"info","ts":1748795695.8187053,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748795695.8202395,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748795695.8205752,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T11:34:56-05:00"}
+{"level":"info","ts":1748795696.8215766,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T11:34:56-05:00"}
+{"level":"info","ts":1748795696.8237267,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748795696.8256536,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748795696.8257694,"logger":"collect garbage","msg":"task finished","duration":0.003948209}
+{"level":"info","ts":1748795696.8259175,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T11:34:56-05:00"}
+{"level":"warn","ts":1748798055.8538282,"msg":"detected a clock jump, watchdog timer is off from realtime by 260022ms, rescheduling all tasks"}
+{"level":"info","ts":1748798055.8574674,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748798055.8595424,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748798055.8598428,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T12:14:16-05:00"}
+{"level":"info","ts":1748798056.8637278,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T12:14:16-05:00"}
+{"level":"info","ts":1748798056.8682916,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748798056.870956,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748798056.8712258,"logger":"collect garbage","msg":"task finished","duration":0.006962709}
+{"level":"info","ts":1748798056.8715694,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T12:14:16-05:00"}
+{"level":"warn","ts":1748799937.4113069,"msg":"detected a clock jump, watchdog timer is off from realtime by 81546ms, rescheduling all tasks"}
+{"level":"info","ts":1748799937.414396,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748799937.4188123,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748799937.4190838,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T12:45:38-05:00"}
+{"level":"info","ts":1748799938.428417,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T12:45:38-05:00"}
+{"level":"info","ts":1748799938.4663904,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748799938.4751673,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748799938.4795856,"logger":"collect garbage","msg":"task finished","duration":0.048184375}
+{"level":"info","ts":1748799938.485087,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T12:45:38-05:00"}
+{"level":"info","ts":1748800034.702564,"msg":"shutting down orchestrator loop, context cancelled."}
+{"level":"warn","ts":1748800034.6909847,"msg":"attempting graceful shutdown, to force termination press Ctrl+C again"}
+{"level":"info","ts":1748800034.7057905,"msg":"HTTP gateway shutdown"}
+{"level":"info","ts":1748800036.8021123,"msg":"backrest version 1.8.1@7a5030bb00f113170e1c09c45a4f2034a13a2809, using log directory: /data/processlogs"}
+{"level":"info","ts":1748800037.4507682,"msg":"restic binary \"/bin/restic\" in $PATH matches required version 0.18.0, it will be used for backrest commands"}
+{"level":"info","ts":1748800037.585627,"msg":"scrubbing operation log for incomplete operations"}
+{"level":"info","ts":1748800037.5861678,"msg":"scrubbed operation log for incomplete operations","duration":0.000530542,"incomplete_ops":0,"incomplete_repos":0,"deleted_ops":0}
+{"level":"info","ts":1748800037.5939944,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748800037.5946114,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748800037.5949986,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T12:47:18-05:00"}
+{"level":"info","ts":1748800037.5950975,"msg":"orchestrator created"}
+{"level":"info","ts":1748800037.5956368,"msg":"starting orchestrator loop"}
+{"level":"debug","ts":1748800037.596223,"msg":"syncmanager no known host peers declared, sync client exiting early"}
+{"level":"debug","ts":1748800037.5972302,"msg":"loading auth secret from file"}
+{"level":"info","ts":1748800037.6236374,"msg":"starting web server :9898"}
+{"level":"info","ts":1748800038.8495958,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T12:47:18-05:00"}
+{"level":"info","ts":1748800039.3336434,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748800039.338408,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748800039.3393602,"logger":"collect garbage","msg":"task finished","duration":0.018741666}
+{"level":"info","ts":1748800039.342589,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T12:47:19-05:00"}
+{"level":"warn","ts":1748802089.1443622,"msg":"detected a clock jump, watchdog timer is off from realtime by 251557ms, rescheduling all tasks"}
+{"level":"info","ts":1748802089.1561158,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748802089.1726844,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748802089.1731439,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T13:21:30-05:00"}
+{"level":"info","ts":1748802090.177519,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T13:21:30-05:00"}
+{"level":"info","ts":1748802090.191006,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748802090.195396,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748802090.1962054,"logger":"collect garbage","msg":"task finished","duration":0.0170735}
+{"level":"info","ts":1748802090.197374,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T13:21:30-05:00"}
+{"level":"warn","ts":1748802916.7026317,"msg":"detected a clock jump, watchdog timer is off from realtime by 227564ms, rescheduling all tasks"}
+{"level":"info","ts":1748802916.7049694,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748802916.7113576,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748802916.711797,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T13:35:17-05:00"}
+{"level":"info","ts":1748802917.7164412,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T13:35:17-05:00"}
+{"level":"info","ts":1748802917.7221334,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748802917.7261736,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748802917.7265756,"logger":"collect garbage","msg":"task finished","duration":0.009664417}
+{"level":"info","ts":1748802917.7277296,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T13:35:17-05:00"}
+{"level":"warn","ts":1748803994.2411819,"msg":"detected a clock jump, watchdog timer is off from realtime by 777538ms, rescheduling all tasks"}
+{"level":"info","ts":1748803994.2432578,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748803994.246299,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748803994.2465372,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T13:53:15-05:00"}
+{"level":"info","ts":1748803995.2533622,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T13:53:15-05:00"}
+{"level":"info","ts":1748803995.2762094,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748803995.280483,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748803995.2806213,"logger":"collect garbage","msg":"task finished","duration":0.023367626}
+{"level":"info","ts":1748803995.2811093,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T13:53:15-05:00"}
+{"level":"warn","ts":1748804349.3839355,"msg":"detected a clock jump, watchdog timer is off from realtime by 55138ms, rescheduling all tasks"}
+{"level":"info","ts":1748804349.3904865,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748804349.4000072,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748804349.4001505,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T13:59:10-05:00"}
+{"level":"info","ts":1748804350.4017544,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T13:59:10-05:00"}
+{"level":"info","ts":1748804350.4070363,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748804350.4082253,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748804350.4084768,"logger":"collect garbage","msg":"task finished","duration":0.006256833}
+{"level":"info","ts":1748804350.408944,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T13:59:10-05:00"}
+{"level":"warn","ts":1748805749.212993,"msg":"detected a clock jump, watchdog timer is off from realtime by 479711ms, rescheduling all tasks"}
+{"level":"info","ts":1748805749.2258213,"msg":"scheduling default tasks, waiting for task queue reset."}
+{"level":"info","ts":1748805749.2528222,"msg":"reset task queue, scheduling new task set","timezone":"America/Chicago"}
+{"level":"info","ts":1748805749.2531826,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-01T14:22:30-05:00"}
+{"level":"info","ts":1748805750.4100263,"msg":"running task","task":"collect garbage","runAt":"2025-06-01T14:22:30-05:00"}
+{"level":"info","ts":1748805750.5947793,"msg":"collecting garbage operations","operations_removed":0,"removed_by_age":0,"removed_by_limit":0,"removed_by_snapshot_forgotten":0,"removed_by_type":{}}
+{"level":"info","ts":1748805750.6038842,"msg":"collecting garbage logs","logs_removed":0}
+{"level":"info","ts":1748805750.6063275,"logger":"collect garbage","msg":"task finished","duration":0.169077916}
+{"level":"info","ts":1748805750.607967,"msg":"scheduled task","task":"collect garbage","runAt":"2025-06-02T14:22:30-05:00"}
+{"level":"warn","ts":1748806704.882044,"msg":"attempting graceful shutdown, to force termination press Ctrl+C again"}
+{"level":"info","ts":1748806704.8193233,"msg":"shutting down orchestrator loop, context cancelled."}
+{"level":"info","ts":1748806704.8922951,"msg":"HTTP gateway shutdown"}

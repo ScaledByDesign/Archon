@@ -1,0 +1,44 @@
+{
+  "name": "zoi-authentik-traefik-tests",
+  "version": "1.0.0",
+  "description": "Playwright tests for Authentik and Traefik integration with Dashy",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:auth": "playwright test auth.spec.js",
+    "test:dashy": "playwright test dashy.spec.js",
+    "test:integration": "playwright test integration.spec.js",
+    "test:forward-auth": "playwright test authentik-traefik-forward-auth.spec.js",
+    "test:all": "npm run test:auth && npm run test:dashy && npm run test:integration && npm run test:forward-auth",
+    "setup": "playwright install",
+    "setup:deps": "playwright install-deps",
+    "setup:env": "node test-setup.js",
+    "pretest": "npm run setup:env",
+    "generate": "playwright codegen",
+    "show-report": "playwright show-report",
+    "show-trace": "playwright show-trace"
+  },
+  "keywords": [
+    "playwright",
+    "authentik",
+    "traefik",
+    "dashy",
+    "e2e",
+    "authentication",
+    "testing"
+  ],
+  "author": "Zoi Development Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "node-fetch": "^3.3.2"
+  }
+}

@@ -73,7 +73,7 @@ version: '3.8'
 
 services:
   # Authentication
-  authentik-db:
+  postgres:
     image: postgres:15-alpine
     restart: unless-stopped
     environment:
@@ -107,14 +107,14 @@ services:
     environment:
       AUTHENTIK_REDIS__HOST: authentik-redis
       AUTHENTIK_REDIS__PASSWORD: ${AUTHENTIK_REDIS_PASS:-redispass}
-      AUTHENTIK_POSTGRESQL__HOST: authentik-db
+      AUTHENTIK_POSTGRESQL__HOST: postgres
       AUTHENTIK_POSTGRESQL__USER: authentik
       AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS:-secretpass}
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
       AUTHENTIK_ERROR_REPORTING__ENABLED: false
     depends_on:
-      authentik-db:
+      postgres:
         condition: service_healthy
       authentik-redis:
         condition: service_healthy
@@ -383,7 +383,7 @@ services:
     environment:
       - ALLOWED_HOSTS=*
       - DB=postgres
-      - DB_HOST=authentik-db
+      - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=healthchecks
       - DB_USER=authentik
@@ -396,7 +396,7 @@ services:
       - SECRET_KEY=${HC_SECRET_KEY}
       - SITE_ROOT=https://health.${DOMAIN:-localhost}
     depends_on:
-      authentik-db:
+      postgres:
         condition: service_healthy
     labels:
       - "traefik.enable=true"

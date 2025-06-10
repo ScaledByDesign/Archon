@@ -1,0 +1,30 @@
+# Hosts file entries for zoi.local development
+# Add these lines to your /etc/hosts file for local development
+
+# Core services
+127.0.0.1    auth.zoi.local
+127.0.0.1    traefik.zoi.local
+127.0.0.1    api.zoi.local
+127.0.0.1    dashy.zoi.local
+
+# AI & ML services
+127.0.0.1    llm.zoi.local
+127.0.0.1    webui.zoi.local
+127.0.0.1    agi.zoi.local
+
+# Data services  
+127.0.0.1    qdrant.zoi.local
+127.0.0.1    redis.zoi.local
+127.0.0.1    rabbitmq.zoi.local
+
+# Workflow & automation
+127.0.0.1    n8n.zoi.local
+127.0.0.1    health.zoi.local
+127.0.0.1    backup.zoi.local
+
+# Instructions:
+# 1. Copy the lines above (excluding this comment section)
+# 2. Run: sudo nano /etc/hosts
+# 3. Paste the entries at the end of the file
+# 4. Save and exit (Ctrl+O, Enter, Ctrl+X in nano)
+# 5. Test with: ping auth.zoi.local

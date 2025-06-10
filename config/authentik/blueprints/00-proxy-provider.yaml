@@ -1,0 +1,16 @@
+version: 1
+metadata:
+  name: Traefik Forward Auth Proxy Provider
+  description: Create the proxy provider that other blueprints will reference
+
+entries:
+  # Create the proxy provider that other blueprints need
+  - model: authentik_providers_proxy.proxyprovider
+    identifiers:
+      name: traefik-forward-auth-provider
+    attrs:
+      name: traefik-forward-auth-provider
+      authorization_flow: !Find [authentik_flows.flow, [slug, "default-provider-authorization-implicit-consent"]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, "default-provider-invalidation-flow"]]
+      mode: forward_domain
+      external_host: https://auth.zoi.local

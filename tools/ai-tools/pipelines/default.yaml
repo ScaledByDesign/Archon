@@ -1,6 +1,0 @@
-name: default
-steps:
-  - action: analyzeDiff
-  - action: applyRefactor
-  - action: runTests
-  - action: explainChanges

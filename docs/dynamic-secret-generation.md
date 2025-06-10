@@ -42,7 +42,7 @@ MONGO_EPISODIC_PORT=27017
 MONGO_PROCEDURAL_HOST=mongo-procedural
 MONGO_PROCEDURAL_PORT=27017
 
-POSTGRES_HOST=authentik-db
+POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
 POSTGRES_DB=authentik
 POSTGRES_USER=authentik
@@ -81,7 +81,7 @@ path "secret/data/rotation/*" {
 
 **PostgreSQL Configuration:**
 - **Authentik Database**: `database/config/postgresql-authentik`
-- **Connection String**: `postgresql://{{username}}:{{password}}@authentik-db:5432/authentik`
+- **Connection String**: `postgresql://{{username}}:{{password}}@postgres:5432/authentik`
 
 ### Role Definitions
 

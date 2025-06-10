@@ -1,0 +1,20 @@
+2025-05-29 02:00:01 - Starting automated secret rotation
+2025-05-29 02:00:01 - Log file: /Users/nova/Sites/zoi/logs/rotation/rotation_20250529_020001.log
+[0;34m=== Automated Secret Rotation ===[0m
+[1;33mStarted at: Thu May 29 02:00:01 CDT 2025[0m
+[1;33mChecking rotation status...[0m
+{"request_id":"cbc60462-8e8d-89fc-bafd-199197a49d5b","lease_id":"","renewable":false,"lease_duration":0,"data":{"created_time":"2025-05-29T07:00:02.346666546Z","custom_metadata":null,"deletion_time":"","destroyed":false,"version":1},"wrap_info":null,"warnings":null,"auth":null}
+[0;34mRecent rotation status:[0m
+Rotation logs available in Vault
+[1;33mRotating database credentials...[0m
+[0;34mRotating MongoDB credentials...[0m
+{"request_id":"a9163204-de9f-cc58-3717-de0ea6080707","lease_id":"","renewable":false,"lease_duration":0,"data":{"created_time":"2025-05-29T07:00:03.550078463Z","custom_metadata":null,"deletion_time":"","destroyed":false,"version":1},"wrap_info":null,"warnings":null,"auth":null}
+[0;32m✓ MongoDB episodic credentials rotated[0m
+{"request_id":"f46195ab-5845-6ad3-af5b-f81a4244beb1","lease_id":"","renewable":false,"lease_duration":0,"data":{"created_time":"2025-05-29T07:00:03.782587296Z","custom_metadata":null,"deletion_time":"","destroyed":false,"version":1},"wrap_info":null,"warnings":null,"auth":null}
+[0;32m✓ MongoDB procedural credentials rotated[0m
+[0;34mRotating PostgreSQL credentials...[0m
+{"request_id":"2c4a7066-05d1-ac10-4736-e8690bff1ff4","lease_id":"","renewable":false,"lease_duration":0,"data":{"created_time":"2025-05-29T07:00:04.136334963Z","custom_metadata":null,"deletion_time":"","destroyed":false,"version":1},"wrap_info":null,"warnings":null,"auth":null}
+[0;32m✓ PostgreSQL credentials rotated[0m
+[0;32m=== Rotation Complete ===[0m
+[1;33mCompleted at: Thu May 29 02:00:04 CDT 2025[0m
+2025-05-29 02:00:04 - Secret rotation completed successfully

@@ -1,0 +1,15 @@
+{
+  "cookies": [
+    {
+      "name": "authentik_proxy_H736fW5L",
+      "value": "LGYO6ZIPWSDGYO3KBVUFRCINBB7HGMCDRVVZVVLH7VOBTK6MH6CA",
+      "domain": "dashy.localhost",
+      "path": "/",
+      "expires": 1749579188.966786,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

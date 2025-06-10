@@ -31,7 +31,7 @@ This dual approach ensures:
 The following services have been configured with timezone synchronization:
 
 #### Authentication Services
-- `authentik-db` - PostgreSQL database for Authentik
+- `postgres` - PostgreSQL database for Authentik
 - `authentik-redis` - Redis cache for Authentik
 - `authentik-server` - Main Authentik authentication server
 - `authentik-worker` - Authentik background worker

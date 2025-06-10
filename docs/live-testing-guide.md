@@ -75,7 +75,7 @@ JWT_REFRESH_TOKEN_EXPIRE_DAYS=7
 Required services from `docker-compose.yml`:
 
 - **authentik-server** (9443) - Authentication service
-- **authentik-db** (PostgreSQL) - Authentik database  
+- **postgres** (PostgreSQL) - Authentik database  
 - **authentik-redis** (6379) - Authentik Redis cache
 - **fastapi-1** (8000) - Main FastAPI application
 - **redis** (6379) - Application Redis cache

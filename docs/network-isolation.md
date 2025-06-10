@@ -67,7 +67,7 @@ The application is divided into 6 isolated networks, each serving a specific pur
 - **Services**:
   - `authentik-server`: SSO server
   - `authentik-worker`: Auth background tasks
-  - `authentik-db`: Auth database (PostgreSQL)
+  - `postgres`: Auth database (PostgreSQL)
   - `authentik-redis`: Auth cache
 
 ### 5. Monitoring Network (`zoi_monitoring`)
@@ -142,7 +142,7 @@ Test connectivity between services:
 docker exec zoi-fastapi-1-1 python -c "import socket; s = socket.socket(); s.settimeout(3); result = s.connect_ex(('zoi-qdrant-1', 6333)); s.close(); print('✅ Connected' if result == 0 else '❌ Failed')"
 
 # Test Authentik to its database (should work)
-docker exec zoi-authentik-server-1 python -c "import socket; s = socket.socket(); s.settimeout(3); result = s.connect_ex(('zoi-authentik-db-1', 5432)); s.close(); print('✅ Connected' if result == 0 else '❌ Failed')"
+docker exec zoi-authentik-server-1 python -c "import socket; s = socket.socket(); s.settimeout(3); result = s.connect_ex(('zoi-postgres-1', 5432)); s.close(); print('✅ Connected' if result == 0 else '❌ Failed')"
 ```
 
 ### Expected Connectivity Matrix

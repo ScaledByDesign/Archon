@@ -64,7 +64,7 @@ check_container_timezone() {
 
 # List of all services that should have timezone configuration
 services=(
-    "authentik-db"
+    "postgres"
     "authentik-redis" 
     "authentik-server"
     "authentik-worker"

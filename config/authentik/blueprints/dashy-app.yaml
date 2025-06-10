@@ -1,0 +1,19 @@
+version: 1
+metadata:
+  name: Dashy Dashboard Application
+  description: Dashy dashboard application using forward auth
+
+entries:
+  # Dashy Application using Forward Auth
+  - model: authentik_core.application
+    identifiers:
+      slug: dashy
+    attrs:
+      name: Dashy Dashboard
+      slug: dashy
+      provider: !Find [authentik_providers_proxy.proxyprovider, [name, "traefik-forward-auth-provider"]]
+      meta_launch_url: https://dashy.localhost
+      meta_description: Personal Dashboard for RAG System
+      meta_publisher: RAG System
+      meta_icon: https://raw.githubusercontent.com/Lissy93/dashy/master/public/web-icons/dashy.png
+      policy_engine_mode: any 
