@@ -15,7 +15,7 @@ entries:
     authorization_flow: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
     invalidation_flow: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
     mode: forward_domain
-    external_host: !Format [https://auth.%s, !Context traefik_domain]
+    external_host: !Format [http://auth.%s, !Context traefik_domain]
     cookie_domain: !Context traefik_domain
     # Clean redirect configuration - minimal URL exposure
     skip_path_regex: ^/static/.*|^/media/.*|^/favicon\.ico$|^/api/.*
@@ -36,5 +36,36 @@ entries:
     meta_launch_url: blank://blank
     meta_description: Forward authentication
     meta_publisher: ""
-    policy_engine_mode: all
+    policy_engine_mode: any
     open_in_new_tab: false
+
+# Create a basic access policy for authenticated users
+- model: authentik_policies_expression.expressionpolicy
+  identifiers:
+    name: dashy-access-policy
+  attrs:
+    name: dashy-access-policy
+    expression: |
+      # Allow access for authenticated users in admin group or any authenticated user
+      return ak_is_group_member(request.user, name="authentik Admins") or request.user.is_authenticated
+
+# Bind the policy to the application
+- model: authentik_policies.policybinding
+  identifiers:
+    target: !Find [authentik_core.application, [slug, traefik-forward-auth]]
+    policy: !Find [authentik_policies_expression.expressionpolicy, [name, dashy-access-policy]]
+  attrs:
+    target: !Find [authentik_core.application, [slug, traefik-forward-auth]]
+    policy: !Find [authentik_policies_expression.expressionpolicy, [name, dashy-access-policy]]
+    order: 0
+    enabled: true
+
+# Assign provider to embedded outpost for forward authentication
+- model: authentik_outposts.outpost
+  identifiers:
+    name: authentik Embedded Outpost
+  attrs:
+    name: authentik Embedded Outpost
+    type: proxy
+    providers:
+      - !Find [authentik_providers_proxy.proxyprovider, [name, traefik-forward-auth]]

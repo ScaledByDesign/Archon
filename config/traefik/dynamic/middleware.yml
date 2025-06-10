@@ -58,6 +58,28 @@ http:
           - "X-Forwarded-Proto"
           - "X-Forwarded-Uri"
           - "X-Real-IP"
+        # Force redirect to auth domain instead of inline login
+        authResponseHeadersRegex: "^X-"
+
+    # Authentik Forward Auth with proper redirect
+    authentik-forward-auth-redirect:
+      forwardAuth:
+        address: "http://auth.zoi.local/outpost.goauthentik.io/auth/traefik"
+        trustForwardHeader: true
+        authResponseHeaders:
+          - "X-authentik-username"
+          - "X-authentik-groups" 
+          - "X-authentik-email"
+          - "X-authentik-name"
+          - "X-authentik-uid"
+          - "X-authentik-jwt"
+        authRequestHeaders:
+          - "Accept"
+          - "User-Agent"
+          - "X-Forwarded-Host"
+          - "X-Forwarded-Proto"
+          - "X-Forwarded-Uri"
+          - "X-Real-IP"
 
     # Enhanced headers to ensure Authentik knows external hostname
     authentik-external-headers:
@@ -181,6 +203,31 @@ http:
           - authentik-forward-auth
           - clean-redirect
           - secure-headers
+
+    # Forward Auth with Static Assets Exclusion
+    authentik-forward-auth-with-bypass:
+      forwardAuth:
+        address: "http://authentik-server:9000/outpost.goauthentik.io/auth/traefik"
+        trustForwardHeader: true
+        authResponseHeaders:
+          - "X-authentik-username"
+          - "X-authentik-groups" 
+          - "X-authentik-email"
+          - "X-authentik-name"
+          - "X-authentik-uid"
+          - "X-authentik-jwt"
+          - "X-authentik-meta-jwks"
+          - "X-authentik-meta-outpost"
+          - "X-authentik-meta-provider"
+          - "X-authentik-meta-app"
+          - "X-authentik-meta-version"
+        authRequestHeaders:
+          - "Accept"
+          - "User-Agent"
+          - "X-Forwarded-Host"
+          - "X-Forwarded-Proto"
+          - "X-Forwarded-Uri"
+          - "X-Real-IP"
 
   # Note: Middleware chains are defined directly in service labels
   # Example: traefik.http.routers.service.middlewares=secure-headers,gzip,rate-limit
