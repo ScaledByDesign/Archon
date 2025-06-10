@@ -141,26 +141,26 @@ services:
       - "--configFile=/etc/traefik/traefik.yml"
     ports:
       - "80:80"
-      - "443:443"
+      # - "443:443"  # Removed for HTTP-only local dev
       - "8080:8080"  # Dashboard port
       - "8081:8081"  # Insecure API port
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./config/traefik/dynamic:/configuration/dynamic:ro
-      - ./config/traefik/certs:/certs:ro
-      - traefik_certs:/letsencrypt
+      # - ./config/traefik/certs:/certs:ro  # Removed for HTTP-only local dev
+      # - traefik_certs:/letsencrypt  # Removed for HTTP-only local dev
       - /etc/localtime:/etc/localtime:ro
     environment:
       - DOMAIN=zoi.local
-      - ACME_EMAIL=${ACME_EMAIL}
+      # - ACME_EMAIL=${ACME_EMAIL}  # Removed for HTTP-only local dev
       - TZ=America/Chicago
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.dashboard.entrypoints=web"
       # - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.dashboard.middlewares=authentik-forward-auth@file"
+      # - "traefik.http.routers.dashboard.middlewares=authentik-forward-auth@file"
       - "traefik.http.routers.dashboard.service=api@internal"
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
@@ -355,7 +355,6 @@ volumes:
   redis_data:
   mongo_data:
   qdrant_data:
-  traefik_certs:
   dashy_data:
   authentik_media:
   authentik_templates:

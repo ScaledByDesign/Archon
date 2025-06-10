@@ -6,29 +6,14 @@ global:
 api:
   dashboard: true
   debug: true
+  insecure: true  # Enable insecure API for local development
 
 # Entry Points
 entryPoints:
   web:
     address: :80
-    http:
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
-          permanent: true
+    # Disable HTTPS redirect for local development - HTTP only
   
-  websecure:
-    address: :443
-    http:
-      tls:
-        certResolver: letsencrypt
-    # Enable PROXY protocol for proper client IP forwarding
-    proxyProtocol:
-      insecure: true
-    forwardedHeaders:
-      insecure: true
-
   # Metrics entrypoint for Prometheus
   metrics:
     address: :8082
@@ -45,17 +30,7 @@ providers:
     directory: /configuration/dynamic
     watch: true
 
-# Certificate Resolvers
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      email: ${ACME_EMAIL}
-      storage: /letsencrypt/acme.json
-      keyType: EC256
-      httpChallenge:
-        entryPoint: web
-      # Uncomment for staging (testing)
-      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory
+# Certificate Resolvers - REMOVED for HTTP-only local development
 
 # Logs
 log:
