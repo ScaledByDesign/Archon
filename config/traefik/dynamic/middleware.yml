@@ -128,12 +128,6 @@ http:
         prefixes:
           - "/api/v1"
 
-    # Redirect to HTTPS
-    https-redirect:
-      redirectScheme:
-        scheme: https
-        permanent: true
-
     # CORS for API
     cors:
       headers:

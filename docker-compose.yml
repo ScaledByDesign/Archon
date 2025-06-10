@@ -268,10 +268,10 @@ services:
       - monitoring_network
     labels:
       - "traefik.enable=true"
+      # HTTP router with Authentik forward authentication  
       - "traefik.http.routers.dashy.rule=Host(`dashy.${DOMAIN:-localhost}`)"
       - "traefik.http.routers.dashy.entrypoints=web"
-      # - "traefik.http.routers.dashy.middlewares=authentik-forward-auth@file"  # Temporarily disabled for HTTP testing
-      # - "traefik.http.routers.dashy.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.dashy.middlewares=authentik-forward-auth@file"
       - "traefik.http.services.dashy.loadbalancer.server.port=8080"
 
   # Authentication & Identity Provider
@@ -279,13 +279,13 @@ services:
     image: ghcr.io/goauthentik/server:latest
     container_name: authentik-server
     restart: unless-stopped
-    entrypoint: ["/bin/bash"]
-    command: ["/blueprints/startup-scripts/entrypoint-with-blueprints.sh"]
+    # Use default entrypoint for now - custom startup script can be added later
+    command: ["server"]
     volumes:
       - authentik_media:/media
       - authentik_templates:/templates
       - ./config/authentik/blueprints:/blueprints/custom
-      - ./config/authentik/startup-scripts:/blueprints/startup-scripts:ro
+      # - ./config/authentik/startup-scripts:/blueprints/startup-scripts:ro  # Disabled until script is created
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
@@ -305,7 +305,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.authentik.rule=Host(`auth.${DOMAIN:-localhost}`) || (HostRegexp(`{subdomain:[a-z0-9]+}.${DOMAIN:-localhost}`) && PathPrefix(`/outpost.goauthentik.io/`))"
-      - "traefik.http.routers.authentik.entrypoints=websecure"
+      - "traefik.http.routers.authentik.entrypoints=web"
       # - "traefik.http.routers.authentik.tls.certresolver=letsencrypt"
       - "traefik.http.services.authentik.loadbalancer.server.port=9000"
     healthcheck:
