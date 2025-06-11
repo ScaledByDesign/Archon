@@ -4,11 +4,11 @@ metadata:
   name: dashy-forward-auth
   labels:
     blueprints.goauthentik.io/instantiate: "true"
-    blueprints.goauthentik.io/description: "Protect Dashy dashboard with Traefik Forward Auth"
+    blueprints.goauthentik.io/description: "Production-ready Traefik Forward-Auth protection for Dashy dashboard"
 context: {}
 entries:
-  # Create Proxy Provider for Dashy
-  - model: authentik_providers.proxyprovider
+  # Create Proxy Provider for Dashy Forward Auth
+  - model: authentik_providers_proxy.proxyprovider
     state: present
     identifiers:
       name: Dashy Forward Auth
@@ -16,10 +16,11 @@ entries:
       name: Dashy Forward Auth
       mode: forward_single
       external_host: http://dashy.zoi.local
-      authorization_flow: !Find [authentik_flows.flow, [slug, default-authorization-flow]]
+      # Use the default authentication and invalidation flows
+      authorization_flow: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
       invalidation_flow: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
 
-  # Create Application linked to Proxy Provider
+  # Create Application linked to the proxy provider
   - model: authentik_core.application
     state: present
     identifiers:
@@ -27,14 +28,16 @@ entries:
     attrs:
       name: Dashy Forward Auth App
       slug: dashy-forward-auth-app
-      provider: !KeyOf [authentik_providers.proxyprovider, name, Dashy Forward Auth]
-      launch_url: blank://blank
+      provider: !Find [authentik_providers_proxy.proxyprovider, [name, Dashy Forward Auth]]
+      launch_url: "blank://blank"
 
-  # Bind Proxy Provider to Embedded Outpost
+  # Bind the proxy provider to the embedded outpost
   - model: authentik_outposts.outpost
     state: present
     identifiers:
       name: Embedded Outpost
     attrs:
+      name: Authentik Embedded Outpost
+      type: proxy
       providers:
-        - !KeyOf [authentik_providers.proxyprovider, name, Dashy Forward Auth]
+        - !Find [authentik_providers_proxy.proxyprovider, [name, Dashy Forward Auth]]
