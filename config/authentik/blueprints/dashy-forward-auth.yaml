@@ -1,0 +1,40 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: dashy-forward-auth
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+    blueprints.goauthentik.io/description: "Protect Dashy dashboard with Traefik Forward Auth"
+context: {}
+entries:
+  # Create Proxy Provider for Dashy
+  - model: authentik_providers.proxyprovider
+    state: present
+    identifiers:
+      name: Dashy Forward Auth
+    attrs:
+      name: Dashy Forward Auth
+      mode: forward_single
+      external_host: http://dashy.zoi.local
+      authorization_flow: !Find [authentik_flows.flow, [slug, default-authorization-flow]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
+
+  # Create Application linked to Proxy Provider
+  - model: authentik_core.application
+    state: present
+    identifiers:
+      slug: dashy-forward-auth-app
+    attrs:
+      name: Dashy Forward Auth App
+      slug: dashy-forward-auth-app
+      provider: !KeyOf [authentik_providers.proxyprovider, name, Dashy Forward Auth]
+      launch_url: blank://blank
+
+  # Bind Proxy Provider to Embedded Outpost
+  - model: authentik_outposts.outpost
+    state: present
+    identifiers:
+      name: Embedded Outpost
+    attrs:
+      providers:
+        - !KeyOf [authentik_providers.proxyprovider, name, Dashy Forward Auth]
