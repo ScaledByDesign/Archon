@@ -135,6 +135,10 @@ services:
     restart: unless-stopped
     command:
       - "--configFile=/etc/traefik/traefik.yml"
+      - "--api"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
     ports:
       - "80:80"
       - "443:443"  # Removed for HTTP-only local dev
@@ -296,6 +300,9 @@ services:
       - "traefik.http.routers.authentik.rule=Host(`auth.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.authentik.entrypoints=web"
       - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+      ## Individual Application forwardAuth regex (catch any subdomain using individual application forwardAuth)
+      - "traefik.http.routers.authentik-rtr-outpost.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.authentik-rtr.service=authentik-svc"
     healthcheck:
       test: ["CMD-SHELL", "ak healthcheck"]
       start_period: 30s
