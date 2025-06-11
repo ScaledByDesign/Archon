@@ -1,24 +1,78 @@
 # yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
 version: 1
 metadata:
-  name: dashy-forward-auth
+  name: dashy-forward-auth-seamless
   labels:
     blueprints.goauthentik.io/instantiate: "true"
-    blueprints.goauthentik.io/description: "Production-ready Traefik Forward-Auth protection for Dashy dashboard"
+    blueprints.goauthentik.io/description: "Zero-config Traefik Forward-Auth protection for Dashy"
 context: {}
 entries:
+  # Create the embedded outpost service connection if needed
+  - model: authentik_outposts.dockerserviceconnection
+    state: present
+    identifiers:
+      name: Local Docker Connection
+    attrs:
+      name: Local Docker Connection
+      local: true
+
+  # Configure the embedded outpost properly
+  - model: authentik_outposts.outpost
+    state: present
+    identifiers:
+      name: authentik Embedded Outpost
+    attrs:
+      name: authentik Embedded Outpost
+      type: proxy
+      service_connection: !KeyOf [authentik_outposts.dockerserviceconnection, name, Local Docker Connection]
+      config:
+        authentik_host: !Env [AUTHENTIK_HOST, http://authentik-server:9000]
+        authentik_host_insecure: true
+
+  # Create test user with strong password
+  - model: authentik_core.user
+    state: present
+    identifiers:
+      username: testuser
+    attrs:
+      username: testuser
+      name: Test User
+      email: test@zoi.local
+      is_active: true
+      password: !Env [AUTHENTIK_TEST_PASSWORD, TestPassword123!]
+
+  # Create access group
+  - model: authentik_core.group
+    state: present
+    identifiers:
+      name: dashy-users
+    attrs:
+      name: dashy-users
+      is_superuser: false
+      users:
+        - !KeyOf [authentik_core.user, username, testuser]
+
   # Create Proxy Provider for Dashy Forward Auth
-  - model: authentik_providers_proxy.proxyprovider
+  - model: authentik_providers.proxyprovider
     state: present
     identifiers:
       name: Dashy Forward Auth
     attrs:
       name: Dashy Forward Auth
       mode: forward_single
-      external_host: http://dashy.zoi.local
-      # Use the default authentication and invalidation flows
-      authorization_flow: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
+      external_host: !Env [DASHY_HOST, http://dashy.zoi.local]
+      authorization_flow: !Find [authentik_flows.flow, [slug, default-authorization-flow]]
       invalidation_flow: !Find [authentik_flows.flow, [slug, default-invalidation-flow]]
+
+  # Create access policy for dashy users
+  - model: authentik_policies.grouppolicy
+    state: present
+    identifiers:
+      name: dashy-access-policy
+    attrs:
+      name: dashy-access-policy
+      groups:
+        - !KeyOf [authentik_core.group, name, dashy-users]
 
   # Create Application linked to the proxy provider
   - model: authentik_core.application
@@ -28,16 +82,32 @@ entries:
     attrs:
       name: Dashy Forward Auth App
       slug: dashy-forward-auth-app
-      provider: !Find [authentik_providers_proxy.proxyprovider, [name, Dashy Forward Auth]]
-      launch_url: "blank://blank"
+      provider: !KeyOf [authentik_providers.proxyprovider, name, Dashy Forward Auth]
+      launch_url: !Env [DASHY_HOST, http://dashy.zoi.local]
+
+  # Bind the access policy to the application
+  - model: authentik_policies.policybinding
+    state: present
+    identifiers:
+      target: !KeyOf [authentik_core.application, slug, dashy-forward-auth-app]
+      policy: !KeyOf [authentik_policies.grouppolicy, name, dashy-access-policy]
+    attrs:
+      target: !KeyOf [authentik_core.application, slug, dashy-forward-auth-app]
+      policy: !KeyOf [authentik_policies.grouppolicy, name, dashy-access-policy]
+      enabled: true
+      order: 0
 
   # Bind the proxy provider to the embedded outpost
   - model: authentik_outposts.outpost
     state: present
     identifiers:
-      name: Embedded Outpost
+      name: authentik Embedded Outpost
     attrs:
-      name: Authentik Embedded Outpost
+      name: authentik Embedded Outpost
       type: proxy
+      service_connection: !KeyOf [authentik_outposts.dockerserviceconnection, name, Local Docker Connection]
       providers:
-        - !Find [authentik_providers_proxy.proxyprovider, [name, Dashy Forward Auth]]
+        - !KeyOf [authentik_providers.proxyprovider, name, Dashy Forward Auth]
+      config:
+        authentik_host: !Env [AUTHENTIK_HOST, http://authentik-server:9000]
+        authentik_host_insecure: true
