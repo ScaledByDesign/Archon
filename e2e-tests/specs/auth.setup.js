@@ -27,8 +27,8 @@ setup('authenticate with Authentik', async ({ page }) => {
   // If we got redirected but the URL has 0.0.0.0:9000, fix it
   let currentUrl = page.url();
   if (currentUrl.includes('0.0.0.0:9000')) {
-    console.log('Fixing redirect URL from 0.0.0.0:9000 to localhost:9000');
-    const fixedUrl = currentUrl.replace('0.0.0.0:9000', 'localhost:9000');
+    console.log('Fixing redirect URL from 0.0.0.0:9000 to zoi.local:9000');
+    const fixedUrl = currentUrl.replace('0.0.0.0:9000', 'zoi.local:9000');
     console.log('Navigating to fixed URL:', fixedUrl);
     await page.goto(fixedUrl, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(2000);
@@ -37,14 +37,14 @@ setup('authenticate with Authentik', async ({ page }) => {
   }
   
   // Check if we're on Authentik login page
-  if (currentUrl.includes('authentik') || currentUrl.includes('localhost:9000')) {
+  if (currentUrl.includes('authentik') || currentUrl.includes('zoi.local:9000')) {
     console.log('On Authentik login page, logging in...');
     
     // Wait for login form to be available
     await page.waitForSelector('input[name="uid_field"]', { timeout: 10000 });
     
     // Fill in credentials (using bootstrap admin)
-    await page.fill('input[name="uid_field"]', 'admin@localhost');
+    await page.fill('input[name="uid_field"]', 'admin@zoi.local');
     await page.fill('input[name="password"]', 'change-me-authentik-admin');
     
     // Submit the form

@@ -16,8 +16,8 @@ app = Celery('zoi_worker')
 
 # Configure Celery
 app.conf.update(
-    broker_url=os.getenv('REDIS_URL', 'redis://localhost:6379'),
-    result_backend=os.getenv('REDIS_URL', 'redis://localhost:6379'),
+    broker_url=os.getenv('REDIS_URL', 'redis://zoi.local:6379'),
+    result_backend=os.getenv('REDIS_URL', 'redis://zoi.local:6379'),
     task_serializer='json',
     accept_content=['json'],
     result_serializer='json',

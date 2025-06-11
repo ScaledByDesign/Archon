@@ -103,7 +103,7 @@ class LiteLLMClient:
     
     def __init__(
         self,
-        base_url: str = "http://localhost:4000",
+        base_url: str = "http://zoi.local:4000",
         api_key: Optional[str] = None,
         timeout: int = 600,
         max_retries: int = 3,

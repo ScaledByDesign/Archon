@@ -63,7 +63,7 @@ metrics:
 # Tracing (optional)
 # tracing:
 #   jaeger:
-#     samplingServerURL: http://localhost:5778/sampling
+#     samplingServerURL: http://zoi.local:5778/sampling
 #     localAgentHostPort: 127.0.0.1:6831
 
 # Ping

@@ -38,11 +38,11 @@ AUTHENTIK_USER=admin
 AUTHENTIK_PASSWORD=change-me-authentik-admin
 
 # Base URLs
-BASE_URL=https://dashy.localhost
-AUTHENTIK_URL=https://auth.localhost
+BASE_URL=https://dashy.zoi.local
+AUTHENTIK_URL=https://auth.zoi.local
 
 # Domain configuration
-DOMAIN=localhost
+DOMAIN=zoi.local
 ```
 
 ### 3. Start Your Services
@@ -108,7 +108,7 @@ npm run test:ui
 ### Forward Auth Middleware Tests (`authentik-traefik-forward-auth.spec.js`)
 - **Forward Auth Endpoint Verification**: Ensures Traefik uses correct Authentik endpoint
 - **Authentication Header Passing**: Verifies Authentik headers reach protected services
-- **Domain Configuration**: Tests localhost subdomain authentication
+- **Domain Configuration**: Tests zoi.local subdomain authentication
 - **Redirect Loop Prevention**: Ensures no infinite redirects occur
 - **Complete Authentication Flow**: Full end-to-end authentication testing
 - **Session Persistence**: Validates session maintenance across services
@@ -170,8 +170,8 @@ docker-compose -f docker-compose.core.yml logs traefik
 docker-compose -f docker-compose.core.yml logs dashy
 
 # Test manual authentication
-curl -k -I https://dashy.localhost
-curl -k -I https://auth.localhost
+curl -k -I https://dashy.zoi.local
+curl -k -I https://auth.zoi.local
 
 # View Playwright test results
 npm run show-report

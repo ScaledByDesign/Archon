@@ -109,7 +109,7 @@ class TestLiveOAuth2Flow:
         
         assert result["fastapi_redirect"] is True
         assert result["authentik_accessible"] is True
-        assert "localhost:9443" in result["auth_url"]
+        assert "zoi.local:9443" in result["auth_url"]
         assert "client_id=fastapi-client" in result["auth_url"]
     
     @pytest.mark.asyncio
@@ -287,7 +287,7 @@ class TestLiveSecurityValidation:
         """Test HTTPS redirection is working."""
         # Test with HTTP client (should redirect or handle security)
         async with httpx.AsyncClient(
-            base_url="http://localhost:8000",  # HTTP instead of HTTPS
+            base_url="http://zoi.local:8000",  # HTTP instead of HTTPS
             follow_redirects=False
         ) as client:
             response = await client.get("/api/auth/status")

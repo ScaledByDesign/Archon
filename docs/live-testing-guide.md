@@ -53,15 +53,15 @@ PYTHONPATH=/path/to/project/src      # Python module path
 # Authentication (Authentik)
 JWT_SECRET_KEY=your-secret-key-here
 JWT_ALGORITHM=RS256
-JWT_ISSUER_URL=http://localhost:9443/application/o/fastapi-client/
+JWT_ISSUER_URL=http://zoi.local:9443/application/o/fastapi-client/
 JWT_AUDIENCE=fastapi-client
-JWKS_URL=http://localhost:9443/application/o/fastapi-client/jwks/
+JWKS_URL=http://zoi.local:9443/application/o/fastapi-client/jwks/
 
 # Service URLs
-VAULT_ADDR=http://localhost:8200
-QDRANT_URL=http://localhost:6333
-REDIS_URL=redis://localhost:6379
-MONGODB_URL=mongodb://localhost:27017
+VAULT_ADDR=http://zoi.local:8200
+QDRANT_URL=http://zoi.local:6333
+REDIS_URL=redis://zoi.local:6379
+MONGODB_URL=mongodb://zoi.local:27017
 LITELLM_API_KEY=test-key
 
 # Security
@@ -202,19 +202,19 @@ Live tests verify service health before running:
 
 ```bash
 # FastAPI application
-curl http://localhost:8000/health
+curl http://zoi.local:8000/health
 
 # Authentik authentication  
-curl http://localhost:9443
+curl http://zoi.local:9443
 
 # Vault secrets
-curl http://localhost:8200/v1/sys/health
+curl http://zoi.local:8200/v1/sys/health
 
 # Qdrant vector database
-curl http://localhost:6333
+curl http://zoi.local:6333
 
 # LiteLLM proxy
-curl http://localhost:4000/health
+curl http://zoi.local:4000/health
 ```
 
 ### Manual Health Verification
@@ -263,7 +263,7 @@ docker-compose up -d
 docker-compose logs authentik-server | grep ERROR
 
 # Verify JWT configuration
-curl -s http://localhost:9443/application/o/fastapi-client/jwks/ | jq
+curl -s http://zoi.local:9443/application/o/fastapi-client/jwks/ | jq
 ```
 
 **Database connection issues:**
@@ -435,9 +435,9 @@ pytest tests/ -v -m live --junit-xml=test-results.xml
 
 ```bash
 # Check all service health
-curl -f http://localhost:8000/health
-curl -f http://localhost:9443
-curl -f http://localhost:8200/v1/sys/health
+curl -f http://zoi.local:8000/health
+curl -f http://zoi.local:9443
+curl -f http://zoi.local:8200/v1/sys/health
 
 # Test service connectivity
 docker-compose exec fastapi-1 nc -zv redis 6379

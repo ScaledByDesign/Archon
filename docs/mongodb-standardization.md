@@ -151,7 +151,7 @@ The application uses Pydantic settings to construct MongoDB URLs:
 class DatabaseSettings(BaseSettings):
     # MongoDB configuration
     mongodb_url: Optional[str] = None
-    mongodb_host: str = "localhost"
+    mongodb_host: str = "zoi.local"
     mongodb_port: int = 27017
     mongodb_username: str = "admin"
     mongodb_password: str = "password"

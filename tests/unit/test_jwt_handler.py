@@ -78,11 +78,11 @@ def live_env_config():
     return {
         "JWT_SECRET_KEY": "your-secret-key-here",
         "JWT_ALGORITHM": "RS256",
-        "JWT_ISSUER_URL": "http://localhost:9443/application/o/fastapi-client/",
+        "JWT_ISSUER_URL": "http://zoi.local:9443/application/o/fastapi-client/",
         "JWT_AUDIENCE": "fastapi-client",
         "JWT_ACCESS_TOKEN_EXPIRE_MINUTES": "60",
         "JWT_REFRESH_TOKEN_EXPIRE_DAYS": "7",
-        "JWKS_URL": "http://localhost:9443/application/o/fastapi-client/jwks/",
+        "JWKS_URL": "http://zoi.local:9443/application/o/fastapi-client/jwks/",
         "JWT_VERIFY_SIGNATURE": "true",
         "JWT_VERIFY_AUDIENCE": "true", 
         "JWT_VERIFY_ISSUER": "true",
@@ -169,7 +169,7 @@ class TestJWKSManager:
         if not LIVE_TESTING:
             pytest.skip("Using mock JWKS")
             
-        jwks_url = "http://localhost:9443/application/o/fastapi-client/jwks/"
+        jwks_url = "http://zoi.local:9443/application/o/fastapi-client/jwks/"
         manager = JWKSManager(jwks_url)
         
         try:
@@ -399,7 +399,7 @@ class TestJWTPerformance:
         if not LIVE_TESTING:
             pytest.skip("JWKS caching test requires live services")
             
-        manager = JWKSManager("http://localhost:9443/application/o/fastapi-client/jwks/")
+        manager = JWKSManager("http://zoi.local:9443/application/o/fastapi-client/jwks/")
         
         # First call (should fetch)
         start = time.time()

@@ -4,7 +4,7 @@
 
 ### 1. **Domain Standardization**
 - Updated `.env` file with `DOMAIN=zoi.cc`
-- All services now use `${DOMAIN:-localhost}` pattern for flexible deployment
+- All services now use `${DOMAIN:-zoi.local}` pattern for flexible deployment
 
 ### 2. **Traefik Routing Added/Updated**
 

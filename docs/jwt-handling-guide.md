@@ -29,8 +29,8 @@ This guide covers the comprehensive JWT (JSON Web Token) handling and security i
 
 ```bash
 # Authentik Configuration
-AUTHENTIK_URL=https://auth.localhost
-AUTHENTIK_ISSUER=https://auth.localhost/application/o/default/
+AUTHENTIK_URL=https://auth.zoi.local
+AUTHENTIK_ISSUER=https://auth.zoi.local/application/o/default/
 AUTHENTIK_API_TOKEN=your-api-token-here
 
 # JWT Configuration
@@ -44,7 +44,7 @@ JWKS_CACHE_TTL=3600
 # OAuth2 Client Credentials
 FASTAPI_OAUTH_CLIENT_ID=fastapi-client
 FASTAPI_OAUTH_CLIENT_SECRET=your-client-secret
-FASTAPI_OAUTH_REDIRECT_URI=http://localhost:8000/api/auth/callback
+FASTAPI_OAUTH_REDIRECT_URI=http://zoi.local:8000/api/auth/callback
 
 # Session Configuration
 SESSION_SECRET_KEY=your-session-secret-key
@@ -60,7 +60,7 @@ config = JWTSecurityConfig(
     refresh_token_lifetime=86400,    # 24 hours
     id_token_lifetime=3600,          # 1 hour
     algorithm="RS256",               # RSA with SHA-256
-    issuer="https://auth.localhost/application/o/default/",
+    issuer="https://auth.zoi.local/application/o/default/",
     audience="rag-system",
     clock_skew_seconds=60           # Allow 60s clock skew
 )
@@ -113,7 +113,7 @@ async def public_endpoint(user: dict = Depends(get_current_user_optional)):
 from src.auth.jwt_handler import JWTHandler
 
 # Create handler
-handler = JWTHandler("https://auth.localhost")
+handler = JWTHandler("https://auth.zoi.local")
 
 # Validate access token
 claims = await handler.validate_access_token(access_token)
@@ -168,7 +168,7 @@ from src.auth.middleware import CORSAndSecurityMiddleware
 
 app.add_middleware(
     CORSAndSecurityMiddleware,
-    allowed_origins=["http://localhost:3000"],
+    allowed_origins=["http://zoi.local:3000"],
     allow_credentials=True
 )
 ```

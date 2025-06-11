@@ -23,7 +23,7 @@ class DatabaseSettings(BaseSettings):
     """Database configuration settings"""
     
     # MongoDB Settings
-    mongodb_host: str = Field(default="localhost", env="MONGODB_HOST")
+    mongodb_host: str = Field(default="zoi.local", env="MONGODB_HOST")
     mongodb_port: int = Field(default=27017, env="MONGODB_PORT")
     mongodb_username: Optional[str] = Field(default=None, env="MONGODB_USERNAME")
     mongodb_password: Optional[str] = Field(default=None, env="MONGODB_PASSWORD")
@@ -31,14 +31,14 @@ class DatabaseSettings(BaseSettings):
     mongodb_auth_source: str = Field(default="admin", env="MONGODB_AUTH_SOURCE")
     
     # Redis Settings
-    redis_host: str = Field(default="localhost", env="REDIS_HOST")
+    redis_host: str = Field(default="zoi.local", env="REDIS_HOST")
     redis_port: int = Field(default=6379, env="REDIS_PORT")
     redis_password: Optional[str] = Field(default=None, env="REDIS_PASSWORD")
     redis_db: int = Field(default=0, env="REDIS_DB")
     redis_ssl: bool = Field(default=False, env="REDIS_SSL")
     
     # PostgreSQL Settings (for FastAPI application data)
-    postgres_host: str = Field(default="localhost", env="POSTGRES_HOST")
+    postgres_host: str = Field(default="zoi.local", env="POSTGRES_HOST")
     postgres_port: int = Field(default=5432, env="POSTGRES_PORT")
     postgres_username: str = Field(default="postgres", env="POSTGRES_USER")
     postgres_password: str = Field(default="postgres", env="POSTGRES_PASSWORD")
@@ -81,7 +81,7 @@ class DatabaseSettings(BaseSettings):
 class QdrantSettings(BaseSettings):
     """Qdrant vector database configuration"""
     
-    qdrant_host: str = Field(default="localhost", env="QDRANT_HOST")
+    qdrant_host: str = Field(default="zoi.local", env="QDRANT_HOST")
     qdrant_port: int = Field(default=6333, env="QDRANT_PORT")
     qdrant_grpc_port: int = Field(default=6334, env="QDRANT_GRPC_PORT")
     qdrant_api_key: Optional[str] = Field(default=None, env="QDRANT_API_KEY")
@@ -106,7 +106,7 @@ class AuthSettings(BaseSettings):
     # OAuth2 Settings
     oauth_client_id: Optional[str] = Field(default=None, env="FASTAPI_OAUTH_CLIENT_ID")
     oauth_client_secret: Optional[str] = Field(default=None, env="FASTAPI_OAUTH_CLIENT_SECRET")
-    oauth_redirect_uri: Optional[str] = Field(default="http://localhost:8000/api/auth/callback", env="FASTAPI_OAUTH_REDIRECT_URI")
+    oauth_redirect_uri: Optional[str] = Field(default="http://zoi.local:8000/api/auth/callback", env="FASTAPI_OAUTH_REDIRECT_URI")
     oauth_scope: str = Field(default="openid email profile rag:api", env="OAUTH_SCOPE")
     oauth_provider_url: str = Field(default="https://authentik-server:9443", env="OAUTH_PROVIDER_URL")
     
@@ -128,13 +128,13 @@ class AuthSettings(BaseSettings):
     password_min_length: int = Field(default=8, env="PASSWORD_MIN_LENGTH")
     
     # CORS Settings
-    cors_origins: str = Field(default="http://localhost:3000,http://localhost:8080,http://localhost:8000", env="CORS_ORIGINS")
+    cors_origins: str = Field(default="http://zoi.local:3000,http://zoi.local:8080,http://zoi.local:8000", env="CORS_ORIGINS")
     cors_allow_credentials: bool = Field(default=True, env="CORS_ALLOW_CREDENTIALS")
     cors_allow_methods: str = Field(default="GET,POST,PUT,DELETE,OPTIONS", env="CORS_ALLOW_METHODS")
     cors_allow_headers: str = Field(default="*", env="CORS_ALLOW_HEADERS")
     
     # Trusted Hosts
-    trusted_hosts: str = Field(default="localhost,127.0.0.1,*.localhost", env="TRUSTED_HOSTS")
+    trusted_hosts: str = Field(default="zoi.local,127.0.0.1,*.zoi.local", env="TRUSTED_HOSTS")
     
     @property
     def cors_origins_list(self) -> List[str]:
@@ -184,7 +184,7 @@ class LLMSettings(BaseSettings):
 class RabbitMQSettings(BaseSettings):
     """RabbitMQ message queue configuration"""
     
-    rabbitmq_host: str = Field(default="localhost", env="RABBITMQ_HOST")
+    rabbitmq_host: str = Field(default="zoi.local", env="RABBITMQ_HOST")
     rabbitmq_port: int = Field(default=5672, env="RABBITMQ_PORT")
     rabbitmq_username: str = Field(default="guest", env="RABBITMQ_USERNAME")
     rabbitmq_password: str = Field(default="guest", env="RABBITMQ_PASSWORD")

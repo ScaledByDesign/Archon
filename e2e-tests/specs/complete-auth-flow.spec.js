@@ -10,7 +10,7 @@ test('Complete authentication flow - Login to Dashy dashboard', async ({ page })
 
   // Step 1: Navigate to Dashy (should redirect to authentication)
   console.log('1️⃣ Navigating to Dashy (expecting auth redirect)...');
-  await page.goto('https://dashy.localhost', { 
+  await page.goto('https://dashy.zoi.local', { 
     waitUntil: 'domcontentloaded',
     timeout: 30000 
   });
@@ -21,14 +21,14 @@ test('Complete authentication flow - Login to Dashy dashboard', async ({ page })
   // Step 2: Handle potential 0.0.0.0:9000 redirect issue
   if (currentUrl.includes('0.0.0.0:9000')) {
     console.log('🔧 Fixing 0.0.0.0:9000 URL...');
-    const fixedUrl = currentUrl.replace('0.0.0.0:9000', 'localhost:9000');
+    const fixedUrl = currentUrl.replace('0.0.0.0:9000', 'zoi.local:9000');
     console.log(`Redirecting to fixed URL: ${fixedUrl}`);
     await page.goto(fixedUrl, { waitUntil: 'domcontentloaded' });
     currentUrl = page.url();
   }
 
   // Step 3: Verify we're on Authentik login page
-  if (currentUrl.includes('localhost:9000') && currentUrl.includes('flow')) {
+  if (currentUrl.includes('zoi.local:9000') && currentUrl.includes('flow')) {
     console.log('🔐 Successfully redirected to Authentik authentication flow');
     
     // Wait for the login form to load
@@ -55,26 +55,26 @@ test('Complete authentication flow - Login to Dashy dashboard', async ({ page })
     
     try {
       // Wait for redirect back to Dashy (either HTTP or HTTPS)
-      await page.waitForURL(/dashy\.localhost/, { timeout: 15000 });
+      await page.waitForURL(/dashy\.zoi.local/, { timeout: 15000 });
       console.log('✅ Successfully redirected back to Dashy!');
     } catch (error) {
       // If direct redirect fails, check current URL and handle manually
       currentUrl = page.url();
       console.log(`Current URL after login attempt: ${currentUrl}`);
       
-      if (currentUrl.includes('localhost:9000')) {
+      if (currentUrl.includes('zoi.local:9000')) {
         // Look for "Continue" or redirect button
         try {
           const continueButton = page.locator('button', { hasText: /continue|proceed|redirect/i }).first();
           if (await continueButton.isVisible({ timeout: 5000 })) {
             console.log('🔄 Found continue button, clicking...');
             await continueButton.click();
-            await page.waitForURL(/dashy\.localhost/, { timeout: 10000 });
+            await page.waitForURL(/dashy\.zoi.local/, { timeout: 10000 });
           }
         } catch {
           console.log('⚠️ No continue button found, checking for automatic redirect...');
           // Wait a bit more for automatic redirect
-          await page.waitForURL(/dashy\.localhost/, { timeout: 10000 });
+          await page.waitForURL(/dashy\.zoi.local/, { timeout: 10000 });
         }
       }
     }
@@ -87,7 +87,7 @@ test('Complete authentication flow - Login to Dashy dashboard', async ({ page })
   currentUrl = page.url();
   console.log(`Final URL: ${currentUrl}`);
 
-  if (currentUrl.includes('dashy.localhost')) {
+  if (currentUrl.includes('dashy.zoi.local')) {
     console.log('🎉 Successfully on Dashy dashboard!');
     
     // Step 8: Verify Dashy dashboard content is accessible
@@ -166,7 +166,7 @@ test('Verify authenticated session persists', async ({ page }) => {
   console.log('🔄 Testing session persistence...');
   
   // This test runs after the login test to verify the session is maintained
-  await page.goto('https://dashy.localhost', { 
+  await page.goto('https://dashy.zoi.local', { 
     waitUntil: 'domcontentloaded',
     timeout: 15000 
   });
@@ -174,14 +174,14 @@ test('Verify authenticated session persists', async ({ page }) => {
   const currentUrl = page.url();
   console.log(`URL after second visit: ${currentUrl}`);
   
-  if (currentUrl.includes('dashy.localhost')) {
+  if (currentUrl.includes('dashy.zoi.local')) {
     console.log('✅ Session persisted - no re-authentication required');
     
     await page.screenshot({ 
       path: 'test-results/04-session-persistence.png',
       fullPage: true 
     });
-  } else if (currentUrl.includes('localhost:9000')) {
+  } else if (currentUrl.includes('zoi.local:9000')) {
     console.log('⚠️ Session did not persist - redirected to authentication again');
   } else {
     console.log(`⚠️ Unexpected URL: ${currentUrl}`);

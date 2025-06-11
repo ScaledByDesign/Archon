@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-DOMAIN=${DOMAIN:-localhost}
+DOMAIN=${DOMAIN:-zoi.local}
 COMPOSE_FILE=${COMPOSE_FILE:-docker-compose.core.yml}
 TIMEOUT=${TIMEOUT:-120}
 
@@ -140,9 +140,9 @@ wait_for_health() {
     print_status "Waiting for services to be healthy..."
     
     local services=(
-        "http://localhost:8080/ping:Traefik"
-        "http://localhost:9000/if/flow/default-authentication-flow/:Authentik" 
-        "http://localhost:4001:Dashy"
+        "http://zoi.local:8080/ping:Traefik"
+        "http://zoi.local:9000/if/flow/default-authentication-flow/:Authentik" 
+        "http://zoi.local:4001:Dashy"
     )
     
     for service in "${services[@]}"; do
@@ -307,7 +307,7 @@ case "${1:-}" in
         echo "  --no-cleanup        Don't cleanup after tests"
         echo
         echo "Environment Variables:"
-        echo "  DOMAIN              Domain to use (default: localhost)"
+        echo "  DOMAIN              Domain to use (default: zoi.local)"
         echo "  COMPOSE_FILE        Docker compose file (default: docker-compose.core.yml)"
         echo "  TIMEOUT             Service startup timeout in seconds (default: 120)"
         echo "  AUTHENTIK_USER      Authentik admin username (default: admin)"

@@ -28,7 +28,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
       
       try {
         // Navigate to protected resource (Dashy)
-        await unauthPage.goto('https://dashy.localhost', { 
+        await unauthPage.goto('https://dashy.zoi.local', { 
           waitUntil: 'networkidle',
           timeout: 30000 
         });
@@ -53,7 +53,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
     
     test('should pass correct authentication headers', async ({ page }) => {
       // Navigate to Dashy with authentication
-      await page.goto('https://dashy.localhost');
+      await page.goto('https://dashy.zoi.local');
       await expect(page.locator('h1')).toContainText('Zoi Production Dashboard');
       
       // Monitor requests to services that should receive auth headers
@@ -61,7 +61,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
       
       page.on('request', request => {
         const url = request.url();
-        if (url.includes('.localhost') && !url.includes('auth.localhost')) {
+        if (url.includes('.zoi.local') && !url.includes('auth.zoi.local')) {
           serviceRequests.push({
             url,
             headers: request.headers()
@@ -70,7 +70,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
       });
       
       // Navigate to a protected service
-      await page.goto('https://api.localhost', { 
+      await page.goto('https://api.zoi.local', { 
         waitUntil: 'networkidle',
         timeout: 30000 
       });
@@ -100,13 +100,13 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
   
   test.describe('Domain Configuration Tests', () => {
     
-    test('should handle localhost domain correctly', async ({ page }) => {
-      // Test that all localhost subdomains work with authentication
+    test('should handle zoi.local domain correctly', async ({ page }) => {
+      // Test that all zoi.local subdomains work with authentication
       const domains = [
-        'https://dashy.localhost',
-        'https://auth.localhost',
-        'https://traefik.localhost',
-        'https://api.localhost'
+        'https://dashy.zoi.local',
+        'https://auth.zoi.local',
+        'https://traefik.zoi.local',
+        'https://api.zoi.local'
       ];
       
       for (const domain of domains) {
@@ -121,7 +121,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
           const currentUrl = page.url();
           
           // Should either be on the target domain or redirected to auth
-          if (currentUrl.includes('auth.localhost') && currentUrl.includes('/if/flow/')) {
+          if (currentUrl.includes('auth.zoi.local') && currentUrl.includes('/if/flow/')) {
             console.log(`⚠️ ${domain} requires authentication (expected for some services)`);
           } else if (currentUrl.includes(domain.split('//')[1])) {
             console.log(`✅ ${domain} accessible`);
@@ -155,7 +155,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
         });
         
         // Navigate to protected resource
-        await unauthPage.goto('https://dashy.localhost', { 
+        await unauthPage.goto('https://dashy.zoi.local', { 
           waitUntil: 'networkidle',
           timeout: 30000 
         });
@@ -187,7 +187,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
       
       try {
         // Navigate to protected resource
-        await page.goto('https://dashy.localhost', { waitUntil: 'networkidle' });
+        await page.goto('https://dashy.zoi.local', { waitUntil: 'networkidle' });
         
         // Should be redirected to Authentik
         await page.waitForURL('**/if/flow/**', { timeout: 15000 });
@@ -221,14 +221,14 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
     
     test('should maintain session across services', async ({ page }) => {
       // Start at Dashy (authenticated)
-      await page.goto('https://dashy.localhost');
+      await page.goto('https://dashy.zoi.local');
       await expect(page.locator('h1')).toContainText('Zoi Production Dashboard');
       
       // Navigate to other protected services
       const services = [
-        { url: 'https://api.localhost', name: 'FastAPI' },
-        { url: 'https://llm.localhost', name: 'LiteLLM' },
-        { url: 'https://traefik.localhost', name: 'Traefik Dashboard' }
+        { url: 'https://api.zoi.local', name: 'FastAPI' },
+        { url: 'https://llm.zoi.local', name: 'LiteLLM' },
+        { url: 'https://traefik.zoi.local', name: 'Traefik Dashboard' }
       ];
       
       for (const service of services) {
@@ -243,7 +243,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
           const currentUrl = page.url();
           
           // Should NOT be redirected to auth (session should be maintained)
-          if (currentUrl.includes('auth.localhost') && currentUrl.includes('/if/flow/')) {
+          if (currentUrl.includes('auth.zoi.local') && currentUrl.includes('/if/flow/')) {
             console.log(`❌ ${service.name} requires re-authentication - session not maintained`);
           } else {
             console.log(`✅ ${service.name} accessible with maintained session`);
@@ -266,7 +266,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
       
       try {
         // Navigate to protected resource
-        await page.goto('https://dashy.localhost', { waitUntil: 'networkidle' });
+        await page.goto('https://dashy.zoi.local', { waitUntil: 'networkidle' });
         
         // Should be redirected to Authentik
         await page.waitForURL('**/if/flow/**', { timeout: 15000 });
@@ -283,7 +283,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
         await page.waitForTimeout(3000);
         
         // Should still be on auth page (not redirected back)
-        expect(page.url()).toContain('auth.localhost');
+        expect(page.url()).toContain('auth.zoi.local');
         
         // Look for error message
         const errorElements = await page.locator('.error, .alert, [class*="error"], [role="alert"]').all();
@@ -301,7 +301,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
     test('should handle service unavailability', async ({ page }) => {
       // Test accessing a service that might be down
       try {
-        await page.goto('https://nonexistent.localhost', { 
+        await page.goto('https://nonexistent.zoi.local', { 
           waitUntil: 'networkidle',
           timeout: 10000 
         });
@@ -329,7 +329,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
         const authPromises = pages.map(async (page, index) => {
           console.log(`Starting concurrent auth ${index + 1}...`);
           
-          await page.goto('https://dashy.localhost', { waitUntil: 'networkidle' });
+          await page.goto('https://dashy.zoi.local', { waitUntil: 'networkidle' });
           await page.waitForURL('**/if/flow/**', { timeout: 15000 });
           
           await page.waitForSelector('input[name="uid_field"]', { timeout: 10000 });
@@ -369,7 +369,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
         const startTime = Date.now();
         
         // Complete authentication flow
-        await page.goto('https://dashy.localhost', { waitUntil: 'networkidle' });
+        await page.goto('https://dashy.zoi.local', { waitUntil: 'networkidle' });
         await page.waitForURL('**/if/flow/**', { timeout: 15000 });
         
         const authPageTime = Date.now();

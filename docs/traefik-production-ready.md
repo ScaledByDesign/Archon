@@ -111,9 +111,9 @@ docker-compose -f docker-compose.core.yml restart traefik
 ### **Test Local Routing:**
 ```bash
 # Should get service responses (ignore SSL warnings)
-curl -k -H "Host: llm.zoi.cc" https://localhost:443/health
-curl -k -H "Host: traefik.zoi.cc" https://localhost:443
-curl -k -H "Host: qdrant.zoi.cc" https://localhost:443
+curl -k -H "Host: llm.zoi.cc" https://zoi.local:443/health
+curl -k -H "Host: traefik.zoi.cc" https://zoi.local:443
+curl -k -H "Host: qdrant.zoi.cc" https://zoi.local:443
 ```
 
 ### **Check Certificate Status:**

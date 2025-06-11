@@ -14,7 +14,7 @@ echo "🧪 Testing Vault Integration"
 echo "=" * 50
 
 # Configuration
-VAULT_ADDR="${VAULT_ADDR:-http://localhost:8200}"
+VAULT_ADDR="${VAULT_ADDR:-http://zoi.local:8200}"
 VAULT_TOKEN="${VAULT_ROOT_TOKEN:-vault-root-token-change-me-in-production}"
 
 echo "🔧 Configuration:"

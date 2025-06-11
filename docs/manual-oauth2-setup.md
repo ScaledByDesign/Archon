@@ -4,13 +4,13 @@
 This guide walks you through manually creating the OAuth2 application in Authentik for the FastAPI integration.
 
 ## Prerequisites
-- Authentik is running and accessible at https://localhost:9443
+- Authentik is running and accessible at https://zoi.local:9443
 - You have admin access to Authentik
 - FastAPI service is configured with OAuth2 environment variables
 
 ## Step 1: Access Authentik Admin Interface
 
-1. Open your browser and navigate to: https://localhost:9443/if/admin/
+1. Open your browser and navigate to: https://zoi.local:9443/if/admin/
 2. If you see a certificate warning, accept it (this is expected for local development)
 3. Log in with the admin credentials (check your Authentik configuration for default credentials)
 
@@ -29,7 +29,7 @@ This guide walks you through manually creating the OAuth2 application in Authent
 - **Client type**: `Confidential`
 - **Client ID**: `fastapi-client` (must match FASTAPI_OAUTH_CLIENT_ID)
 - **Client Secret**: Generate a new secret (copy this for later use)
-- **Redirect URIs**: `http://localhost:8000/api/auth/callback`
+- **Redirect URIs**: `http://zoi.local:8000/api/auth/callback`
 
 ### Advanced Settings
 - **Scopes**: `openid email profile rag:api`
@@ -50,7 +50,7 @@ This guide walks you through manually creating the OAuth2 application in Authent
 - **Provider**: Select the provider you just created (`FastAPI OAuth2 Provider`)
 
 ### UI Settings
-- **Launch URL**: `http://localhost:8000`
+- **Launch URL**: `http://zoi.local:8000`
 - **Icon**: (optional)
 
 4. Click **Create** to save the application
@@ -71,31 +71,31 @@ This guide walks you through manually creating the OAuth2 application in Authent
 
 1. Test the OAuth2 status:
    ```bash
-   curl -s http://localhost:8000/api/auth/status | jq .
+   curl -s http://zoi.local:8000/api/auth/status | jq .
    ```
    Should return: `"oauth_configured": true`
 
 2. Test the login flow:
    ```bash
-   curl -v http://localhost:8000/api/auth/login
+   curl -v http://zoi.local:8000/api/auth/login
    ```
    Should redirect to Authentik authorization page
 
 3. Complete the flow by opening in browser:
    ```
-   http://localhost:8000/api/auth/login
+   http://zoi.local:8000/api/auth/login
    ```
 
 ## Step 6: Verify Complete Flow
 
-1. Open `http://localhost:8000/api/auth/login` in your browser
+1. Open `http://zoi.local:8000/api/auth/login` in your browser
 2. You should be redirected to Authentik
 3. Log in with your Authentik credentials
 4. Grant permissions to the application
 5. You should be redirected back to the FastAPI callback endpoint
 6. Check that you're authenticated:
    ```bash
-   curl -s http://localhost:8000/api/auth/me
+   curl -s http://zoi.local:8000/api/auth/me
    ```
 
 ## Troubleshooting
@@ -111,7 +111,7 @@ This guide walks you through manually creating the OAuth2 application in Authent
    - Check that the redirect URI is exactly the same in both places
 
 3. **"Invalid redirect URI" error**
-   - Ensure the redirect URI in Authentik includes the full URL: `http://localhost:8000/api/auth/callback`
+   - Ensure the redirect URI in Authentik includes the full URL: `http://zoi.local:8000/api/auth/callback`
    - Check for trailing slashes or typos
 
 4. **Certificate errors**

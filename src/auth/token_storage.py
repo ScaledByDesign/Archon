@@ -64,7 +64,7 @@ class SecureTokenStorage:
         self.cipher = Fernet(key)
         
         # Initialize Redis connection
-        self.redis_url = redis_url or os.getenv('REDIS_URL', 'redis://localhost:6379')
+        self.redis_url = redis_url or os.getenv('REDIS_URL', 'redis://zoi.local:6379')
         self.redis_client = None
         
         # Token storage configuration

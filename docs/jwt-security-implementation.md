@@ -112,7 +112,7 @@ JWT_VERIFY_ISSUER=true
 
 # JWKS Configuration
 JWKS_CACHE_TTL=3600
-AUTHENTIK_ISSUER=https://auth.localhost/application/o/default/
+AUTHENTIK_ISSUER=https://auth.zoi.local/application/o/default/
 ```
 
 #### Token Storage Security
@@ -123,7 +123,7 @@ MAX_TOKENS_PER_USER=10
 MAX_CONCURRENT_SESSIONS=5
 
 # Redis Configuration
-REDIS_URL=redis://localhost:6379
+REDIS_URL=redis://zoi.local:6379
 REDIS_PASSWORD=your-redis-password
 ```
 
@@ -137,8 +137,8 @@ authorization_flow: "default-authorization-flow"
 client_type: "confidential"
 client_id: "rag-system"
 redirect_uris:
-  - "http://localhost:8000/api/auth/callback"
-  - "https://localhost:8000/api/auth/callback"
+  - "http://zoi.local:8000/api/auth/callback"
+  - "https://zoi.local:8000/api/auth/callback"
 
 # Token Settings
 access_token_validity: "hours=1"
@@ -311,21 +311,21 @@ The test suite validates:
 ```bash
 # Test with valid token
 curl -H "Authorization: Bearer <valid_token>" \
-     http://localhost:8000/api/protected
+     http://zoi.local:8000/api/protected
 ```
 
 #### Invalid Token Test
 ```bash
 # Test with invalid token
 curl -H "Authorization: Bearer invalid_token" \
-     http://localhost:8000/api/protected
+     http://zoi.local:8000/api/protected
 ```
 
 #### Scope Testing
 ```bash
 # Test scope requirements
 curl -H "Authorization: Bearer <token_without_admin_scope>" \
-     http://localhost:8000/api/admin/users
+     http://zoi.local:8000/api/admin/users
 ```
 
 ## Monitoring and Logging
@@ -385,7 +385,7 @@ Set up alerts for:
 docker exec <container> date
 
 # Verify JWKS endpoint
-curl https://auth.localhost/application/o/default/jwks/
+curl https://auth.zoi.local/application/o/default/jwks/
 
 # Check configuration
 python -c "from src.auth.jwt_handler import JWTSecurityConfig; print(JWTSecurityConfig().__dict__)"

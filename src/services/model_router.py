@@ -82,7 +82,7 @@ class HTTPException(Exception):
 class ModelRouter:
     """Advanced model routing service with intelligent decision making"""
     
-    def __init__(self, litellm_base_url: str = "http://localhost:4000", api_key: str = None):
+    def __init__(self, litellm_base_url: str = "http://zoi.local:4000", api_key: str = None):
         self.litellm_base_url = litellm_base_url.rstrip('/')
         self.api_key = api_key
         self.model_metrics: Dict[str, ModelMetrics] = {}

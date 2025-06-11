@@ -20,7 +20,7 @@ Internet → Traefik → FastAPI Instances (3x)
 - **fastapi-2**: Secondary instance  
 - **fastapi-3**: Tertiary instance
 - All instances run on port 8000 internally
-- External access via `api.${DOMAIN:-localhost}`
+- External access via `api.${DOMAIN:-zoi.local}`
 
 ### 2. Traefik Configuration
 - **Load Balancing Algorithm**: Round-robin (default)
@@ -53,7 +53,7 @@ Traefik automatically discovers services through Docker labels:
 ```yaml
 labels:
   - "traefik.enable=true"
-  - "traefik.http.routers.api.rule=Host(`api.${DOMAIN:-localhost}`)"
+  - "traefik.http.routers.api.rule=Host(`api.${DOMAIN:-zoi.local}`)"
   - "traefik.http.routers.api.entrypoints=websecure"
   - "traefik.http.routers.api.tls=true"
   - "traefik.http.services.api.loadbalancer.server.port=8000"
@@ -98,7 +98,7 @@ docker service scale zoi_fastapi-1=5
 ## Monitoring and Metrics
 
 ### Traefik Dashboard
-- **URL**: `traefik.${DOMAIN:-localhost}`
+- **URL**: `traefik.${DOMAIN:-zoi.local}`
 - **Metrics**: Request rates, response times, error rates
 - **Service Status**: Health check results
 
@@ -190,7 +190,7 @@ docker-compose ps
 docker logs traefik
 
 # Check FastAPI instance health
-curl -f http://localhost:8000/health
+curl -f http://zoi.local:8000/health
 
 # Monitor resource usage
 docker stats

@@ -24,7 +24,7 @@
 - ✅ **Task 27**: FastAPI Dependencies & Database Connections
 
 #### **Monitoring & Management (3 tasks)**
-- ✅ **Task 28**: Dashy Dashboard Integration - Production monitoring at localhost:4001
+- ✅ **Task 28**: Dashy Dashboard Integration - Production monitoring at zoi.local:4001
 - ✅ **Task 29**: Langfuse LLM Observability - Comprehensive LLM analytics and tracing
 
 ### ❌ **CANCELLED TASKS (1/29)**
@@ -65,7 +65,7 @@
 - **Model Management**: LiteLLM proxy with 16 AI models
 - **Secret Management**: HashiCorp Vault for dynamic secrets
 - **Monitoring**: Dashy dashboard for service health
-- **Chat Interface**: Open WebUI at chat.localhost
+- **Chat Interface**: Open WebUI at chat.zoi.local
 
 ### **Network Architecture**
 - 6 custom Docker networks for security isolation
@@ -73,11 +73,11 @@
 - Proper service segmentation and access controls
 
 ### **Access Points**
-- **Chat Interface**: http://chat.localhost (Open WebUI)
-- **System Dashboard**: http://localhost:4001 (Dashy)
-- **Redis Management**: http://localhost:8001 (Redis Insight)
-- **Authentication**: http://auth.localhost (Authentik)
-- **API Gateway**: http://api.localhost (Traefik)
+- **Chat Interface**: http://chat.zoi.local (Open WebUI)
+- **System Dashboard**: http://zoi.local:4001 (Dashy)
+- **Redis Management**: http://zoi.local:8001 (Redis Insight)
+- **Authentication**: http://auth.zoi.local (Authentik)
+- **API Gateway**: http://api.zoi.local (Traefik)
 
 ## 🎯 **Next Steps Priority**
 

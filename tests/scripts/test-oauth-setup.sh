@@ -27,7 +27,7 @@ NC='\033[0m' # No Color
 test_authentik_accessibility() {
     echo -e "${BLUE}🔍 Testing Authentik accessibility...${NC}"
     
-    if curl -k -s --connect-timeout 10 https://localhost:9443/application/o/default/.well-known/openid_configuration > /dev/null; then
+    if curl -k -s --connect-timeout 10 https://zoi.local:9443/application/o/default/.well-known/openid_configuration > /dev/null; then
         echo -e "${GREEN}✅ Authentik is accessible${NC}"
         return 0
     else
@@ -39,7 +39,7 @@ test_authentik_accessibility() {
 test_fastapi_health() {
     echo -e "${BLUE}🔍 Testing FastAPI health...${NC}"
     
-    if curl -s --connect-timeout 10 http://localhost:8000/health > /dev/null; then
+    if curl -s --connect-timeout 10 http://zoi.local:8000/health > /dev/null; then
         echo -e "${GREEN}✅ FastAPI is accessible${NC}"
         return 0
     else
@@ -52,7 +52,7 @@ test_oauth_endpoints() {
     echo -e "${BLUE}🔍 Testing OAuth2 endpoints...${NC}"
     
     # Test auth health endpoint
-    if curl -s --connect-timeout 10 http://localhost:8000/api/auth/health | grep -q "oauth_authentication"; then
+    if curl -s --connect-timeout 10 http://zoi.local:8000/api/auth/health | grep -q "oauth_authentication"; then
         echo -e "${GREEN}✅ OAuth2 auth health endpoint working${NC}"
     else
         echo -e "${RED}❌ OAuth2 auth health endpoint failed${NC}"
@@ -60,7 +60,7 @@ test_oauth_endpoints() {
     fi
     
     # Test auth status endpoint
-    if curl -s --connect-timeout 10 http://localhost:8000/api/auth/status | grep -q "authenticated"; then
+    if curl -s --connect-timeout 10 http://zoi.local:8000/api/auth/status | grep -q "authenticated"; then
         echo -e "${GREEN}✅ OAuth2 auth status endpoint working${NC}"
     else
         echo -e "${RED}❌ OAuth2 auth status endpoint failed${NC}"
@@ -83,7 +83,7 @@ test_oauth_configuration() {
     fi
     
     # Check OAuth2 configuration endpoint
-    response=$(curl -s http://localhost:8000/api/auth/status)
+    response=$(curl -s http://zoi.local:8000/api/auth/status)
     if echo "$response" | grep -q '"oauth_configured": true'; then
         echo -e "${GREEN}✅ OAuth2 client properly configured${NC}"
     else
@@ -98,7 +98,7 @@ test_oauth_flow() {
     echo -e "${BLUE}🔍 Testing OAuth2 authorization flow...${NC}"
     
     # Test login endpoint (should redirect to Authentik)
-    login_response=$(curl -s -w "%{http_code}" -o /dev/null http://localhost:8000/api/auth/login)
+    login_response=$(curl -s -w "%{http_code}" -o /dev/null http://zoi.local:8000/api/auth/login)
     
     if [ "$login_response" = "307" ] || [ "$login_response" = "302" ]; then
         echo -e "${GREEN}✅ OAuth2 login redirect working${NC}"
@@ -112,17 +112,17 @@ test_oauth_flow() {
 
 show_oauth_urls() {
     echo -e "${BLUE}🔗 OAuth2 URLs:${NC}"
-    echo "  • Authorization: https://localhost:9443/application/o/authorize/"
-    echo "  • Token: https://localhost:9443/application/o/token/"
-    echo "  • User Info: https://localhost:9443/application/o/userinfo/"
-    echo "  • JWKS: https://localhost:9443/application/o/default/jwks/"
+    echo "  • Authorization: https://zoi.local:9443/application/o/authorize/"
+    echo "  • Token: https://zoi.local:9443/application/o/token/"
+    echo "  • User Info: https://zoi.local:9443/application/o/userinfo/"
+    echo "  • JWKS: https://zoi.local:9443/application/o/default/jwks/"
     echo ""
     echo -e "${BLUE}🔗 FastAPI OAuth2 Endpoints:${NC}"
-    echo "  • Login: http://localhost:8000/api/auth/login"
-    echo "  • Callback: http://localhost:8000/api/auth/callback"
-    echo "  • Status: http://localhost:8000/api/auth/status"
-    echo "  • User Info: http://localhost:8000/api/auth/me"
-    echo "  • Logout: http://localhost:8000/api/auth/logout"
+    echo "  • Login: http://zoi.local:8000/api/auth/login"
+    echo "  • Callback: http://zoi.local:8000/api/auth/callback"
+    echo "  • Status: http://zoi.local:8000/api/auth/status"
+    echo "  • User Info: http://zoi.local:8000/api/auth/me"
+    echo "  • Logout: http://zoi.local:8000/api/auth/logout"
 }
 
 # Main test execution
@@ -183,7 +183,7 @@ main() {
         echo "   1. Configure OAuth2 applications in Authentik admin UI"
         echo "   2. Update client secrets in .env file"
         echo "   3. Test full OAuth2 flow by visiting:"
-        echo "      http://localhost:8000/api/auth/login"
+        echo "      http://zoi.local:8000/api/auth/login"
         return 0
     else
         echo ""

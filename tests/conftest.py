@@ -45,11 +45,11 @@ def mock_env_vars():
         pytest.skip("Using live services - mock env vars not needed")
         
     return {
-        "VAULT_ADDR": "http://localhost:8200",
+        "VAULT_ADDR": "http://zoi.local:8200",
         "VAULT_TOKEN": "test-token",
-        "QDRANT_URL": "http://localhost:6333",
-        "REDIS_URL": "redis://localhost:6379",
-        "MONGODB_URL": "mongodb://localhost:27017",
+        "QDRANT_URL": "http://zoi.local:6333",
+        "REDIS_URL": "redis://zoi.local:6379",
+        "MONGODB_URL": "mongodb://zoi.local:27017",
         "LITELLM_API_KEY": "test-api-key",
         "OPENAI_API_KEY": "test-openai-key",
         "ANTHROPIC_API_KEY": "test-anthropic-key",
@@ -190,7 +190,7 @@ def sample_jwt_payload():
         "permissions": ["read", "write"],
         "exp": 9999999999,  # Far future expiration
         "iat": 1640995200,  # Fixed issued at time
-        "iss": "https://auth.localhost",
+        "iss": "https://auth.zoi.local",
         "aud": "fastapi-client"
     }
 

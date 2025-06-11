@@ -39,8 +39,8 @@ If you prefer to set up components individually:
 ./scripts/init-authentik.sh
 
 # Or configure manually via Authentik admin:
-# 1. Access http://localhost:9000/if/admin/
-# 2. Login: admin@localhost / admin123!
+# 1. Access http://zoi.local:9000/if/admin/
+# 2. Login: admin@zoi.local / admin123!
 # 3. Create Proxy Provider (Forward auth mode)
 # 4. Create Application with slug: traefik-forward-auth
 ```
@@ -49,25 +49,25 @@ If you prefer to set up components individually:
 
 All services are protected by Authentik forward authentication:
 
-- **Login**: admin@localhost / admin123!
-- **Auth Portal**: https://auth.localhost
+- **Login**: admin@zoi.local / admin123!
+- **Auth Portal**: https://auth.zoi.local
 - **Single Sign-On**: Automatic across all services
 
 ## 🌐 Available Services
 
 ### Via Traefik (HTTPS with authentication):
-- **Dashy Dashboard**: https://dashy.localhost
-- **Authentik**: https://auth.localhost  
-- **FastAPI**: https://api.localhost
-- **LiteLLM Proxy**: https://llm.localhost
-- **Traefik Dashboard**: https://traefik.localhost
+- **Dashy Dashboard**: https://dashy.zoi.local
+- **Authentik**: https://auth.zoi.local  
+- **FastAPI**: https://api.zoi.local
+- **LiteLLM Proxy**: https://llm.zoi.local
+- **Traefik Dashboard**: https://traefik.zoi.local
 
 ### Direct Access (Development):
-- **Dashy**: http://localhost:4001
-- **Authentik**: http://localhost:9000
-- **FastAPI**: http://localhost:8000
-- **LiteLLM**: http://localhost:4000
-- **Traefik**: http://localhost:8081
+- **Dashy**: http://zoi.local:4001
+- **Authentik**: http://zoi.local:9000
+- **FastAPI**: http://zoi.local:8000
+- **LiteLLM**: http://zoi.local:4000
+- **Traefik**: http://zoi.local:8081
 
 ## 📁 Project Structure
 
@@ -89,7 +89,7 @@ zoi/
 
 ### Environment Variables
 Key settings in `.env`:
-- `DOMAIN`: Base domain (default: localhost)
+- `DOMAIN`: Base domain (default: zoi.local)
 - `AUTHENTIK_BOOTSTRAP_PASSWORD`: Admin password
 - `AUTHENTIK_BOOTSTRAP_EMAIL`: Admin email
 
@@ -106,7 +106,7 @@ All services automatically get:
 ```yaml
 labels:
   - "traefik.enable=true"
-  - "traefik.http.routers.myservice.rule=Host(`myservice.${DOMAIN:-localhost}`)"
+  - "traefik.http.routers.myservice.rule=Host(`myservice.${DOMAIN:-zoi.local}`)"
   - "traefik.http.routers.myservice.entrypoints=websecure"
   - "traefik.http.routers.myservice.middlewares=authentik-forward-auth@file"
   - "traefik.http.services.myservice.loadbalancer.server.port=8080"
@@ -117,7 +117,7 @@ labels:
 ### Authentication Issues
 - **Redirect shows internal hostname**: This is cosmetic; the browser handles it correctly
 - **Can't login**: Check Authentik logs: `docker logs authentik-server`
-- **Services not accessible**: Verify Traefik routing: http://localhost:8081
+- **Services not accessible**: Verify Traefik routing: http://zoi.local:8081
 
 ### Common Commands
 ```bash
@@ -137,7 +137,7 @@ docker ps
 ## 🔒 Security Notes
 
 - Change default passwords in production
-- Configure proper SSL certificates for non-localhost domains
+- Configure proper SSL certificates for non-zoi.local domains
 - Review Authentik security policies
 - Enable 2FA for admin accounts
 

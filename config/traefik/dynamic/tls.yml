@@ -47,12 +47,12 @@
 #   stores:
 #     default:
 #       defaultCertificate:
-#         certFile: /certs/localhost.crt
-#         keyFile: /certs/localhost.key
+#         certFile: /certs/zoi.local.crt
+#         keyFile: /certs/zoi.local.key
 
 # Certificate definitions for development
 certificates:
-  - certFile: /certs/localhost.crt
-    keyFile: /certs/localhost.key
+  - certFile: /certs/zoi.local.crt
+    keyFile: /certs/zoi.local.key
     stores:
       - default

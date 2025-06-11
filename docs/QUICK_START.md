@@ -29,14 +29,14 @@ docker-compose up -d fastapi-1
 ## Verify Health
 ```bash
 # Check service health
-curl http://localhost:8000/health | jq .
+curl http://zoi.local:8000/health | jq .
 ```
 
 ## Service Endpoints
-- **FastAPI**: http://localhost:8000 (docs: /docs)
-- **Vault**: http://localhost:8200
-- **RabbitMQ Management**: http://localhost:15672
-- **Qdrant**: http://localhost:6333
+- **FastAPI**: http://zoi.local:8000 (docs: /docs)
+- **Vault**: http://zoi.local:8200
+- **RabbitMQ Management**: http://zoi.local:15672
+- **Qdrant**: http://zoi.local:6333
 
 ## Expected Health Status
 All services should report "healthy" status:

@@ -12,7 +12,7 @@ max_attempts=60
 attempt=0
 
 while [ $attempt -lt $max_attempts ]; do
-    if curl -s -o /dev/null -w "%{http_code}" http://localhost:9000/api/v3/core/users/ | grep -q "200\|401\|403"; then
+    if curl -s -o /dev/null -w "%{http_code}" http://zoi.local:9000/api/v3/core/users/ | grep -q "200\|401\|403"; then
         echo "✅ Authentik is ready!"
         break
     fi
@@ -36,11 +36,11 @@ echo "⚙️ Configuring critical system settings..."
 
 # Get or create admin token for API access
 echo "🔑 Setting up API access..."
-ADMIN_EMAIL="admin@localhost"
+ADMIN_EMAIL="admin@zoi.local"
 ADMIN_PASSWORD="change-me-authentik-admin"
 
 # Try to get existing token first, or create new one
-ADMIN_TOKEN=$(curl -s -X POST "http://localhost:9000/api/v3/core/tokens/" \
+ADMIN_TOKEN=$(curl -s -X POST "http://zoi.local:9000/api/v3/core/tokens/" \
   -H "Content-Type: application/json" \
   -u "${ADMIN_EMAIL}:${ADMIN_PASSWORD}" \
   -d '{
@@ -54,29 +54,29 @@ if [ "$ADMIN_TOKEN" != "null" ] && [ -n "$ADMIN_TOKEN" ]; then
     
     # Set critical system settings that override environment variables
     echo "🔧 Setting authentik_host system setting..."
-    curl -s -X POST "http://localhost:9000/api/v3/core/settings/" \
+    curl -s -X POST "http://zoi.local:9000/api/v3/core/settings/" \
       -H "Authorization: Bearer $ADMIN_TOKEN" \
       -H "Content-Type: application/json" \
       -d '{
         "key": "authentik_host",
-        "value": "http://localhost:9000"
-      }' >/dev/null && echo "   ✅ authentik_host set to http://localhost:9000"
+        "value": "http://zoi.local:9000"
+      }' >/dev/null && echo "   ✅ authentik_host set to http://zoi.local:9000"
     
     echo "🔧 Setting authentik_host_browser system setting..."
-    curl -s -X POST "http://localhost:9000/api/v3/core/settings/" \
+    curl -s -X POST "http://zoi.local:9000/api/v3/core/settings/" \
       -H "Authorization: Bearer $ADMIN_TOKEN" \
       -H "Content-Type: application/json" \
       -d '{
         "key": "authentik_host_browser",
-        "value": "http://localhost:9000"
-      }' >/dev/null && echo "   ✅ authentik_host_browser set to http://localhost:9000"
+        "value": "http://zoi.local:9000"
+      }' >/dev/null && echo "   ✅ authentik_host_browser set to http://zoi.local:9000"
     
     echo "✅ Critical system settings configured!"
 else
     echo "⚠️ Could not obtain admin token, system settings not configured"
     echo "You will need to manually set System Settings in the admin interface:"
-    echo "   - authentik_host: http://localhost:9000"
-    echo "   - authentik_host_browser: http://localhost:9000"
+    echo "   - authentik_host: http://zoi.local:9000"
+    echo "   - authentik_host_browser: http://zoi.local:9000"
 fi
 
 # Apply blueprints
@@ -110,17 +110,17 @@ echo "✅ All blueprints applied successfully!"
 
 # Verify the setup
 echo "🔍 Verifying setup..."
-curl -I -s "https://dashy.localhost" | head -n 3 || echo "Could not test dashy.localhost (this is expected if SSL certs need trust)"
+curl -I -s "https://dashy.zoi.local" | head -n 3 || echo "Could not test dashy.zoi.local (this is expected if SSL certs need trust)"
 
 echo ""
 echo "🎉 Authentik initialization complete!"
-echo "📋 Admin access: http://localhost:9000/if/admin/"
+echo "📋 Admin access: http://zoi.local:9000/if/admin/"
 echo "🔑 Use bootstrap credentials from environment"
 echo ""
 echo "🔍 To verify the fix worked, check:"
 echo "   1. No more 0.0.0.0:9000 redirects in authentication flow"
-echo "   2. All redirects should show localhost:9000"
-echo "   3. Test with: curl -I https://dashy.localhost"
+echo "   2. All redirects should show zoi.local:9000"
+echo "   3. Test with: curl -I https://dashy.zoi.local"
 echo ""
 echo "🏗️ For production deployment:"
 echo "   1. Update AUTHENTIK_HOST to your real domain in config/authentik/authentik.env"

@@ -35,7 +35,7 @@ from llm.litellm_client import (
 class LiteLLMTester:
     """Test suite for LiteLLM client"""
     
-    def __init__(self, base_url: str = "http://localhost:4000"):
+    def __init__(self, base_url: str = "http://zoi.local:4000"):
         self.base_url = base_url
         self.results = {
             "tests_run": 0,
@@ -386,8 +386,8 @@ async def main():
     parser = argparse.ArgumentParser(description="Test LiteLLM Client")
     parser.add_argument(
         "--url",
-        default="http://localhost:4000",
-        help="LiteLLM proxy URL (default: http://localhost:4000)"
+        default="http://zoi.local:4000",
+        help="LiteLLM proxy URL (default: http://zoi.local:4000)"
     )
     parser.add_argument(
         "--verbose",

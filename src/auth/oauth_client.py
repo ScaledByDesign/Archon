@@ -210,8 +210,8 @@ class OAuth2Manager:
         try:
             client_id = os.getenv('FASTAPI_OAUTH_CLIENT_ID', 'fastapi-client')
             client_secret = os.getenv('FASTAPI_OAUTH_CLIENT_SECRET')
-            authentik_url = os.getenv('AUTHENTIK_URL', 'https://localhost:9443')
-            redirect_uri = os.getenv('FASTAPI_OAUTH_REDIRECT_URI', 'http://localhost:8000/auth/callback')
+            authentik_url = os.getenv('AUTHENTIK_URL', 'https://zoi.local:9443')
+            redirect_uri = os.getenv('FASTAPI_OAUTH_REDIRECT_URI', 'http://zoi.local:8000/auth/callback')
             
             if not client_secret:
                 logger.warning("OAuth2 client secret not configured")

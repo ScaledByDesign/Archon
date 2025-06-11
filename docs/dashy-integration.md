@@ -6,8 +6,8 @@ Dashy has been integrated as a comprehensive production monitoring dashboard for
 
 ## Access Points
 
-- **Local Development**: http://localhost:4001
-- **Traefik Route**: http://dashy.localhost (when using Traefik)
+- **Local Development**: http://zoi.local:4001
+- **Traefik Route**: http://dashy.zoi.local (when using Traefik)
 
 ## Production Features
 
@@ -181,7 +181,7 @@ docker-compose ps dashy
 ## Security Considerations
 
 ### Access Control
-- Dashboard accessible only on localhost by default
+- Dashboard accessible only on zoi.local by default
 - Traefik integration for secure external access
 - No authentication required for read-only monitoring
 - Configuration editing disabled in production

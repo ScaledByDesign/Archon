@@ -251,10 +251,10 @@ class CORSAndSecurityMiddleware(BaseHTTPMiddleware):
     ):
         super().__init__(app)
         self.allowed_origins = allowed_origins or [
-            "http://localhost:3000",
-            "http://localhost:8000", 
-            "https://auth.localhost",
-            "https://localhost"
+            "http://zoi.local:3000",
+            "http://zoi.local:8000", 
+            "https://auth.zoi.local",
+            "https://zoi.local"
         ]
         self.allowed_methods = allowed_methods or [
             "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"

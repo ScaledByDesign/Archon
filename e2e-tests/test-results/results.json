@@ -149,7 +149,7 @@
                       "text": "Starting authentication setup...\n"
                     },
                     {
-                      "text": "Current URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.localhost%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiJMR1lPNlpJUFdTREdZTzNLQlZVRlJDSU5CQjdIR01DRFJWVlpWVkxIN1ZPQlRLNk1INkNBIiwic3RhdGUiOiItT0J5TE8zSWd0bzUtbG16ZFZKdVQzdVBaZVBzNzdSWFRmTmR1dTF2LU8wIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.ZZTFI7_F_xAkUd8e5iIhzPJy6yfk1HbT9cjaarw9NP4\n"
+                      "text": "Current URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.zoi.local%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiJMR1lPNlpJUFdTREdZTzNLQlZVRlJDSU5CQjdIR01DRFJWVlpWVkxIN1ZPQlRLNk1INkNBIiwic3RhdGUiOiItT0J5TE8zSWd0bzUtbG16ZFZKdVQzdVBaZVBzNzdSWFRmTmR1dTF2LU8wIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.ZZTFI7_F_xAkUd8e5iIhzPJy6yfk1HbT9cjaarw9NP4\n"
                     },
                     {
                       "text": "Already authenticated or Dashy loaded\n"
@@ -207,7 +207,7 @@
                       "text": "2️⃣ Waiting for auth redirect...\n"
                     },
                     {
-                      "text": "Current URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.localhost%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiI0N1JJUDM0Q0xUQjdJREdUTTVWUUJISE9RVU5HTkhNMktISDQ3SFBGTlhDSjVES01BVlBBIiwic3RhdGUiOiIyUnpVRXhXYXJCdVdOb09MRG13MlZaS3JhM0ZNOGFoSEVSNm5FbllzVzAwIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.8AOjWXj3F7ZFtoi_csmbHrQG2LEz3Lr75aO9lN-LSXA\n"
+                      "text": "Current URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.zoi.local%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiI0N1JJUDM0Q0xUQjdJREdUTTVWUUJISE9RVU5HTkhNMktISDQ3SFBGTlhDSjVES01BVlBBIiwic3RhdGUiOiIyUnpVRXhXYXJCdVdOb09MRG13MlZaS3JhM0ZNOGFoSEVSNm5FbllzVzAwIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.8AOjWXj3F7ZFtoi_csmbHrQG2LEz3Lr75aO9lN-LSXA\n"
                     },
                     {
                       "text": "3️⃣ Waiting for login form...\n"
@@ -216,7 +216,7 @@
                       "text": "4️⃣ Filling username...\n"
                     },
                     {
-                      "text": "✅ Username filled: \"admin@localhost\"\n"
+                      "text": "✅ Username filled: \"admin@zoi.local\"\n"
                     },
                     {
                       "text": "5️⃣ Filling password...\n"
@@ -234,7 +234,7 @@
                       "text": "7️⃣ Waiting for authentication to complete...\n"
                     },
                     {
-                      "text": "Final URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.localhost%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiI0N1JJUDM0Q0xUQjdJREdUTTVWUUJISE9RVU5HTkhNMktISDQ3SFBGTlhDSjVES01BVlBBIiwic3RhdGUiOiIyUnpVRXhXYXJCdVdOb09MRG13MlZaS3JhM0ZNOGFoSEVSNm5FbllzVzAwIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.8AOjWXj3F7ZFtoi_csmbHrQG2LEz3Lr75aO9lN-LSXA\n"
+                      "text": "Final URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.zoi.local%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiI0N1JJUDM0Q0xUQjdJREdUTTVWUUJISE9RVU5HTkhNMktISDQ3SFBGTlhDSjVES01BVlBBIiwic3RhdGUiOiIyUnpVRXhXYXJCdVdOb09MRG13MlZaS3JhM0ZNOGFoSEVSNm5FbllzVzAwIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.8AOjWXj3F7ZFtoi_csmbHrQG2LEz3Lr75aO9lN-LSXA\n"
                     },
                     {
                       "text": "🎉 Successfully logged into Dashy!\n"
@@ -281,7 +281,7 @@
                       "text": "🔍 Testing direct Dashy access...\n"
                     },
                     {
-                      "text": "Direct access result: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.localhost%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiJPU1BGRUpVUjVTM1hXRzRaRkJaVzM2TlpOTEFJNllCQllGSElOVUJESE9UU05LMlFIVExBIiwic3RhdGUiOiJzMi1PUTdGWlk4VjZhVWNSdFl5cTUtczNlMmFucGh1ellDbEFUZk55NmVzIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.gYSObXrKpE1EUzh1exhR9UAKHHIs0OuXKAv9gUmVvSI\n"
+                      "text": "Direct access result: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.zoi.local%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiJPU1BGRUpVUjVTM1hXRzRaRkJaVzM2TlpOTEFJNllCQllGSElOVUJESE9UU05LMlFIVExBIiwic3RhdGUiOiJzMi1PUTdGWlk4VjZhVWNSdFl5cTUtczNlMmFucGh1ellDbEFUZk55NmVzIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.gYSObXrKpE1EUzh1exhR9UAKHHIs0OuXKAv9gUmVvSI\n"
                     },
                     {
                       "text": "ℹ️ Redirected to auth - this is expected behavior\n"

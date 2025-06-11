@@ -10,7 +10,7 @@ The Langfuse observability platform has been successfully integrated into the RA
    - Added Langfuse v3 container with PostgreSQL database backend
    - Configured Redis connection for enhanced performance
    - Set up proper authentication and secrets management
-   - Exposed via Traefik at `https://langfuse.localhost`
+   - Exposed via Traefik at `https://langfuse.zoi.local`
 
 2. **LiteLLM Integration**
    - Updated LiteLLM config to enable Langfuse callbacks
@@ -52,7 +52,7 @@ The Langfuse observability platform has been successfully integrated into the RA
 
 ### Dashboard Access
 
-The Langfuse dashboard is accessible at `https://langfuse.localhost` with the following capabilities:
+The Langfuse dashboard is accessible at `https://langfuse.zoi.local` with the following capabilities:
 - Real-time trace viewing
 - Session playback
 - Cost analytics

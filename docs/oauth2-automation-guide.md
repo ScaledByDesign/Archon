@@ -41,11 +41,11 @@ python scripts/auto-create-oauth2-app.py
 
 Environment variables (automatically configured):
 ```bash
-export AUTHENTIK_URL="https://localhost:9443"
+export AUTHENTIK_URL="https://zoi.local:9443"
 export AUTHENTIK_API_TOKEN="your_api_token_here"
 export OAUTH_APP_NAME="FastAPI Client"
 export OAUTH_CLIENT_ID="fastapi-client"
-export OAUTH_REDIRECT_URIS="http://localhost:8000/api/auth/callback"
+export OAUTH_REDIRECT_URIS="http://zoi.local:8000/api/auth/callback"
 export OAUTH_SCOPES="openid,email,profile,rag:api"
 ```
 
@@ -76,7 +76,7 @@ The script creates an OAuth2 provider with these settings:
   "name": "FastAPI Client OAuth2 Provider",
   "authorization_flow": "default-authentication-flow",
   "client_id": "fastapi-client",
-  "redirect_uris": ["http://localhost:8000/api/auth/callback"],
+  "redirect_uris": ["http://zoi.local:8000/api/auth/callback"],
   "client_type": "confidential",
   "include_claims_in_id_token": true,
   "issuer_mode": "per_provider",
@@ -103,7 +103,7 @@ The script creates an OAuth2 provider with these settings:
 ### Common Issues
 
 1. **API Token Creation Fails**
-   - Ensure Authentik is accessible at https://localhost:9443
+   - Ensure Authentik is accessible at https://zoi.local:9443
    - Check admin credentials (default: akadmin/password)
    - Verify CSRF token extraction from login page
 
@@ -122,14 +122,14 @@ The script creates an OAuth2 provider with these settings:
 ```bash
 # Check Authentik API connectivity
 curl -k -H "Authorization: Bearer $AUTHENTIK_API_TOKEN" \
-  https://localhost:9443/api/v3/flows/instances/
+  https://zoi.local:9443/api/v3/flows/instances/
 
 # Check OAuth2 provider creation
 curl -k -H "Authorization: Bearer $AUTHENTIK_API_TOKEN" \
-  https://localhost:9443/api/v3/providers/oauth2/
+  https://zoi.local:9443/api/v3/providers/oauth2/
 
 # Test FastAPI OAuth2 status
-curl http://localhost:8000/api/auth/status
+curl http://zoi.local:8000/api/auth/status
 ```
 
 ## 📁 Files Created
@@ -155,18 +155,18 @@ The automation creates/modifies these files:
 1. **Test Authentication Flow**:
    ```bash
    # Open in browser
-   open http://localhost:8000/api/auth/login
+   open http://zoi.local:8000/api/auth/login
    ```
 
 2. **Verify in Authentik Admin**:
    ```bash
    # Open Authentik admin
-   open https://localhost:9443/if/admin/#/core/applications
+   open https://zoi.local:9443/if/admin/#/core/applications
    ```
 
 3. **Check Application Status**:
    ```bash
-   curl http://localhost:8000/api/auth/status
+   curl http://zoi.local:8000/api/auth/status
    ```
 
 ## 🔐 Security Considerations
@@ -184,7 +184,7 @@ The automation creates/modifies these files:
 3. **SSL/TLS**:
    - Development uses self-signed certificates
    - Production should use valid SSL certificates
-   - SSL verification disabled for localhost testing
+   - SSL verification disabled for zoi.local testing
 
 ## 📊 Validation
 

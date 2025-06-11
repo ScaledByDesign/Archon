@@ -75,9 +75,9 @@ test.describe('Authentik-Traefik Integration Tests', () => {
   test('should test individual service authentication', async ({ page }) => {
     // Test that other services behind Traefik auth are also protected
     const servicesToTest = [
-      { name: 'FastAPI', url: 'https://api.localhost', expectedText: 'FastAPI' },
-      { name: 'LiteLLM', url: 'https://llm.localhost', expectedText: 'LiteLLM' },
-      { name: 'Qdrant', url: 'https://qdrant.localhost', expectedText: 'Qdrant' }
+      { name: 'FastAPI', url: 'https://api.zoi.local', expectedText: 'FastAPI' },
+      { name: 'LiteLLM', url: 'https://llm.zoi.local', expectedText: 'LiteLLM' },
+      { name: 'Qdrant', url: 'https://qdrant.zoi.local', expectedText: 'Qdrant' }
     ];
 
     for (const service of servicesToTest) {

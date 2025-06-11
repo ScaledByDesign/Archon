@@ -33,7 +33,7 @@ class JWTSecurityConfig:
         self.algorithm = os.getenv('JWT_ALGORITHM', 'RS256')
         
         # Issuer and audience
-        self.issuer = os.getenv('AUTHENTIK_ISSUER', 'https://auth.localhost/application/o/default/')
+        self.issuer = os.getenv('AUTHENTIK_ISSUER', 'https://auth.zoi.local/application/o/default/')
         self.audience = os.getenv('JWT_AUDIENCE', 'rag-system')
         
         # Clock skew tolerance (in seconds)
@@ -293,7 +293,7 @@ async def get_jwt_handler() -> JWTHandler:
     global _jwt_handler
     
     if _jwt_handler is None:
-        authentik_url = os.getenv('AUTHENTIK_URL', 'https://localhost:9443')
+        authentik_url = os.getenv('AUTHENTIK_URL', 'https://zoi.local:9443')
         _jwt_handler = JWTHandler(authentik_url)
     
     return _jwt_handler

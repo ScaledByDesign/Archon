@@ -35,7 +35,7 @@ docker-compose up -d
 #### Step 4: Configure API Key
 ```bash
 # Wait for services to start, then run:
-curl -X POST "http://localhost:8001/models_controller/store_api_keys" \
+curl -X POST "http://zoi.local:8001/models_controller/store_api_keys" \
   -H "Content-Type: application/json" \
   -d '{
     "model_provider": "OpenAI", 
@@ -53,7 +53,7 @@ curl -X POST "http://localhost:8001/models_controller/store_api_keys" \
 ## ✅ Expected Results
 
 After setup completion:
-- **SuperAGI UI**: http://localhost:3001
+- **SuperAGI UI**: http://zoi.local:3001
 - **Available Models**: gpt-3.5-turbo, gpt-4 
 - **Vector Database**: Qdrant (system-level configured)
 - **LLM Provider**: LiteLLM proxy
@@ -85,13 +85,13 @@ After setup completion:
 
 ```bash
 # Check Qdrant
-curl -s http://localhost:6333/readyz
+curl -s http://zoi.local:6333/readyz
 
 # Check LiteLLM
-curl -s -H "Authorization: Bearer sk-change-me-to-random-string" http://localhost:4000/v1/models
+curl -s -H "Authorization: Bearer sk-change-me-to-random-string" http://zoi.local:4000/v1/models
 
 # Check SuperAGI Models
-curl -s "http://localhost:8001/models_controller/fetch_models"
+curl -s "http://zoi.local:8001/models_controller/fetch_models"
 ```
 
 ## 🏆 Success Criteria
@@ -100,6 +100,6 @@ curl -s "http://localhost:8001/models_controller/fetch_models"
 ✅ SuperAGI shows gpt-3.5-turbo and gpt-4 models available
 ✅ Qdrant accessible and responding
 ✅ LiteLLM proxy working with authentication
-✅ SuperAGI UI accessible at localhost:3001
+✅ SuperAGI UI accessible at zoi.local:3001
 
 This template provides a complete, reproducible setup for SuperAGI with Qdrant vector storage and LiteLLM multi-model support!

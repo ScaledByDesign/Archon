@@ -14,7 +14,7 @@ from pathlib import Path
 from datetime import datetime
 
 # API configuration
-API_URL = "http://localhost:8000/api/documents"
+API_URL = "http://zoi.local:8000/api/documents"
 UPLOAD_URL = f"{API_URL}/upload"
 SEARCH_URL = f"{API_URL}/search"
 

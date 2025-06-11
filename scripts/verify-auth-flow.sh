@@ -31,8 +31,8 @@ echo ""
 echo "📍 Testing authentication endpoints..."
 
 # Test Authentik directly
-echo "   Testing Authentik (https://auth.localhost)..."
-response=$(curl -k -s -o /dev/null -w "%{http_code}" https://auth.localhost)
+echo "   Testing Authentik (https://auth.zoi.local)..."
+response=$(curl -k -s -o /dev/null -w "%{http_code}" https://auth.zoi.local)
 if [ "$response" = "200" ]; then
     echo "   ✅ Authentik is accessible (HTTP $response)"
 else
@@ -40,12 +40,12 @@ else
 fi
 
 # Test Dashy with auth
-echo "   Testing Dashy (https://dashy.localhost)..."
-response=$(curl -k -s -o /dev/null -w "%{http_code}" https://dashy.localhost)
+echo "   Testing Dashy (https://dashy.zoi.local)..."
+response=$(curl -k -s -o /dev/null -w "%{http_code}" https://dashy.zoi.local)
 if [ "$response" = "302" ]; then
     echo "   ✅ Dashy redirects to authentication (HTTP $response)"
     # Get redirect location
-    location=$(curl -k -s -I https://dashy.localhost | grep -i "location:" | cut -d' ' -f2 | tr -d '\r')
+    location=$(curl -k -s -I https://dashy.zoi.local | grep -i "location:" | cut -d' ' -f2 | tr -d '\r')
     echo "   📍 Redirect location: $location"
 else
     echo "   ❌ Dashy returned HTTP $response (expected 302 redirect)"
@@ -53,7 +53,7 @@ fi
 
 # Test forward auth endpoint
 echo "   Testing forward auth endpoint..."
-response=$(curl -s -o /dev/null -w "%{http_code}" -H "X-Forwarded-Proto: https" -H "X-Forwarded-Host: dashy.localhost" http://localhost:9000/application/o/traefik-forward-auth/)
+response=$(curl -s -o /dev/null -w "%{http_code}" -H "X-Forwarded-Proto: https" -H "X-Forwarded-Host: dashy.zoi.local" http://zoi.local:9000/application/o/traefik-forward-auth/)
 if [ "$response" = "302" ]; then
     echo "   ✅ Forward auth endpoint is working (HTTP $response)"
 else
@@ -68,9 +68,9 @@ if [ "$response" = "302" ]; then
     echo "✅ Authentication flow is configured correctly!"
     echo ""
     echo "📝 To test the complete flow:"
-    echo "1. Open https://dashy.localhost in your browser"
+    echo "1. Open https://dashy.zoi.local in your browser"
     echo "2. You should be redirected to Authentik login"
-    echo "3. Login with: admin@localhost / admin123!"
+    echo "3. Login with: admin@zoi.local / admin123!"
     echo "4. After successful login, you'll see the Dashy dashboard"
     echo ""
     echo "💡 Tip: If you see 'authentik-server:9000' in redirects,"

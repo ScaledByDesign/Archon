@@ -35,7 +35,7 @@ Main client class for interacting with the LiteLLM proxy.
 ```python
 from llm.litellm_client import LiteLLMClient
 
-async with LiteLLMClient(base_url="http://localhost:4000") as client:
+async with LiteLLMClient(base_url="http://zoi.local:4000") as client:
     response = await client.chat_completion(request)
 ```
 
@@ -109,7 +109,7 @@ Add these to your `.env` file:
 
 ```bash
 # LiteLLM Configuration
-LITELLM_BASE_URL=http://localhost:4000
+LITELLM_BASE_URL=http://zoi.local:4000
 LITELLM_API_KEY=sk-1234
 
 # Provider API Keys
@@ -269,7 +269,7 @@ async def chat_endpoint(
 python scripts/test-litellm-client.py
 
 # Test with custom URL
-python scripts/test-litellm-client.py --url http://localhost:4000
+python scripts/test-litellm-client.py --url http://zoi.local:4000
 
 # Run usage examples
 python examples/litellm_usage.py
@@ -399,7 +399,7 @@ logging.getLogger("llm.litellm_client").setLevel(logging.DEBUG)
 Regular health checks help identify issues:
 
 ```bash
-curl http://localhost:4000/health
+curl http://zoi.local:4000/health
 ```
 
 ## Best Practices

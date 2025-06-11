@@ -14,8 +14,8 @@ echo "🧪 Testing FastAPI Integration with Vault & Qdrant"
 echo "=" * 60
 
 # Configuration
-API_URL="http://localhost:8000"
-VAULT_URL="${VAULT_ADDR:-http://localhost:8200}"
+API_URL="http://zoi.local:8000"
+VAULT_URL="${VAULT_ADDR:-http://zoi.local:8200}"
 
 echo "🔧 Configuration:"
 echo "   API URL: $API_URL"

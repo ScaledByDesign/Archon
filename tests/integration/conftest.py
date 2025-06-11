@@ -12,10 +12,10 @@ async def docker_services():
     # This would normally start real Docker services for integration tests
     # For now, we'll use mocks to avoid requiring Docker for tests
     return {
-        "redis": {"host": "localhost", "port": 6379},
-        "qdrant": {"host": "localhost", "port": 6333},
-        "mongodb": {"host": "localhost", "port": 27017},
-        "vault": {"host": "localhost", "port": 8200}
+        "redis": {"host": "zoi.local", "port": 6379},
+        "qdrant": {"host": "zoi.local", "port": 6333},
+        "mongodb": {"host": "zoi.local", "port": 27017},
+        "vault": {"host": "zoi.local", "port": 8200}
     }
 
 @pytest.fixture

@@ -3,7 +3,7 @@ oauth2:
   client_secret: "${FASTAPI_OAUTH_CLIENT_SECRET}"
   server_metadata_url: "${AUTHENTIK_ISSUER}/fastapi-oauth2/.well-known/openid_configuration"
   scopes: ["openid", "email", "profile", "rag:api"]
-  redirect_uri: "https://api.${DOMAIN:-localhost}/auth/callback"
+  redirect_uri: "https://api.${DOMAIN:-zoi.local}/auth/callback"
 
 authentik:
   base_url: "${AUTHENTIK_URL}"

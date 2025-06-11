@@ -11,8 +11,9 @@ http:
           - DELETE
           - OPTIONS
         accessControlAllowOriginList:
-          - "https://*.localhost"
           - "https://*.zoi.local"
+          - "https://*.zoi.local" 
+          - "https://*.local" 
         accessControlMaxAge: 100
         addVaryHeader: true
         browserXssFilter: true

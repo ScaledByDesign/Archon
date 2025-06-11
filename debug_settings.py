@@ -7,7 +7,7 @@ from pydantic import Field, field_validator
 
 class TestAuthSettings(BaseSettings):
     cors_origins: List[str] = Field(
-        default=["http://localhost:3000", "http://localhost:8080", "http://localhost:8000"],
+        default=["http://zoi.local:3000", "http://zoi.local:8080", "http://zoi.local:8000"],
         env="CORS_ORIGINS"
     )
     

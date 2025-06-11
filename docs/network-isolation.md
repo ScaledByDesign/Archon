@@ -251,7 +251,7 @@ docker inspect zoi-fastapi-1-1 --format '{{range $k, $v := .NetworkSettings.Netw
 #### 2. Frontend Cannot Reach API
 - **Symptom**: API calls fail from web interface
 - **Solution**: Ensure Traefik is properly routing and both services are on frontend network
-- **Check**: Traefik dashboard at `http://localhost:8080`
+- **Check**: Traefik dashboard at `http://zoi.local:8080`
 
 #### 3. Authentication Issues
 - **Symptom**: SSO redirects fail or authentication timeouts

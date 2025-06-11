@@ -26,7 +26,7 @@ provider, created = ProxyProvider.objects.get_or_create(
     name="Traefik Forward Auth",
     defaults={
         "mode": ProxyMode.FORWARD_SINGLE,
-        "external_host": "http://localhost:9000",
+        "external_host": "http://zoi.local:9000",
         "authorization_flow": auth_flow,
         "invalidation_flow": invalidation_flow,
     }
@@ -37,7 +37,7 @@ if created:
 else:
     print("✅ Using existing proxy provider")
     # Update external_host if needed
-    provider.external_host = "http://localhost:9000"
+    provider.external_host = "http://zoi.local:9000"
     provider.save()
 
 print("Creating application...")

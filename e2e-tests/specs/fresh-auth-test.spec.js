@@ -11,7 +11,7 @@ test('Fresh authentication flow - Test callback handling', async ({ page }) => {
   try {
     // Step 1: Navigate to Dashy (should redirect to auth)
     console.log('1️⃣ Navigating to Dashy...');
-    await page.goto('https://dashy.localhost', { 
+    await page.goto('https://dashy.zoi.local', { 
       waitUntil: 'domcontentloaded',
       timeout: 30000 
     });
@@ -22,7 +22,7 @@ test('Fresh authentication flow - Test callback handling', async ({ page }) => {
     // Step 2: Handle 0.0.0.0:9000 URL fix if needed
     if (currentUrl.includes('0.0.0.0:9000')) {
       console.log('🔧 Fixing 0.0.0.0:9000 URL...');
-      const fixedUrl = currentUrl.replace('0.0.0.0:9000', 'localhost:9000');
+      const fixedUrl = currentUrl.replace('0.0.0.0:9000', 'zoi.local:9000');
       console.log(`Redirecting to: ${fixedUrl}`);
       await page.goto(fixedUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
       currentUrl = page.url();
@@ -66,7 +66,7 @@ test('Fresh authentication flow - Test callback handling', async ({ page }) => {
 
     // Step 4: Fill login form
     console.log('4️⃣ Filling login form...');
-    await page.fill(usernameField, 'admin@localhost');  // Bootstrap email from authentik.env
+    await page.fill(usernameField, 'admin@zoi.local');  // Bootstrap email from authentik.env
     console.log('✅ Username filled');
     
     // Verify username was filled
@@ -264,14 +264,14 @@ test('Fresh authentication flow - Test callback handling', async ({ page }) => {
       if (pageText.includes('400') || pageText.includes('Bad Request')) {
         console.log('❌ 400 error confirmed at callback');
       }
-    } else if (finalUrl.includes('dashy.localhost') && !finalUrl.includes('auth')) {
+    } else if (finalUrl.includes('dashy.zoi.local') && !finalUrl.includes('auth')) {
       console.log('✅ Successfully reached Dashy dashboard!');
       
       // Verify we can see dashboard content
       const dashyTitle = await page.title();
       console.log(`Dashy page title: ${dashyTitle}`);
       
-      expect(finalUrl).toContain('dashy.localhost');
+      expect(finalUrl).toContain('dashy.zoi.local');
       expect(finalUrl).not.toContain('/outpost.goauthentik.io/callback');
     } else {
       console.log(`⚠️ Unexpected final URL: ${finalUrl}`);

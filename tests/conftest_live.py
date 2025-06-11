@@ -20,46 +20,46 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 # Service Configuration - Matches docker-compose.yml
 LIVE_SERVICES = {
     "authentik": {
-        "url": "http://localhost:9443",
+        "url": "http://zoi.local:9443",
         "health_endpoint": "/api/v3/core/applications/",
         "timeout": 30
     },
     "fastapi": {
-        "url": "http://localhost:8000",
+        "url": "http://zoi.local:8000",
         "health_endpoint": "/health",
         "timeout": 10
     },
     "vault": {
-        "url": "http://localhost:8200",
+        "url": "http://zoi.local:8200",
         "health_endpoint": "/v1/sys/health",
         "timeout": 10
     },
     "qdrant": {
-        "url": "http://localhost:6333",
+        "url": "http://zoi.local:6333",
         "health_endpoint": "/",
         "timeout": 10
     },
     "redis": {
-        "url": "redis://localhost:6379",
+        "url": "redis://zoi.local:6379",
         "password": "change-me-redis-pass",
         "timeout": 5
     },
     "mongodb": {
-        "url": "mongodb://localhost:27017",
+        "url": "mongodb://zoi.local:27017",
         "timeout": 10
     },
     "litellm": {
-        "url": "http://localhost:4000",
+        "url": "http://zoi.local:4000",
         "health_endpoint": "/health",
         "timeout": 15
     },
     "rabbitmq": {
-        "url": "http://localhost:15672",
+        "url": "http://zoi.local:15672",
         "health_endpoint": "/api/overview",
         "timeout": 10
     },
     "traefik": {
-        "url": "http://localhost:8080",
+        "url": "http://zoi.local:8080",
         "health_endpoint": "/ping",
         "timeout": 5
     }
@@ -76,20 +76,20 @@ def event_loop():
 def live_env_vars():
     """Live environment variables for Docker services."""
     return {
-        "VAULT_ADDR": "http://localhost:8200",
+        "VAULT_ADDR": "http://zoi.local:8200",
         "VAULT_TOKEN": "vault-root-token-change-me-in-production",
-        "QDRANT_URL": "http://localhost:6333",
-        "REDIS_URL": "redis://:change-me-redis-pass@localhost:6379",
-        "MONGODB_EPISODIC_URL": "mongodb://localhost:27018/episodic_memory",
-        "MONGODB_PROCEDURAL_URL": "mongodb://localhost:27019/procedural_memory", 
+        "QDRANT_URL": "http://zoi.local:6333",
+        "REDIS_URL": "redis://:change-me-redis-pass@zoi.local:6379",
+        "MONGODB_EPISODIC_URL": "mongodb://zoi.local:27018/episodic_memory",
+        "MONGODB_PROCEDURAL_URL": "mongodb://zoi.local:27019/procedural_memory", 
         "LITELLM_API_KEY": "sk-change-me-to-random-string",
-        "LITELLM_BASE_URL": "http://localhost:4000",
-        "AUTHENTIK_BASE_URL": "http://localhost:9443",
+        "LITELLM_BASE_URL": "http://zoi.local:4000",
+        "AUTHENTIK_BASE_URL": "http://zoi.local:9443",
         "JWT_SECRET_KEY": "your-secret-key-here",
         "SESSION_SECRET_KEY": "change-me-to-a-long-random-session-secret-key-at-least-32-chars",
         "FASTAPI_OAUTH_CLIENT_ID": "fastapi-client",
         "FASTAPI_OAUTH_CLIENT_SECRET": "temporary-secret-for-testing-oauth2-flow",
-        "FASTAPI_OAUTH_REDIRECT_URI": "http://localhost:8000/api/auth/callback"
+        "FASTAPI_OAUTH_REDIRECT_URI": "http://zoi.local:8000/api/auth/callback"
     }
 
 @pytest.fixture(scope="session")
@@ -137,7 +137,7 @@ async def service_health_check():
 async def live_redis_client(service_health_check):
     """Live Redis client connected to Docker service."""
     client = redis.from_url(
-        "redis://:change-me-redis-pass@localhost:6379",
+        "redis://:change-me-redis-pass@zoi.local:6379",
         decode_responses=True
     )
     
@@ -156,7 +156,7 @@ async def live_vault_client(service_health_check):
     import hvac
     
     client = hvac.Client(
-        url="http://localhost:8200",
+        url="http://zoi.local:8200",
         token="vault-root-token-change-me-in-production"
     )
     
@@ -171,7 +171,7 @@ async def live_qdrant_client(service_health_check):
     """Live Qdrant vector database client."""
     from qdrant_client import QdrantClient
     
-    client = QdrantClient(url="http://localhost:6333")
+    client = QdrantClient(url="http://zoi.local:6333")
     
     # Test connection
     health = client.get_cluster_info()
@@ -183,7 +183,7 @@ async def live_qdrant_client(service_health_check):
 async def live_fastapi_client(service_health_check):
     """Live FastAPI client for integration testing."""
     async with httpx.AsyncClient(
-        base_url="http://localhost:8000",
+        base_url="http://zoi.local:8000",
         timeout=30.0
     ) as client:
         # Test connection
@@ -196,7 +196,7 @@ async def live_fastapi_client(service_health_check):
 async def live_litellm_client(service_health_check):
     """Live LiteLLM client for model testing."""
     async with httpx.AsyncClient(
-        base_url="http://localhost:4000",
+        base_url="http://zoi.local:4000",
         timeout=60.0,
         headers={"Authorization": "Bearer sk-change-me-to-random-string"}
     ) as client:
@@ -210,7 +210,7 @@ async def live_litellm_client(service_health_check):
 async def live_authentik_client(service_health_check):
     """Live Authentik client for authentication testing."""
     async with httpx.AsyncClient(
-        base_url="http://localhost:9443",
+        base_url="http://zoi.local:9443",
         timeout=30.0,
         follow_redirects=False  # Important for OAuth flows
     ) as client:
@@ -222,8 +222,8 @@ async def live_mongodb_client(service_health_check):
     from motor.motor_asyncio import AsyncIOMotorClient
     
     # Test both episodic and procedural databases
-    episodic_client = AsyncIOMotorClient("mongodb://localhost:27018")
-    procedural_client = AsyncIOMotorClient("mongodb://localhost:27019")
+    episodic_client = AsyncIOMotorClient("mongodb://zoi.local:27018")
+    procedural_client = AsyncIOMotorClient("mongodb://zoi.local:27019")
     
     # Test connections
     await episodic_client.admin.command('ping')
@@ -250,7 +250,7 @@ def live_jwt_token_generator():
         user_id: str = "test-user-123",
         scopes: list = None,
         expires_in: int = 3600,
-        issuer: str = "http://localhost:9443/application/o/fastapi-client/",
+        issuer: str = "http://zoi.local:9443/application/o/fastapi-client/",
         audience: str = "fastapi-client"
     ) -> str:
         if scopes is None:
@@ -283,7 +283,7 @@ async def live_oauth2_flow_tester(live_authentik_client, live_fastapi_client):
         assert response.status_code == 307  # Redirect to Authentik
         
         auth_url = response.headers["location"]
-        assert "localhost:9443" in auth_url
+        assert "zoi.local:9443" in auth_url
         assert "response_type=code" in auth_url
         assert "client_id=fastapi-client" in auth_url
         

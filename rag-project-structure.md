@@ -120,7 +120,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.authentik.rule=Host(`auth.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.authentik.rule=Host(`auth.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.authentik.entrypoints=websecure"
       - "traefik.http.routers.authentik.tls=true"
 
@@ -148,7 +148,7 @@ services:
       - traefik_certs:/letsencrypt
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.dashboard.service=api@internal"
       - "traefik.http.routers.dashboard.middlewares=auth@docker"
 
@@ -212,7 +212,7 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.api.rule=Host(`api.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.api.rule=Host(`api.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.routers.api.tls=true"
       - "traefik.http.services.api.loadbalancer.server.port=8000"
@@ -267,7 +267,7 @@ services:
       - ./config/litellm/config.yaml:/app/config.yaml
     command: ["--config", "/app/config.yaml"]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://zoi.local:8000/health"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -323,7 +323,7 @@ services:
     volumes:
       - qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/readyz"]
+      test: ["CMD", "curl", "-f", "http://zoi.local:6333/readyz"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -340,7 +340,7 @@ services:
       - open_webui:/app/backend/data
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.webui.rule=Host(`chat.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.webui.rule=Host(`chat.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.webui.entrypoints=websecure"
       - "traefik.http.routers.webui.tls=true"
 
@@ -352,15 +352,15 @@ services:
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=${N8N_USER:-admin}
       - N8N_BASIC_AUTH_PASSWORD=${N8N_PASS:-secretpass}
-      - N8N_HOST=n8n.${DOMAIN:-localhost}
+      - N8N_HOST=n8n.${DOMAIN:-zoi.local}
       - N8N_PORT=5678
       - N8N_PROTOCOL=https
-      - WEBHOOK_URL=https://n8n.${DOMAIN:-localhost}/
+      - WEBHOOK_URL=https://n8n.${DOMAIN:-zoi.local}/
     volumes:
       - n8n_data:/home/node/.n8n
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.n8n.rule=Host(`n8n.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.n8n.rule=Host(`n8n.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.n8n.entrypoints=websecure"
       - "traefik.http.routers.n8n.tls=true"
 
@@ -373,7 +373,7 @@ services:
     command: ["up", "--host", "0.0.0.0", "--port", "43800"]
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.aim.rule=Host(`aim.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.aim.rule=Host(`aim.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.aim.entrypoints=websecure"
       - "traefik.http.routers.aim.tls=true"
 
@@ -394,13 +394,13 @@ services:
       - EMAIL_HOST_USER=${EMAIL_USER}
       - EMAIL_HOST_PASSWORD=${EMAIL_PASS}
       - SECRET_KEY=${HC_SECRET_KEY}
-      - SITE_ROOT=https://health.${DOMAIN:-localhost}
+      - SITE_ROOT=https://health.${DOMAIN:-zoi.local}
     depends_on:
       postgres:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.health.rule=Host(`health.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.health.rule=Host(`health.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.health.entrypoints=websecure"
       - "traefik.http.routers.health.tls=true"
 
@@ -422,7 +422,7 @@ services:
       - qdrant_data:/backup/qdrant:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backrest.rule=Host(`backup.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.backrest.rule=Host(`backup.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.backrest.entrypoints=websecure"
       - "traefik.http.routers.backrest.tls=true"
 
@@ -449,7 +449,7 @@ networks:
 ### 2. .env.example
 ```bash
 # Domain Configuration
-DOMAIN=localhost
+DOMAIN=zoi.local
 ACME_EMAIL=admin@example.com
 
 # Authentication
@@ -611,14 +611,14 @@ class Settings(BaseSettings):
     instance_id: str = "1"
     
     # Database URLs
-    mongodb_url: str = "mongodb://localhost:27017"
-    redis_url: str = "redis://localhost:6379"
-    qdrant_url: str = "http://localhost:6333"
-    rabbitmq_url: str = "amqp://guest:guest@localhost:5672"
+    mongodb_url: str = "mongodb://zoi.local:27017"
+    redis_url: str = "redis://zoi.local:6379"
+    qdrant_url: str = "http://zoi.local:6333"
+    rabbitmq_url: str = "amqp://guest:guest@zoi.local:5672"
     
     # External Services
-    litellm_url: str = "http://localhost:8000"
-    authentik_url: str = "http://localhost:9000"
+    litellm_url: str = "http://zoi.local:8000"
+    authentik_url: str = "http://zoi.local:9000"
     
     # Security
     secret_key: str = "your-secret-key-here"
@@ -841,15 +841,15 @@ A production-ready Retrieval-Augmented Generation (RAG) system with enterprise f
    ```
 
 4. **Access services:**
-   - Chat UI: https://chat.localhost
-   - API: https://api.localhost
-   - Traefik Dashboard: https://traefik.localhost
-   - RabbitMQ Management: http://localhost:15672
-   - n8n Workflows: https://n8n.localhost
-   - Authentik: https://auth.localhost
-   - Monitoring: https://aim.localhost
-   - Health Checks: https://health.localhost
-   - Backups: https://backup.localhost
+   - Chat UI: https://chat.zoi.local
+   - API: https://api.zoi.local
+   - Traefik Dashboard: https://traefik.zoi.local
+   - RabbitMQ Management: http://zoi.local:15672
+   - n8n Workflows: https://n8n.zoi.local
+   - Authentik: https://auth.zoi.local
+   - Monitoring: https://aim.zoi.local
+   - Health Checks: https://health.zoi.local
+   - Backups: https://backup.zoi.local
 
 ## Architecture
 
@@ -867,7 +867,7 @@ Add your LLM API keys in `.env`:
 2. Set `ACME_EMAIL` for Let's Encrypt SSL certificates
 
 ### Authentication
-1. Access Authentik at https://auth.localhost
+1. Access Authentik at https://auth.zoi.local
 2. Default admin user is created on first run
 3. Configure OAuth2 applications for services
 
@@ -889,8 +889,8 @@ The FastAPI backend is in `services/fastapi/`. To add new endpoints:
 
 ### Monitoring
 - Prometheus metrics: Available at `/metrics` on each service
-- Aim: ML experiment tracking at https://aim.localhost
-- Health checks: Automated monitoring at https://health.localhost
+- Aim: ML experiment tracking at https://aim.zoi.local
+- Health checks: Automated monitoring at https://health.zoi.local
 
 ### Backups
 Automated backups run daily via Backrest:
@@ -1320,12 +1320,12 @@ class AsyncWorker:
         
         # MongoDB
         self.mongo_client = AsyncIOMotorClient(
-            os.getenv("MONGODB_URL", "mongodb://localhost:27017")
+            os.getenv("MONGODB_URL", "mongodb://zoi.local:27017")
         )
         
         # RabbitMQ
         self.rabbit_connection = await aio_pika.connect_robust(
-            os.getenv("RABBITMQ_URL", "amqp://guest:guest@localhost:5672")
+            os.getenv("RABBITMQ_URL", "amqp://guest:guest@zoi.local:5672")
         )
         self.rabbit_channel = await self.rabbit_connection.channel()
         
@@ -1453,7 +1453,7 @@ db.documents.createIndex({ "tags": 1 })
 EOF
 
 # Initialize Qdrant collection
-curl -X PUT "http://localhost:6333/collections/documents" \
+curl -X PUT "http://zoi.local:6333/collections/documents" \
   -H "Content-Type: application/json" \
   -d '{
     "vectors": {
@@ -1489,7 +1489,7 @@ docker cp rag-production-system-mongo-procedural-1:/tmp/procedural_backup \
   "$BACKUP_DIR/mongo_procedural"
 
 # Qdrant backup
-curl -X POST "http://localhost:6333/snapshots" \
+curl -X POST "http://zoi.local:6333/snapshots" \
   -H "Content-Type: application/json" \
   -d '{"wait": true}'
 

@@ -123,16 +123,16 @@ All service configuration remains the same as documented in the original `docume
 ### Health Check Endpoint
 ```bash
 # Test overall system health
-curl http://localhost:8000/health
+curl http://zoi.local:8000/health
 
 # Test document service health
-curl http://localhost:8000/api/documents/health
+curl http://zoi.local:8000/api/documents/health
 ```
 
 ### Document Upload Test
 ```bash
 # Upload a document
-curl -X POST http://localhost:8000/api/documents/upload \
+curl -X POST http://zoi.local:8000/api/documents/upload \
   -F "file=@test.pdf" \
   -F "process_async=true"
 ```

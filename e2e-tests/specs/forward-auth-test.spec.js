@@ -7,7 +7,7 @@ test.describe('Forward Auth Tests', () => {
     
     // Try to access Dashy via Traefik (should redirect to auth)
     try {
-      await page.goto('http://dashy.localhost', { 
+      await page.goto('http://dashy.zoi.local', { 
         waitUntil: 'networkidle',
         timeout: 10000 
       });
@@ -51,7 +51,7 @@ test.describe('Forward Auth Tests', () => {
     console.log('Testing direct Authentik login...');
     
     // Go directly to Authentik login
-    await page.goto('http://localhost:9000/if/flow/default-authentication-flow/');
+    await page.goto('http://zoi.local:9000/if/flow/default-authentication-flow/');
     
     console.log('Current URL:', page.url());
     await page.screenshot({ path: 'test-results/authentik-login-direct.png' });

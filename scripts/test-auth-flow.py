@@ -16,7 +16,7 @@ async def test_auth_flow():
             headless=False,  # Set to True for CI/CD
             args=[
                 '--ignore-certificate-errors',  # For self-signed certs
-                '--host-resolver-rules=MAP dashy.localhost 127.0.0.1, MAP auth.localhost 127.0.0.1'  # Map domains
+                '--host-resolver-rules=MAP dashy.zoi.local 127.0.0.1, MAP auth.zoi.local 127.0.0.1'  # Map domains
             ]
         )
         
@@ -29,11 +29,11 @@ async def test_auth_flow():
         try:
             # Step 1: Navigate to Dashy
             print("\n📍 Step 1: Navigating to Dashy dashboard...")
-            # Try mapped domain first, then localhost:port
+            # Try mapped domain first, then zoi.local:port
             dashy_urls = [
-                'https://dashy.localhost',  # Should work with host mapping
-                'https://localhost:443',    # Traefik HTTPS
-                'http://localhost:4001'     # Direct Dashy port
+                'https://dashy.zoi.local',  # Should work with host mapping
+                'https://zoi.local:443',    # Traefik HTTPS
+                'http://zoi.local:4001'     # Direct Dashy port
             ]
             
             connected = False
@@ -56,7 +56,7 @@ async def test_auth_flow():
             current_url = page.url
             print(f"   Current URL: {current_url}")
             
-            if 'auth.localhost' in current_url or 'authentik' in current_url:
+            if 'auth.zoi.local' in current_url or 'authentik' in current_url:
                 print("   ✅ Redirected to Authentik login page")
             else:
                 print("   ❌ Not redirected to Authentik - checking page content...")
@@ -72,7 +72,7 @@ async def test_auth_flow():
             await page.wait_for_selector('input[name="uid_field"]', timeout=10000)
             
             # Fill login form
-            await page.fill('input[name="uid_field"]', 'admin@localhost')
+            await page.fill('input[name="uid_field"]', 'admin@zoi.local')
             await page.fill('input[type="password"]', 'admin123!')
             
             # Submit form
@@ -86,7 +86,7 @@ async def test_auth_flow():
             # Wait for either Dashy to load or an error
             try:
                 await page.wait_for_function(
-                    'window.location.hostname === "dashy.localhost" || document.querySelector(".dashy-header") !== null',
+                    'window.location.hostname === "dashy.zoi.local" || document.querySelector(".dashy-header") !== null',
                     timeout=15000
                 )
                 
@@ -94,7 +94,7 @@ async def test_auth_flow():
                 print(f"   Current URL: {current_url}")
                 
                 # Verify we're on Dashy
-                if 'dashy.localhost' in current_url:
+                if 'dashy.zoi.local' in current_url:
                     print("   ✅ Successfully redirected to Dashy")
                     
                     # Check if Dashy content loaded

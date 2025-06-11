@@ -398,7 +398,7 @@ Environment variables are used **only** for sensitive API keys related to AI pro
     *   `OLLANA_API_KEY` (Requires `OLLAMA_BASE_URL` too)
 *   **Endpoints (Optional/Provider Specific inside .taskmasterconfig):**
     *   `AZURE_OPENAI_ENDPOINT`
-    *   `OLLAMA_BASE_URL` (Default: `http://localhost:11434/api`)
+    *   `OLLAMA_BASE_URL` (Default: `http://zoi.local:11434/api`)
 
 **Set API keys** in your **`.env`** file in the project root (for CLI use) or within the `env` section of your **`.roo/mcp.json`** file (for MCP/Roo Code integration). All other settings (model choice, max tokens, temperature, log level, custom endpoints) are managed in `.taskmasterconfig` via `task-master models` command or `models` MCP tool.
 

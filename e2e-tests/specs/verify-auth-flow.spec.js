@@ -8,7 +8,7 @@ test('verify authentication flow and Dashy access', async ({ page }) => {
   try {
     // Step 1: Navigate to Dashy
     console.log('1️⃣ Going to Dashy...');
-    await page.goto('https://dashy.localhost', { waitUntil: 'networkidle' });
+    await page.goto('https://dashy.zoi.local', { waitUntil: 'networkidle' });
     
     let currentUrl = page.url();
     console.log(`Initial URL: ${currentUrl}`);
@@ -21,7 +21,7 @@ test('verify authentication flow and Dashy access', async ({ page }) => {
       await page.waitForSelector('input[name="uidField"]', { timeout: 10000 });
       
       // Fill and submit credentials
-      await page.fill('input[name="uidField"]', 'admin@localhost');
+      await page.fill('input[name="uidField"]', 'admin@zoi.local');
       await page.fill('input[name="password"]', 'change-me-authentik-admin');
       
       console.log('3️⃣ Submitting login form...');
@@ -39,7 +39,7 @@ test('verify authentication flow and Dashy access', async ({ page }) => {
         console.log('4️⃣ Still on auth page - trying direct navigation...');
         
         // Try navigating directly
-        await page.goto('https://dashy.localhost', { 
+        await page.goto('https://dashy.zoi.local', { 
           waitUntil: 'networkidle',
           timeout: 10000 
         });
@@ -73,7 +73,7 @@ test('verify authentication flow and Dashy access', async ({ page }) => {
     await page.screenshot({ path: 'auth-flow-verification.png', fullPage: true });
     
     // Step 5: Determine auth status
-    if (finalUrl.includes('dashy.localhost') && !finalUrl.includes(':9000')) {
+    if (finalUrl.includes('dashy.zoi.local') && !finalUrl.includes(':9000')) {
       if (isDashyPage) {
         console.log('🎉 SUCCESS: Authenticated and on Dashy page!');
       } else {
@@ -115,10 +115,10 @@ test('test manual URL navigation after auth', async ({ page }) => {
   console.log('🧪 Testing manual URL patterns...');
   
   const urlsToTest = [
-    'https://dashy.localhost',
-    'https://dashy.localhost/',
-    'http://dashy.localhost',
-    'https://localhost:4001'  // Direct Dashy port
+    'https://dashy.zoi.local',
+    'https://dashy.zoi.local/',
+    'http://dashy.zoi.local',
+    'https://zoi.local:4001'  // Direct Dashy port
   ];
   
   for (const url of urlsToTest) {

@@ -33,7 +33,7 @@ AI_DEVELOPER_GITNESS_URL=http://supercoder-gitness:3000
 AI_DEVELOPER_GITNESS_USER=admin
 AI_DEVELOPER_GITNESS_PASSWORD=admin
 AI_DEVELOPER_WORKSPACE_SERVICE_ENDPOINT=http://supercoder-ws:8080
-AI_DEVELOPER_APP_URL=http://localhost:3002
+AI_DEVELOPER_APP_URL=http://zoi.local:3002
 ```
 
 **MongoDB Configuration:**
@@ -143,20 +143,20 @@ docker-compose up -d
 ### ✅ **Post-Rebuild Verification**
 
 **Working Services (Should be healthy):**
-- SuperAGI Frontend: http://localhost:3001 ✅
-- SuperAGI Backend API: http://localhost:8001/api/configs/get/env ✅  
-- SuperCoder Git Server: http://localhost:8085 ✅
-- SuperCoder Frontend: http://localhost:3002 ✅
-- Document API: http://localhost:8000/health ✅
-- RabbitMQ Management: http://localhost:15672 ✅
+- SuperAGI Frontend: http://zoi.local:3001 ✅
+- SuperAGI Backend API: http://zoi.local:8001/api/configs/get/env ✅  
+- SuperCoder Git Server: http://zoi.local:8085 ✅
+- SuperCoder Frontend: http://zoi.local:3002 ✅
+- Document API: http://zoi.local:8000/health ✅
+- RabbitMQ Management: http://zoi.local:15672 ✅
 
 **Access Points:**
-- **Authentik Server**: http://localhost:9000 (HTTP) / https://localhost:9443 (HTTPS) ✅
-- **SuperAGI Interface**: http://localhost:3001 ✅ FULLY FUNCTIONAL
-- **SuperCoder Git Server**: http://localhost:8085 ✅ FULLY FUNCTIONAL  
-- **SuperCoder Frontend**: http://localhost:3002 ✅ RUNNING (awaits backend)
-- **SuperCoder Python IDE**: http://localhost:5001 ✅ RUNNING (updated port)
-- **Redis Insight**: http://localhost:8002 ✅
+- **Authentik Server**: http://zoi.local:9000 (HTTP) / https://zoi.local:9443 (HTTPS) ✅
+- **SuperAGI Interface**: http://zoi.local:3001 ✅ FULLY FUNCTIONAL
+- **SuperCoder Git Server**: http://zoi.local:8085 ✅ FULLY FUNCTIONAL  
+- **SuperCoder Frontend**: http://zoi.local:3002 ✅ RUNNING (awaits backend)
+- **SuperCoder Python IDE**: http://zoi.local:5001 ✅ RUNNING (updated port)
+- **Redis Insight**: http://zoi.local:8002 ✅
 
 **Known Issues:**
 - SuperCoder backend/worker: Go dependency injection errors (application bug)
@@ -177,12 +177,12 @@ docker-compose up -d
 - **Redis Insight Port Conflict (FIXED ✅)**
    - Issue: Port 8001 conflict with SuperAGI backend
    - Solution: Changed to port 8002:8001
-   - Access: http://localhost:8002
+   - Access: http://zoi.local:8002
 
 - **SuperCoder Python IDE Port Conflict (FIXED ✅)**
    - Issue: Port 5000 conflict with macOS Control Center (AirPlay)  
    - Solution: Changed to port 5001:5000
-   - Access: http://localhost:5001
+   - Access: http://zoi.local:5001
 
 - **FastAPI Health Check Failures (FIXED ✅)**
    - Issue: Multiple dependency service errors

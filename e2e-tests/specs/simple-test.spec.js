@@ -5,7 +5,7 @@ test('Simple Authentik authentication test', async ({ page }) => {
   
   // Navigate directly to Authentik login page
   console.log('Navigating to Authentik admin interface...');
-  await page.goto('http://localhost:9000/if/admin/', { 
+  await page.goto('http://zoi.local:9000/if/admin/', { 
     waitUntil: 'domcontentloaded',
     timeout: 15000 
   });

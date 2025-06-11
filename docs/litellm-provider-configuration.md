@@ -168,14 +168,14 @@ llama3.2-1b → gpt-3.5-turbo → claude-3-haiku
 ```bash
 # Check LiteLLM health
 curl -H "Authorization: Bearer sk-change-me-to-random-string" \
-     http://localhost:4000/health
+     http://zoi.local:4000/health
 
 # Check available models
 curl -H "Authorization: Bearer sk-change-me-to-random-string" \
-     http://localhost:4000/v1/models
+     http://zoi.local:4000/v1/models
 
 # Check Prometheus metrics
-curl http://localhost:4001/metrics
+curl http://zoi.local:4001/metrics
 ```
 
 ## Environment Variables
@@ -205,7 +205,7 @@ REDIS_PASSWORD=change-me-redis-pass
 
 ### Basic Chat Completion
 ```bash
-curl -X POST http://localhost:4000/v1/chat/completions \
+curl -X POST http://zoi.local:4000/v1/chat/completions \
   -H "Authorization: Bearer sk-change-me-to-random-string" \
   -H "Content-Type: application/json" \
   -d '{
@@ -218,7 +218,7 @@ curl -X POST http://localhost:4000/v1/chat/completions \
 ### Using Model Groups
 ```bash
 # Use fast models for quick responses
-curl -X POST http://localhost:4000/v1/chat/completions \
+curl -X POST http://zoi.local:4000/v1/chat/completions \
   -H "Authorization: Bearer sk-change-me-to-random-string" \
   -H "Content-Type: application/json" \
   -d '{
@@ -227,7 +227,7 @@ curl -X POST http://localhost:4000/v1/chat/completions \
   }'
 
 # Use local models for privacy
-curl -X POST http://localhost:4000/v1/chat/completions \
+curl -X POST http://zoi.local:4000/v1/chat/completions \
   -H "Authorization: Bearer sk-change-me-to-random-string" \
   -H "Content-Type: application/json" \
   -d '{
@@ -238,7 +238,7 @@ curl -X POST http://localhost:4000/v1/chat/completions \
 
 ### Embedding Generation
 ```bash
-curl -X POST http://localhost:4000/v1/embeddings \
+curl -X POST http://zoi.local:4000/v1/embeddings \
   -H "Authorization: Bearer sk-change-me-to-random-string" \
   -H "Content-Type: application/json" \
   -d '{
@@ -272,10 +272,10 @@ curl -X POST http://localhost:4000/v1/embeddings \
 docker logs zoi-litellm-1
 
 # Check Ollama models
-curl http://localhost:11434/api/tags
+curl http://zoi.local:11434/api/tags
 
 # Test specific model
-curl -X POST http://localhost:4000/v1/chat/completions \
+curl -X POST http://zoi.local:4000/v1/chat/completions \
   -H "Authorization: Bearer sk-change-me-to-random-string" \
   -H "Content-Type: application/json" \
   -d '{"model": "llama3.2-1b", "messages": [{"role": "user", "content": "test"}], "max_tokens": 5}'

@@ -33,7 +33,7 @@ class VectorSearchResult:
 @dataclass
 class QdrantConfig:
     """Qdrant client configuration"""
-    host: str = "localhost"
+    host: str = "zoi.local"
     port: int = 6333
     api_key: Optional[str] = None
     https: bool = False
@@ -42,7 +42,7 @@ class QdrantConfig:
     @classmethod
     def from_env(cls) -> "QdrantConfig":
         """Create config from environment variables"""
-        qdrant_url = os.getenv("QDRANT_URL", "http://localhost:6333")
+        qdrant_url = os.getenv("QDRANT_URL", "http://zoi.local:6333")
         
         # Parse URL
         if qdrant_url.startswith("https://"):

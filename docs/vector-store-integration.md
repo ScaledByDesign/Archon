@@ -30,7 +30,7 @@ Create or update your `.env` file with Qdrant configuration:
 
 ```bash
 # Qdrant Configuration
-QDRANT_URL=http://localhost:6333
+QDRANT_URL=http://zoi.local:6333
 QDRANT_API_KEY=                # Optional for cloud instances
 QDRANT_TIMEOUT=60              # Request timeout in seconds
 ```
@@ -52,7 +52,7 @@ qdrant:
     - QDRANT__SERVICE__HTTP_PORT=6333
     - QDRANT__SERVICE__GRPC_PORT=6334
   healthcheck:
-    test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+    test: ["CMD", "curl", "-f", "http://zoi.local:6333/health"]
     interval: 30s
     timeout: 10s
     retries: 3
@@ -285,7 +285,7 @@ For production deployments:
 ### Health Checks
 
 Monitor Qdrant health via:
-- Docker health check: `curl -f http://localhost:6333/health`
+- Docker health check: `curl -f http://zoi.local:6333/health`
 - REST API: `GET /health`
 - Collection status: Check collection info for status indicators
 

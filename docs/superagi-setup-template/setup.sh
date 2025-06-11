@@ -46,7 +46,7 @@ attempt=1
 while [ $attempt -le $max_attempts ]; do
     echo "📡 Attempt $attempt: Storing API key in SuperAGI..."
     
-    response=$(curl -s -w "%{http_code}" -X POST "http://localhost:8001/models_controller/store_api_keys" \
+    response=$(curl -s -w "%{http_code}" -X POST "http://zoi.local:8001/models_controller/store_api_keys" \
         -H "Content-Type: application/json" \
         -d '{
             "model_provider": "OpenAI",
@@ -68,7 +68,7 @@ done
 if [ $attempt -gt $max_attempts ]; then
     echo "❌ Failed to store API key after $max_attempts attempts"
     echo "💡 You may need to run this command manually after services are fully started:"
-    echo "   curl -X POST \"http://localhost:8001/models_controller/store_api_keys\" \\"
+    echo "   curl -X POST \"http://zoi.local:8001/models_controller/store_api_keys\" \\"
     echo "     -H \"Content-Type: application/json\" \\"
     echo "     -d '{\"model_provider\": \"OpenAI\", \"model_api_key\": \"sk-change-me-to-random-string\"}'"
 fi
@@ -77,21 +77,21 @@ fi
 echo "🔍 Running verification checks..."
 
 echo "📡 Checking Qdrant..."
-if curl -s http://localhost:6333/readyz | grep -q "ready"; then
+if curl -s http://zoi.local:6333/readyz | grep -q "ready"; then
     echo "✅ Qdrant is ready"
 else
     echo "⚠️  Qdrant may not be ready yet"
 fi
 
 echo "📡 Checking LiteLLM..."
-if curl -s -H "Authorization: Bearer sk-change-me-to-random-string" http://localhost:4000/v1/models >/dev/null 2>&1; then
+if curl -s -H "Authorization: Bearer sk-change-me-to-random-string" http://zoi.local:4000/v1/models >/dev/null 2>&1; then
     echo "✅ LiteLLM is ready"
 else
     echo "⚠️  LiteLLM may not be ready yet"
 fi
 
 echo "📡 Checking SuperAGI models..."
-models_response=$(curl -s "http://localhost:8001/models_controller/fetch_models")
+models_response=$(curl -s "http://zoi.local:8001/models_controller/fetch_models")
 if echo "$models_response" | grep -q "gpt"; then
     echo "✅ SuperAGI models are available"
     echo "📋 Available models: $(echo "$models_response" | grep -o '"name":"[^"]*"' | cut -d'"' -f4 | tr '\n' ', ' | sed 's/,$//')"
@@ -101,8 +101,8 @@ fi
 
 echo ""
 echo "🎉 Setup complete!"
-echo "🌐 Access SuperAGI at: http://localhost:3001"
-echo "📊 Backend API docs at: http://localhost:8001/docs"
+echo "🌐 Access SuperAGI at: http://zoi.local:3001"
+echo "📊 Backend API docs at: http://zoi.local:8001/docs"
 echo ""
 echo "📋 Summary:"
 echo "   ✅ Qdrant vector database configured"

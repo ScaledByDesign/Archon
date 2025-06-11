@@ -12,8 +12,8 @@ test('HTTPS Dashy authentication with certificate bypass', async ({ page }) => {
 
   try {
     // Navigate to HTTPS dashy with certificate bypass
-    console.log('1️⃣ Navigating to https://dashy.localhost with ignoreHTTPSErrors...');
-    await page.goto('https://dashy.localhost', { 
+    console.log('1️⃣ Navigating to https://dashy.zoi.local with ignoreHTTPSErrors...');
+    await page.goto('https://dashy.zoi.local', { 
       waitUntil: 'domcontentloaded',
       timeout: 30000 
     });
@@ -23,12 +23,12 @@ test('HTTPS Dashy authentication with certificate bypass', async ({ page }) => {
     console.log(`Current URL: ${currentUrl}`);
 
     // If we're on an authentication page, try to proceed
-    if (currentUrl.includes('localhost:9000') || currentUrl.includes('0.0.0.0:9000')) {
+    if (currentUrl.includes('zoi.local:9000') || currentUrl.includes('0.0.0.0:9000')) {
       console.log('🔐 Redirected to authentication page');
       
-      // Replace 0.0.0.0:9000 with localhost:9000 if needed
+      // Replace 0.0.0.0:9000 with zoi.local:9000 if needed
       if (currentUrl.includes('0.0.0.0:9000')) {
-        const fixedUrl = currentUrl.replace('0.0.0.0:9000', 'localhost:9000');
+        const fixedUrl = currentUrl.replace('0.0.0.0:9000', 'zoi.local:9000');
         console.log(`🔧 Fixing URL: ${fixedUrl}`);
         await page.goto(fixedUrl, { waitUntil: 'domcontentloaded' });
       }
@@ -36,7 +36,7 @@ test('HTTPS Dashy authentication with certificate bypass', async ({ page }) => {
       // Look for login form or already authenticated state
       try {
         // Check if we're already authenticated (redirect back to Dashy)
-        await page.waitForURL(/dashy\.localhost/, { timeout: 5000 });
+        await page.waitForURL(/dashy\.zoi.local/, { timeout: 5000 });
         console.log('✅ Successfully authenticated and redirected to Dashy!');
       } catch {
         // Try to find login form
@@ -56,7 +56,7 @@ test('HTTPS Dashy authentication with certificate bypass', async ({ page }) => {
             await loginButton.click();
             
             // Wait for authentication to complete
-            await page.waitForURL(/dashy\.localhost/, { timeout: 10000 });
+            await page.waitForURL(/dashy\.zoi.local/, { timeout: 10000 });
             console.log('✅ Authentication successful!');
           }
         }
@@ -67,7 +67,7 @@ test('HTTPS Dashy authentication with certificate bypass', async ({ page }) => {
     const finalUrl = page.url();
     console.log(`Final URL: ${finalUrl}`);
     
-    if (finalUrl.includes('dashy.localhost')) {
+    if (finalUrl.includes('dashy.zoi.local')) {
       console.log('🎉 SUCCESS: HTTPS Dashy authentication working!');
       
       // Take a screenshot for verification

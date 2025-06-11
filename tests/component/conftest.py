@@ -9,7 +9,7 @@ import asyncio
 async def vault_config():
     """Vault configuration for component testing."""
     return {
-        "url": "http://localhost:8200",
+        "url": "http://zoi.local:8200",
         "token": "test-vault-token",
         "namespace": "test",
         "verify": False
@@ -19,7 +19,7 @@ async def vault_config():
 async def qdrant_config():
     """Qdrant configuration for component testing."""
     return {
-        "url": "http://localhost:6333",
+        "url": "http://zoi.local:6333",
         "api_key": None,
         "timeout": 30,
         "prefer_grpc": False

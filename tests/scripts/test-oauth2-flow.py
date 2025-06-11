@@ -10,8 +10,8 @@ import sys
 from urllib.parse import urlparse, parse_qs
 
 # Configuration
-FASTAPI_BASE_URL = "http://localhost:8000"
-AUTHENTIK_BASE_URL = "https://localhost:9443"
+FASTAPI_BASE_URL = "http://zoi.local:8000"
+AUTHENTIK_BASE_URL = "https://zoi.local:9443"
 
 def test_oauth2_status():
     """Test the OAuth2 configuration status."""
@@ -148,7 +148,7 @@ def main():
     if all_passed:
         print("\n🎉 All tests passed! OAuth2 integration is working correctly.")
         print("\n📝 Next steps:")
-        print("   1. Open http://localhost:8000/api/auth/login in your browser")
+        print("   1. Open http://zoi.local:8000/api/auth/login in your browser")
         print("   2. Complete the authentication flow")
         print("   3. Test user information retrieval")
     else:

@@ -9,7 +9,7 @@ import json
 import time
 import sys
 
-LITELLM_BASE_URL = "http://localhost:4000"
+LITELLM_BASE_URL = "http://zoi.local:4000"
 API_KEY = "sk-change-me-to-random-string"
 TIMEOUT = 60  # 60 seconds for M4 Mac Mini
 
@@ -122,8 +122,8 @@ def test_connectivity():
     print("-" * 40)
     
     services = {
-        "LiteLLM": "http://localhost:4000",
-        "Ollama": "http://localhost:11434"
+        "LiteLLM": "http://zoi.local:4000",
+        "Ollama": "http://zoi.local:11434"
     }
     
     results = {}

@@ -33,7 +33,7 @@ Required environment variables in `.env`:
 
 ```bash
 # Vault Configuration
-VAULT_ADDR=http://localhost:8200
+VAULT_ADDR=http://zoi.local:8200
 VAULT_ROOT_TOKEN=vault-root-token-change-me-in-production
 
 # Database Connections

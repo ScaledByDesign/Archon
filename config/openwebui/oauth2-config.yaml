@@ -6,7 +6,7 @@ oauth:
   token_url: "${AUTHENTIK_ISSUER}/token/"
   userinfo_url: "${AUTHENTIK_ISSUER}/userinfo/"
   scopes: ["openid", "email", "profile", "rag:chat"]
-  redirect_uri: "https://chat.${DOMAIN:-localhost}/auth/callback"
+  redirect_uri: "https://chat.${DOMAIN:-zoi.local}/auth/callback"
   
 claims_mapping:
   username: "preferred_username"

@@ -107,15 +107,15 @@ networks:
 ### **Local Routing Tests**
 ```bash
 # Traefik Dashboard (auth working)
-curl -k -H "Host: traefik.zoi.cc" https://localhost:443
+curl -k -H "Host: traefik.zoi.cc" https://zoi.local:443
 # Response: 401 Unauthorized 
 
 # LiteLLM (routing confirmed)
-curl -k -H "Host: llm.zoi.cc" https://localhost:443/health
+curl -k -H "Host: llm.zoi.cc" https://zoi.local:443/health
 # Response: {"error": "Authentication Error, No api key passed in."} 
 
 # Qdrant (routing confirmed)  
-curl -k -H "Host: qdrant.zoi.cc" https://localhost:443
+curl -k -H "Host: qdrant.zoi.cc" https://zoi.local:443
 # Response: 404 page not found 
 ```
 

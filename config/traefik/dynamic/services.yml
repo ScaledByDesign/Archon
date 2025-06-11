@@ -41,7 +41,7 @@ http:
 
     # Monitoring endpoints (commented out - services not deployed)
     # prometheus:
-    #   rule: "Host(`metrics.${DOMAIN:-localhost}`)"
+    #   rule: "Host(`metrics.${DOMAIN:-zoi.local}`)"
     #   service: prometheus
     #   middlewares:
     #     - admin-secure
@@ -49,7 +49,7 @@ http:
     #     certResolver: letsencrypt
 
     # grafana:
-    #   rule: "Host(`monitor.${DOMAIN:-localhost}`)"
+    #   rule: "Host(`monitor.${DOMAIN:-zoi.local}`)"
     #   service: grafana
     #   middlewares:
     #     - web-secure

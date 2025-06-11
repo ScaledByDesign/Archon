@@ -9,7 +9,7 @@ import json
 import sys
 from typing import Dict, Any
 
-LITELLM_BASE_URL = "http://localhost:4000"
+LITELLM_BASE_URL = "http://zoi.local:4000"
 API_KEY = "sk-change-me-to-random-string"
 
 async def test_local_model():

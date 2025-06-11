@@ -6,7 +6,7 @@ test.describe('Basic Connectivity Tests', () => {
     console.log('Testing direct access to Dashy...');
     
     // Access Dashy directly via its exposed port
-    await page.goto('http://localhost:4001');
+    await page.goto('http://zoi.local:4001');
     
     // Wait for the page to load
     await page.waitForSelector('h1', { timeout: 10000 });
@@ -27,7 +27,7 @@ test.describe('Basic Connectivity Tests', () => {
     console.log('Testing access to Authentik admin...');
     
     // Access Authentik admin interface
-    await page.goto('http://localhost:9000/if/admin/');
+    await page.goto('http://zoi.local:9000/if/admin/');
     
     // Wait for the admin interface to load
     await page.waitForSelector('body', { timeout: 10000 });
@@ -46,7 +46,7 @@ test.describe('Basic Connectivity Tests', () => {
     console.log('Testing access to Traefik dashboard...');
     
     // Access Traefik dashboard
-    await page.goto('http://localhost:8080');
+    await page.goto('http://zoi.local:8080');
     
     // Wait for the dashboard to load
     await page.waitForSelector('body', { timeout: 10000 });

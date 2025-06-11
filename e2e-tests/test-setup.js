@@ -46,9 +46,9 @@ async function checkServiceHealth() {
   console.log('🏥 Checking service health...');
   
   const healthChecks = [
-    { name: 'Traefik', url: 'http://localhost:8080/ping' },
-    { name: 'Authentik', url: 'http://localhost:9000/if/flow/default-authentication-flow/' },
-    { name: 'Dashy', url: 'http://localhost:4001' }
+    { name: 'Traefik', url: 'http://zoi.local:8080/ping' },
+    { name: 'Authentik', url: 'http://zoi.local:9000/if/flow/default-authentication-flow/' },
+    { name: 'Dashy', url: 'http://zoi.local:4001' }
   ];
   
   const results = [];
@@ -85,17 +85,17 @@ async function checkHostsFile() {
     const hostsContent = fs.readFileSync('/etc/hosts', 'utf8');
     
     const requiredHosts = [
-      'dashy.localhost',
-      'auth.localhost', 
-      'traefik.localhost',
-      'api.localhost',
-      'llm.localhost'
+      'dashy.zoi.local',
+      'auth.zoi.local', 
+      'traefik.zoi.local',
+      'api.zoi.local',
+      'llm.zoi.local'
     ];
     
     const missingHosts = requiredHosts.filter(host => !hostsContent.includes(host));
     
     if (missingHosts.length > 0) {
-      console.log('⚠️ Missing localhost entries in /etc/hosts:');
+      console.log('⚠️ Missing zoi.local entries in /etc/hosts:');
       console.log('💡 Add these lines to /etc/hosts:');
       missingHosts.forEach(host => {
         console.log(`   127.0.0.1 ${host}`);
@@ -103,13 +103,13 @@ async function checkHostsFile() {
       return false;
     }
     
-    console.log('✅ All required localhost entries found in hosts file');
+    console.log('✅ All required zoi.local entries found in hosts file');
     return true;
     
   } catch (error) {
     console.log('⚠️ Could not check hosts file (may require sudo):', error.message);
     console.log('💡 Ensure these entries exist in /etc/hosts:');
-    console.log('   127.0.0.1 dashy.localhost auth.localhost traefik.localhost api.localhost llm.localhost');
+    console.log('   127.0.0.1 dashy.zoi.local auth.zoi.local traefik.zoi.local api.zoi.local llm.zoi.local');
     return true; // Don't fail, just warn
   }
 }
@@ -118,7 +118,7 @@ async function checkEnvironmentVariables() {
   console.log('🔧 Checking environment variables...');
   
   const envVars = {
-    'BASE_URL': process.env.BASE_URL || 'https://dashy.localhost',
+    'BASE_URL': process.env.BASE_URL || 'https://dashy.zoi.local',
     'AUTHENTIK_USER': process.env.AUTHENTIK_USER || 'admin',
     'AUTHENTIK_PASSWORD': process.env.AUTHENTIK_PASSWORD || 'admin123!'
   };

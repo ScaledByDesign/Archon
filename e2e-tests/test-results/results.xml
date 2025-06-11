@@ -3,7 +3,7 @@
 <testcase name="authenticate with Authentik" classname="auth.setup.js" time="4.293">
 <system-out>
 <![CDATA[Starting authentication setup...
-Current URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.localhost%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiJMR1lPNlpJUFdTREdZTzNLQlZVRlJDSU5CQjdIR01DRFJWVlpWVkxIN1ZPQlRLNk1INkNBIiwic3RhdGUiOiItT0J5TE8zSWd0bzUtbG16ZFZKdVQzdVBaZVBzNzdSWFRmTmR1dTF2LU8wIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.ZZTFI7_F_xAkUd8e5iIhzPJy6yfk1HbT9cjaarw9NP4
+Current URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.zoi.local%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiJMR1lPNlpJUFdTREdZTzNLQlZVRlJDSU5CQjdIR01DRFJWVlpWVkxIN1ZPQlRLNk1INkNBIiwic3RhdGUiOiItT0J5TE8zSWd0bzUtbG16ZFZKdVQzdVBaZVBzNzdSWFRmTmR1dTF2LU8wIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.ZZTFI7_F_xAkUd8e5iIhzPJy6yfk1HbT9cjaarw9NP4
 Already authenticated or Dashy loaded
 ]]>
 </system-out>
@@ -15,16 +15,16 @@ Already authenticated or Dashy loaded
 <![CDATA[🚀 Starting simple Dashy login test...
 1️⃣ Navigating to Dashy...
 2️⃣ Waiting for auth redirect...
-Current URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.localhost%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiI0N1JJUDM0Q0xUQjdJREdUTTVWUUJISE9RVU5HTkhNMktISDQ3SFBGTlhDSjVES01BVlBBIiwic3RhdGUiOiIyUnpVRXhXYXJCdVdOb09MRG13MlZaS3JhM0ZNOGFoSEVSNm5FbllzVzAwIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.8AOjWXj3F7ZFtoi_csmbHrQG2LEz3Lr75aO9lN-LSXA
+Current URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.zoi.local%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiI0N1JJUDM0Q0xUQjdJREdUTTVWUUJISE9RVU5HTkhNMktISDQ3SFBGTlhDSjVES01BVlBBIiwic3RhdGUiOiIyUnpVRXhXYXJCdVdOb09MRG13MlZaS3JhM0ZNOGFoSEVSNm5FbllzVzAwIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.8AOjWXj3F7ZFtoi_csmbHrQG2LEz3Lr75aO9lN-LSXA
 3️⃣ Waiting for login form...
 4️⃣ Filling username...
-✅ Username filled: "admin@localhost"
+✅ Username filled: "admin@zoi.local"
 5️⃣ Filling password...
 ✅ Password filled (length: 25)
 6️⃣ Submitting form...
 ✅ Form submitted
 7️⃣ Waiting for authentication to complete...
-Final URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.localhost%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiI0N1JJUDM0Q0xUQjdJREdUTTVWUUJISE9RVU5HTkhNMktISDQ3SFBGTlhDSjVES01BVlBBIiwic3RhdGUiOiIyUnpVRXhXYXJCdVdOb09MRG13MlZaS3JhM0ZNOGFoSEVSNm5FbllzVzAwIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.8AOjWXj3F7ZFtoi_csmbHrQG2LEz3Lr75aO9lN-LSXA
+Final URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.zoi.local%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiI0N1JJUDM0Q0xUQjdJREdUTTVWUUJISE9RVU5HTkhNMktISDQ3SFBGTlhDSjVES01BVlBBIiwic3RhdGUiOiIyUnpVRXhXYXJCdVdOb09MRG13MlZaS3JhM0ZNOGFoSEVSNm5FbllzVzAwIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.8AOjWXj3F7ZFtoi_csmbHrQG2LEz3Lr75aO9lN-LSXA
 🎉 Successfully logged into Dashy!
 ✅ Dashy page loaded
 ]]>
@@ -33,7 +33,7 @@ Final URL: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fappl
 <testcase name="should verify Dashy is accessible after auth" classname="simple-dashy-login.spec.js" time="0.671">
 <system-out>
 <![CDATA[🔍 Testing direct Dashy access...
-Direct access result: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.localhost%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiJPU1BGRUpVUjVTM1hXRzRaRkJaVzM2TlpOTEFJNllCQllGSElOVUJESE9UU05LMlFIVExBIiwic3RhdGUiOiJzMi1PUTdGWlk4VjZhVWNSdFl5cTUtczNlMmFucGh1ellDbEFUZk55NmVzIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.gYSObXrKpE1EUzh1exhR9UAKHHIs0OuXKAv9gUmVvSI
+Direct access result: http://0.0.0.0:9000/if/flow/default-authentication-flow/?next=%2Fapplication%2Fo%2Fauthorize%2F%3Fclient_id%3DH736fW5LZ9p8sBDWyzIGfjVPrQAGWMH6hzMwtsFk%26redirect_uri%3Dhttps%253A%252F%252Fdashy.zoi.local%252Foutpost.goauthentik.io%252Fcallback%253FX-authentik-auth-callback%253Dtrue%26response_type%3Dcode%26scope%3Dprofile%2Bemail%2Bentitlements%2Bopenid%2Bak_proxy%26state%3DeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnb2F1dGhlbnRpay5pby9vdXRwb3N0L0g3MzZmVzVMWjlwOHNCRFd5eklHZmpWUHJRQUdXTUg2aHpNd3RzRmsiLCJzaWQiOiJPU1BGRUpVUjVTM1hXRzRaRkJaVzM2TlpOTEFJNllCQllGSElOVUJESE9UU05LMlFIVExBIiwic3RhdGUiOiJzMi1PUTdGWlk4VjZhVWNSdFl5cTUtczNlMmFucGh1ellDbEFUZk55NmVzIiwicmVkaXJlY3QiOiJodHRwczovL2Rhc2h5LmxvY2FsaG9zdC8ifQ.gYSObXrKpE1EUzh1exhR9UAKHHIs0OuXKAv9gUmVvSI
 ℹ️ Redirected to auth - this is expected behavior
 ]]>
 </system-out>

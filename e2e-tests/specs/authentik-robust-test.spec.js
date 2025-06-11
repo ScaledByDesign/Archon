@@ -10,7 +10,7 @@ test.describe('Authentik Robust Authentication', () => {
     try {
       // Step 1: Navigate to protected resource
       console.log('1️⃣ Navigating to protected resource...');
-      await page.goto('https://dashy.localhost', { 
+      await page.goto('https://dashy.zoi.local', { 
         waitUntil: 'networkidle',
         timeout: 20000 
       });
@@ -18,7 +18,7 @@ test.describe('Authentik Robust Authentication', () => {
       // Step 2: Wait for redirect to authentication
       console.log('2️⃣ Waiting for authentication redirect...');
       await page.waitForFunction(() => {
-        return window.location.href.includes('localhost:9000') || 
+        return window.location.href.includes('zoi.local:9000') || 
                window.location.href.includes('authentik');
       }, { timeout: 15000 });
       
@@ -42,7 +42,7 @@ test.describe('Authentik Robust Authentication', () => {
       console.log('4️⃣ Filling authentication form with robust method...');
       
       const credentials = {
-        username: 'admin@localhost',
+        username: 'admin@zoi.local',
         password: 'change-me-authentik-admin'
       };
       
@@ -146,11 +146,11 @@ test.describe('Authentik Robust Authentication', () => {
       // Wait for one of several possible success conditions
       await Promise.race([
         // Success: Redirect to original destination
-        page.waitForURL('https://dashy.localhost/**', { timeout: 20000 }),
+        page.waitForURL('https://dashy.zoi.local/**', { timeout: 20000 }),
         
         // Success: URL contains dashy domain
         page.waitForFunction(() => {
-          return window.location.hostname === 'dashy.localhost';
+          return window.location.hostname === 'dashy.zoi.local';
         }, { timeout: 20000 }),
         
         // Alternative: Look for authentication success indicators
@@ -172,7 +172,7 @@ test.describe('Authentik Robust Authentication', () => {
       await page.screenshot({ path: 'after-auth.png', fullPage: true });
       
       // Check for successful authentication indicators
-      const isAuthenticated = finalUrl.includes('dashy.localhost') || 
+      const isAuthenticated = finalUrl.includes('dashy.zoi.local') || 
                              finalUrl.includes('dashboard') ||
                              await page.locator('input[name="uidField"]').count() === 0;
       
@@ -208,11 +208,11 @@ test.describe('Authentik Robust Authentication', () => {
   test('should handle authentication errors gracefully', async ({ page }) => {
     console.log('🧪 Testing authentication error handling...');
     
-    await page.goto('https://dashy.localhost');
+    await page.goto('https://dashy.zoi.local');
     
     // Wait for auth redirect
     await page.waitForFunction(() => {
-      return window.location.href.includes('localhost:9000');
+      return window.location.href.includes('zoi.local:9000');
     }, { timeout: 15000 });
     
     // Try with wrong credentials
@@ -227,7 +227,7 @@ test.describe('Authentik Robust Authentication', () => {
     
     const currentUrl = page.url();
     const hasErrorMessage = await page.locator('.error, .alert, [class*="error"]').count() > 0;
-    const stillOnLogin = currentUrl.includes('localhost:9000');
+    const stillOnLogin = currentUrl.includes('zoi.local:9000');
     
     expect(stillOnLogin || hasErrorMessage).toBeTruthy();
     console.log('✅ Error handling verified');

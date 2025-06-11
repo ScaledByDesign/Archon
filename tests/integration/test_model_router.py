@@ -23,7 +23,7 @@ async def test_model_router():
     
     # Initialize router
     router = ModelRouter(
-        litellm_base_url="http://localhost:4000",
+        litellm_base_url="http://zoi.local:4000",
         api_key="sk-change-me-to-random-string"
     )
     

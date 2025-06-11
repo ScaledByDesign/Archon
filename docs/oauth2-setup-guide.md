@@ -4,7 +4,7 @@ This guide provides step-by-step instructions for setting up OAuth2 applications
 
 ## Prerequisites
 
-- Authentik services running and accessible at `https://localhost:9443`
+- Authentik services running and accessible at `https://zoi.local:9443`
 - Admin access to Authentik with credentials from `.env` file
 - FastAPI service configured and running
 
@@ -12,9 +12,9 @@ This guide provides step-by-step instructions for setting up OAuth2 applications
 
 ### Step 1: Access Authentik Admin Interface
 
-1. Navigate to `https://localhost:9443/if/admin/`
+1. Navigate to `https://zoi.local:9443/if/admin/`
 2. Login with:
-   - Username: `admin@localhost` (or value from `AUTHENTIK_BOOTSTRAP_EMAIL`)
+   - Username: `admin@zoi.local` (or value from `AUTHENTIK_BOOTSTRAP_EMAIL`)
    - Password: `change-me-authentik-admin` (or value from `AUTHENTIK_BOOTSTRAP_PASSWORD`)
 
 ### Step 2: Create OAuth2 Providers
@@ -32,7 +32,7 @@ Authorization flow: default-provider-authorization-explicit-consent
 Client type: Confidential
 Client ID: fastapi-client
 Client Secret: [Generated automatically - copy this value]
-Redirect URIs: http://localhost:8000/api/auth/callback
+Redirect URIs: http://zoi.local:8000/api/auth/callback
 Signing Key: [Leave default]
 Subject mode: Based on the User's hashed ID
 Include claims in id_token: ✓ Enabled
@@ -46,7 +46,7 @@ Authorization flow: default-provider-authorization-explicit-consent
 Client type: Confidential
 Client ID: webui-client
 Client Secret: [Generated automatically - copy this value]
-Redirect URIs: http://localhost:3000/auth/callback
+Redirect URIs: http://zoi.local:3000/auth/callback
 Subject mode: Based on the User's hashed ID
 Include claims in id_token: ✓ Enabled
 Issuer mode: Each provider has a different issuer
@@ -59,7 +59,7 @@ Authorization flow: default-provider-authorization-explicit-consent
 Client type: Confidential
 Client ID: n8n-client
 Client Secret: [Generated automatically - copy this value]
-Redirect URIs: http://localhost:5678/rest/oauth2-credential/callback
+Redirect URIs: http://zoi.local:5678/rest/oauth2-credential/callback
 Subject mode: Based on the User's hashed ID
 Include claims in id_token: ✓ Enabled
 Issuer mode: Each provider has a different issuer
@@ -78,7 +78,7 @@ For each provider created above, create a corresponding application:
 Name: FastAPI RAG System
 Slug: fastapi-rag
 Provider: FastAPI RAG Provider (select from dropdown)
-Launch URL: http://localhost:8000
+Launch URL: http://zoi.local:8000
 Description: FastAPI-based RAG system with OAuth2 authentication
 Icon: [Optional]
 ```
@@ -88,7 +88,7 @@ Icon: [Optional]
 Name: Open WebUI
 Slug: open-webui
 Provider: WebUI Provider (select from dropdown)
-Launch URL: http://localhost:3000
+Launch URL: http://zoi.local:3000
 Description: Open WebUI chat interface
 Icon: [Optional]
 ```
@@ -98,7 +98,7 @@ Icon: [Optional]
 Name: n8n Workflow
 Slug: n8n-workflow
 Provider: n8n Provider (select from dropdown)
-Launch URL: http://localhost:5678
+Launch URL: http://zoi.local:5678
 Description: n8n workflow automation platform
 Icon: [Optional]
 ```
@@ -111,7 +111,7 @@ Copy the generated client secrets from each provider and update your `.env` file
 # OAuth2 Client Credentials
 FASTAPI_OAUTH_CLIENT_ID=fastapi-client
 FASTAPI_OAUTH_CLIENT_SECRET=<copy-from-fastapi-provider>
-FASTAPI_OAUTH_REDIRECT_URI=http://localhost:8000/api/auth/callback
+FASTAPI_OAUTH_REDIRECT_URI=http://zoi.local:8000/api/auth/callback
 
 WEBUI_OAUTH_CLIENT_ID=webui-client
 WEBUI_OAUTH_CLIENT_SECRET=<copy-from-webui-provider>
@@ -126,24 +126,24 @@ The OAuth2 endpoints for your applications will be:
 
 #### Authorization URL
 ```
-https://localhost:9443/application/o/authorize/
+https://zoi.local:9443/application/o/authorize/
 ```
 
 #### Token URL
 ```
-https://localhost:9443/application/o/token/
+https://zoi.local:9443/application/o/token/
 ```
 
 #### User Info URL
 ```
-https://localhost:9443/application/o/userinfo/
+https://zoi.local:9443/application/o/userinfo/
 ```
 
 #### Issuer URL (per application)
 ```
-FastAPI: https://localhost:9443/application/o/fastapi-rag/
-WebUI: https://localhost:9443/application/o/open-webui/
-n8n: https://localhost:9443/application/o/n8n-workflow/
+FastAPI: https://zoi.local:9443/application/o/fastapi-rag/
+WebUI: https://zoi.local:9443/application/o/open-webui/
+n8n: https://zoi.local:9443/application/o/n8n-workflow/
 ```
 
 ## Automated Setup Script
@@ -180,7 +180,7 @@ docker-compose restart fastapi-1
 Check if OAuth2 is properly configured:
 
 ```bash
-curl -s http://localhost:8000/api/auth/status | jq .
+curl -s http://zoi.local:8000/api/auth/status | jq .
 ```
 
 Expected response:
@@ -194,7 +194,7 @@ Expected response:
 
 ### Step 3: Test OAuth2 Login Flow
 
-1. Navigate to `http://localhost:8000/api/auth/login`
+1. Navigate to `http://zoi.local:8000/api/auth/login`
 2. You should be redirected to Authentik for authentication
 3. Login with your Authentik credentials
 4. You should be redirected back to FastAPI with authentication
@@ -204,7 +204,7 @@ Expected response:
 After successful login, check user information:
 
 ```bash
-curl -s http://localhost:8000/api/auth/me | jq .
+curl -s http://zoi.local:8000/api/auth/me | jq .
 ```
 
 ## OAuth2 Flow Diagram
@@ -236,7 +236,7 @@ sequenceDiagram
    - Verify that the client secret matches the one from Authentik
 
 2. **Redirect URI mismatch**
-   - Ensure the redirect URI in Authentik matches exactly: `http://localhost:8000/api/auth/callback`
+   - Ensure the redirect URI in Authentik matches exactly: `http://zoi.local:8000/api/auth/callback`
    - Check for trailing slashes or protocol mismatches
 
 3. **Invalid client credentials**

@@ -4,9 +4,9 @@ test('Test working URLs for Dashy authentication', async ({ page }) => {
   console.log('🚀 Testing different URL approaches...');
   
   // Test 1: Try HTTP first (should redirect to HTTPS)
-  console.log('\n1️⃣ Testing HTTP dashy.localhost (should redirect)...');
+  console.log('\n1️⃣ Testing HTTP dashy.zoi.local (should redirect)...');
   try {
-    await page.goto('http://dashy.localhost', { 
+    await page.goto('http://dashy.zoi.local', { 
       waitUntil: 'domcontentloaded',
       timeout: 10000
     });
@@ -17,9 +17,9 @@ test('Test working URLs for Dashy authentication', async ({ page }) => {
   }
 
   // Test 2: Try direct Dashy port
-  console.log('\n2️⃣ Testing direct Dashy port (localhost:4001)...');
+  console.log('\n2️⃣ Testing direct Dashy port (zoi.local:4001)...');
   try {
-    await page.goto('http://localhost:4001', { 
+    await page.goto('http://zoi.local:4001', { 
       waitUntil: 'domcontentloaded',
       timeout: 10000
     });
@@ -30,9 +30,9 @@ test('Test working URLs for Dashy authentication', async ({ page }) => {
   }
 
   // Test 3: Try Authentik directly
-  console.log('\n3️⃣ Testing Authentik directly (localhost:9000)...');
+  console.log('\n3️⃣ Testing Authentik directly (zoi.local:9000)...');
   try {
-    await page.goto('http://localhost:9000/if/admin/', { 
+    await page.goto('http://zoi.local:9000/if/admin/', { 
       waitUntil: 'domcontentloaded',
       timeout: 10000
     });
@@ -44,10 +44,10 @@ test('Test working URLs for Dashy authentication', async ({ page }) => {
   }
 
   // Test 4: Try HTTPS with certificate bypass
-  console.log('\n4️⃣ Testing HTTPS dashy.localhost...');
+  console.log('\n4️⃣ Testing HTTPS dashy.zoi.local...');
   try {
     // Navigate and wait a bit longer
-    await page.goto('https://dashy.localhost', { 
+    await page.goto('https://dashy.zoi.local', { 
       waitUntil: 'domcontentloaded',
       timeout: 15000
     });

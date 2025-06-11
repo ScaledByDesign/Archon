@@ -9,7 +9,7 @@ test('should login to Dashy through Authentik', async ({ page }) => {
   try {
     // Step 1: Go to Dashy
     console.log('1️⃣ Navigating to Dashy...');
-    await page.goto('https://dashy.localhost', { 
+    await page.goto('https://dashy.zoi.local', { 
       waitUntil: 'networkidle',
       timeout: 20000 
     });
@@ -34,7 +34,7 @@ test('should login to Dashy through Authentik', async ({ page }) => {
     console.log('4️⃣ Filling username...');
     const usernameField = page.locator('input[name="uidField"]');
     await usernameField.clear();
-    await usernameField.fill('admin@localhost');
+    await usernameField.fill('admin@zoi.local');
     
     // Verify username
     const usernameValue = await usernameField.inputValue();
@@ -77,7 +77,7 @@ test('should login to Dashy through Authentik', async ({ page }) => {
     // Wait for either success or failure
     await Promise.race([
       // Success case - redirect back to Dashy
-      page.waitForURL(/dashy\.localhost/, { timeout: 15000 }),
+      page.waitForURL(/dashy\.zoi.local/, { timeout: 15000 }),
       
       // Alternative success - check if we're no longer on auth page
       page.waitForFunction(() => {
@@ -93,7 +93,7 @@ test('should login to Dashy through Authentik', async ({ page }) => {
     const finalUrl = page.url();
     console.log(`Final URL: ${finalUrl}`);
     
-    if (finalUrl.includes('dashy.localhost')) {
+    if (finalUrl.includes('dashy.zoi.local')) {
       console.log('🎉 Successfully logged into Dashy!');
       
       // Try to verify Dashy loaded
@@ -142,7 +142,7 @@ test('should verify Dashy is accessible after auth', async ({ page }) => {
   console.log('🔍 Testing direct Dashy access...');
   
   // This test will use the authenticated state from setup
-  await page.goto('https://dashy.localhost');
+  await page.goto('https://dashy.zoi.local');
   
   // If auth is working, we should either:
   // 1. Go directly to Dashy (if already authenticated)
@@ -151,7 +151,7 @@ test('should verify Dashy is accessible after auth', async ({ page }) => {
   const finalUrl = await page.url();
   console.log(`Direct access result: ${finalUrl}`);
   
-  const isOnDashy = finalUrl.includes('dashy.localhost') && !finalUrl.includes(':9000');
+  const isOnDashy = finalUrl.includes('dashy.zoi.local') && !finalUrl.includes(':9000');
   const isOnAuth = finalUrl.includes(':9000');
   
   if (isOnDashy) {

@@ -12,7 +12,7 @@ REDIS_URL: redis://redis:6379/0
 OPENAI_API_BASE: http://litellm:4000/v1
 
 # Frontend URL
-FRONTEND_URL: "http://localhost:3001"
+FRONTEND_URL: "http://zoi.local:3001"
 
 # Encryption Key (Replace with your own for production)
 ENCRYPTION_KEY: abcdefghijklmnopqrstuvwxyz123456

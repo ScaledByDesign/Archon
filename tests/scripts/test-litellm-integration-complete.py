@@ -11,7 +11,7 @@ import sys
 import time
 from typing import Dict, Any, List
 
-LITELLM_BASE_URL = "http://localhost:4000"
+LITELLM_BASE_URL = "http://zoi.local:4000"
 API_KEY = "sk-change-me-to-random-string"
 
 # Extended timeout for M4 Mac Mini CPU processing

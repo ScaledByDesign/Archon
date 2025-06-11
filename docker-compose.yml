@@ -6,10 +6,10 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: ${PG_PASS:-secretpass}
-      POSTGRES_USER: postgres
-      POSTGRES_DB: postgres
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_DB: ${PG_DB:-postgres}
       TZ: America/Chicago
-      POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_MULTIPLE_DATABASES}
+      POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_MULTIPLE_DATABASES:-fastapi,healthchecks,authentik,litellm}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./config/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
@@ -82,16 +82,14 @@ services:
       - qdrant_data:/qdrant/storage
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
-      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/zoi.local/6333' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.qdrant.rule=Host(`qdrant.${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.qdrant.entrypoints=websecure"
-      - "traefik.http.routers.qdrant.middlewares=authentik-forward-auth@file"
-      # - "traefik.http.routers.qdrant.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.qdrant.rule=Host(`qdrant.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.qdrant.entrypoints=web"
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
     networks:
       - backend_network
@@ -111,23 +109,21 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - TZ=America/Chicago
       - LITELLM_SALT_KEY=${LITELLM_SALT_KEY:-sk-XXXXXXXX}
-      - DATABASE_URL=postgresql://${PG_USER:-postgres}:${PG_PASS:-secretpass}@postgres:5432/postgres
+      - DATABASE_URL=postgresql://${PG_USER:-postgres}:${PG_PASS:-secretpass}@postgres:5432/litellm
       - PORT=4000
       - STORE_MODEL_IN_DB="True"
     volumes:
       - ./config/litellm/config.yaml:/app/config.yaml
     command: ["--config", "/app/config.yaml"]
     healthcheck:
-      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/4000' && echo 'OK' || exit 1"]
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/zoi.local/4000' && echo 'OK' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.llm.rule=Host(`llm.${DOMAIN:-localhost}`)"
-      - "traefik.http.routers.llm.entrypoints=websecure"
-      - "traefik.http.routers.llm.middlewares=authentik-forward-auth@file"
-      # - "traefik.http.routers.llm.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.llm.rule=Host(`llm.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.llm.entrypoints=web"
       - "traefik.http.services.llm.loadbalancer.server.port=4000"
     networks:
       - backend_network
@@ -141,26 +137,21 @@ services:
       - "--configFile=/etc/traefik/traefik.yml"
     ports:
       - "80:80"
-      # - "443:443"  # Removed for HTTP-only local dev
+      - "443:443"  # Removed for HTTP-only local dev
       - "8080:8080"  # Dashboard port
       - "8081:8081"  # Insecure API port
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
       - ./config/traefik/dynamic:/configuration/dynamic:ro
-      # - ./config/traefik/certs:/certs:ro  # Removed for HTTP-only local dev
-      # - traefik_certs:/letsencrypt  # Removed for HTTP-only local dev
       - /etc/localtime:/etc/localtime:ro
     environment:
       - DOMAIN=zoi.local
-      # - ACME_EMAIL=${ACME_EMAIL}  # Removed for HTTP-only local dev
       - TZ=America/Chicago
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.dashboard.entrypoints=web"
-      # - "traefik.http.routers.dashboard.tls.certresolver=letsencrypt"
-      # - "traefik.http.routers.dashboard.middlewares=authentik-forward-auth@file"
       - "traefik.http.routers.dashboard.service=api@internal"
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
@@ -186,7 +177,6 @@ services:
       - ./tests:/app/tests:ro
       - ./requirements.txt:/app/requirements.txt:ro
     env_file:
-      - .env
       - ./config/fastapi/.env
     depends_on:
       postgres:
@@ -200,9 +190,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.api.rule=Host(`api.${DOMAIN:-zoi.local}`)"
-      - "traefik.http.routers.api.entrypoints=websecure"
-      - "traefik.http.routers.api.middlewares=authentik-forward-auth@file"
-      # - "traefik.http.routers.api.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.api.entrypoints=web"
       - "traefik.http.services.api.loadbalancer.server.port=8000"
     networks:
       - backend_network
@@ -221,10 +209,9 @@ services:
       - ./tests:/app/tests:ro
       - ./requirements.txt:/app/requirements.txt:ro
     env_file:
-      - .env
       - ./config/fastapi/.env
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://zoi.local:8000/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -266,12 +253,15 @@ services:
     networks:
       - frontend_network
       - monitoring_network
+    depends_on:
+      traefik:
+        condition: service_healthy
+      authentik-server:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
-      # HTTP router with Authentik forward authentication  
-      - "traefik.http.routers.dashy.rule=Host(`dashy.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.dashy.rule=Host(`dashy.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.dashy.entrypoints=web"
-      - "traefik.http.routers.dashy.middlewares=authentik-forward-auth@file"
       - "traefik.http.services.dashy.loadbalancer.server.port=8080"
 
   # Authentication & Identity Provider
@@ -288,7 +278,6 @@ services:
       - ./config/authentik/startup-scripts:/blueprints/startup-scripts:ro
       - /etc/localtime:/etc/localtime:ro
     env_file:
-      - .env
       - ./config/authentik/authentik.env
     environment:
       - AUTHENTIK_HOST_BROWSER=https://auth.zoi.local
@@ -304,13 +293,9 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.authentik.rule=Host(`auth.${DOMAIN:-localhost}`)"
+      - "traefik.http.routers.authentik.rule=Host(`auth.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.authentik.entrypoints=web"
       - "traefik.http.services.authentik.loadbalancer.server.port=9000"
-      # Outpost routing for forward auth
-      - "traefik.http.routers.authentik-outpost.rule=PathPrefix(`/outpost.goauthentik.io/`)"
-      - "traefik.http.routers.authentik-outpost.entrypoints=web"
-      - "traefik.http.routers.authentik-outpost.service=authentik"
     healthcheck:
       test: ["CMD-SHELL", "ak healthcheck"]
       start_period: 30s
@@ -335,7 +320,6 @@ services:
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
-      - .env
       - ./config/authentik/authentik.env
     depends_on:
       postgres:

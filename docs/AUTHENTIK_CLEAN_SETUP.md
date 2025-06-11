@@ -77,7 +77,7 @@ AUTHENTIK_REDIS__PASSWORD=${REDIS_PASSWORD:-change-me-redis-pass}
 # BOOTSTRAP CONFIGURATION (CRITICAL)
 AUTHENTIK_BOOTSTRAP_PASSWORD=${AUTHENTIK_BOOTSTRAP_PASSWORD:-admin123!}
 AUTHENTIK_BOOTSTRAP_TOKEN=${AUTHENTIK_BOOTSTRAP_TOKEN:-authentik-bootstrap-token-32-chars}
-AUTHENTIK_BOOTSTRAP_EMAIL=${AUTHENTIK_BOOTSTRAP_EMAIL:-admin@localhost}
+AUTHENTIK_BOOTSTRAP_EMAIL=${AUTHENTIK_BOOTSTRAP_EMAIL:-admin@zoi.local}
 
 # HOSTNAME CONFIGURATION (CRITICAL)
 AUTHENTIK_HOST=${AUTHENTIK_HOST:-http://authentik-server:9000}
@@ -146,7 +146,7 @@ AUTHENTIK_LISTEN__TRUSTED_PROXY_CIDRS=127.0.0.0/8,10.0.0.0/8,172.16.0.0/12,192.1
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/-/health/live/"]
+      test: ["CMD", "curl", "-f", "http://zoi.local:9000/-/health/live/"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -297,10 +297,10 @@ docker-compose -f docker-compose.core.yml logs authentik-server
 ### Verification Steps
 ```bash
 # Check Authentik health
-curl -I http://localhost:9000/-/health/live/
+curl -I http://zoi.local:9000/-/health/live/
 
 # Check embedded outpost endpoint
-curl -I http://localhost:9000/outpost.goauthentik.io/auth/traefik
+curl -I http://zoi.local:9000/outpost.goauthentik.io/auth/traefik
 
 # Check admin access
 curl -I https://auth.zoi.local/
@@ -316,7 +316,7 @@ curl -k -I https://dashy.zoi.local
 2. Login with bootstrap credentials
 3. Create proxy provider with:
    - Mode: `forward_domain` (for multiple apps)
-   - External host: `https://auth.zoi.local` (NOT localhost)
+   - External host: `https://auth.zoi.local` (NOT zoi.local)
 4. Create application linked to proxy provider
 5. Verify outpost configuration shows embedded outpost
 
@@ -327,7 +327,7 @@ curl -k -I https://dashy.zoi.local
 - **Solution**: Create proxy provider via admin UI with correct external_host
 
 ### Issue: Redirect loops
-- **Cause**: external_host set to localhost or internal IP
+- **Cause**: external_host set to zoi.local or internal IP
 - **Solution**: Set external_host to actual FQDN (https://auth.zoi.local)
 
 ### Issue: Blueprint application fails
