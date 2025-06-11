@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: dashy-01-users
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+    blueprints.goauthentik.io/description: "Step 1: Create users and groups"
+context: {}
+entries:
+  # Create test user
+  - model: authentik_core.user
+    state: present
+    identifiers:
+      username: testuser
+    attrs:
+      username: testuser
+      name: Test User
+      email: test@zoi.local
+      is_active: true
+      password: !Env [AUTHENTIK_TEST_PASSWORD, TestPassword123!]
+
+  # Create access group
+  - model: authentik_core.group
+    state: present
+    identifiers:
+      name: dashy-users
+    attrs:
+      name: dashy-users
+      is_superuser: false

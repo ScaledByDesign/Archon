@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: dashy-00-flows
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+    blueprints.goauthentik.io/description: "Step 0: Ensure required flows exist"
+context: {}
+entries:
+  # Create a simple authorization flow for proxy providers
+  - model: authentik_flows.flow
+    state: present
+    identifiers:
+      slug: simple-authorization-flow
+    attrs:
+      name: Simple Authorization Flow
+      slug: simple-authorization-flow
+      title: Simple Authorization Flow
+      designation: authorization
+      authentication: none

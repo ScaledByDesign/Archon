@@ -37,7 +37,7 @@ http:
     # Authentik Forward Authentication with clean redirects
     authentik-forward-auth:
       forwardAuth:
-        address: "http://authentik-server:9000/outpost.goauthentik.io/auth/traefik"
+        address: "http://auth.zoi.local/outpost.goauthentik.io/auth/traefik"
         trustForwardHeader: true
         authResponseHeaders:
           - "X-authentik-username"
@@ -208,7 +208,7 @@ http:
     # Forward Auth with Static Assets Exclusion
     authentik-forward-auth-with-bypass:
       forwardAuth:
-        address: "http://authentik-server:9000/outpost.goauthentik.io/auth/traefik"
+        address: "http://auth.zoi.local/outpost.goauthentik.io/auth/traefik"
         trustForwardHeader: true
         authResponseHeaders:
           - "X-authentik-username"
@@ -231,7 +231,7 @@ http:
           - "X-Real-IP"
     middlewares-authentik:
       forwardAuth:
-        address: "http://authentik-server:9000/outpost.goauthentik.io/auth/traefik"
+        address: "http://auth.zoi.local/outpost.goauthentik.io/auth/traefik"
         trustForwardHeader: true
         authResponseHeaders:
           - X-authentik-username

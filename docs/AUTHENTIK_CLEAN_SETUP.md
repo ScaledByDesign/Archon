@@ -197,7 +197,7 @@ http:
     authentik-forward-auth:
       forwardAuth:
         # Use embedded outpost endpoint (NOT application endpoint)
-        address: "http://authentik-server:9000/outpost.goauthentik.io/auth/traefik"
+        address: "http://auth.zoi.local/outpost.goauthentik.io/auth/traefik"
         trustForwardHeader: true
         authResponseHeaders:
           - "X-authentik-username"

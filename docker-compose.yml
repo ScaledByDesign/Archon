@@ -275,7 +275,8 @@ services:
     container_name: authentik-server
     restart: unless-stopped
     entrypoint: ["/bin/bash", "-c"]
-    command: ["(/blueprints/startup-scripts/apply-blueprints.sh &) && exec ak server"]
+    #command: ["(/blueprints/startup-scripts/apply-blueprints.sh &) && exec ak server"]
+    command: ["ak server"]
     volumes:
       - authentik_media:/media
       - authentik_templates:/templates
@@ -296,6 +297,8 @@ services:
         condition: service_healthy
       traefik:
         condition: service_healthy
+      authentik-worker:
+        condition: service_healthy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.authentik.rule=Host(`auth.${DOMAIN:-zoi.local}`)"
@@ -303,7 +306,7 @@ services:
       - "traefik.http.services.authentik.loadbalancer.server.port=9000"
       ## Individual Application forwardAuth regex (catch any subdomain using individual application forwardAuth)
       - "traefik.http.routers.authentik-rtr-outpost.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
-      - "traefik.http.routers.authentik-rtr.service=authentik-svc"
+      - "traefik.http.routers.authentik-rtr.service=authentik"
     healthcheck:
       test: ["CMD-SHELL", "ak healthcheck"]
       start_period: 30s

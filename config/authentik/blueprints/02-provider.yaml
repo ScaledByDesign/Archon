@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: dashy-02-provider
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+    blueprints.goauthentik.io/description: "Step 2: Create proxy provider and application"
+context: {}
+entries:
+  # Create Proxy Provider with flows we know exist
+  - model: authentik_providers_proxy.proxyprovider
+    state: present
+    identifiers:
+      name: Dashy Forward Auth
+    attrs:
+      name: Dashy Forward Auth
+      mode: forward_single
+      external_host: !Env [DASHY_HOST, http://dashy.zoi.local]
+      authorization_flow: !Find [authentik_flows.flow, [slug, simple-authorization-flow]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+
+  # Create Application
+  - model: authentik_core.application
+    state: present
+    identifiers:
+      slug: dashy-forward-auth-app
+    attrs:
+      name: Dashy Forward Auth App
+      slug: dashy-forward-auth-app
+      provider: !Find [authentik_providers_proxy.proxyprovider, [name, Dashy Forward Auth]]
+      launch_url: !Env [DASHY_HOST, http://dashy.zoi.local]
