@@ -226,6 +226,7 @@ services:
       - ./config/n8n/n8n.env
     volumes:
       - n8n_data:/home/node/.n8n
+      - ./config/n8n/workflows:/workflows:ro
       - /etc/localtime:/etc/localtime:ro
     depends_on:
       postgres:
