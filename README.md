@@ -50,14 +50,14 @@ If you prefer to set up components individually:
 All services are protected by Authentik forward authentication:
 
 - **Login**: admin@zoi.local / admin123!
-- **Auth Portal**: https://auth.zoi.local
+- **Auth Portal**: http://auth.zoi.local
 - **Single Sign-On**: Automatic across all services
 
 ## 🌐 Available Services
 
 ### Via Traefik (HTTPS with authentication):
 - **Dashy Dashboard**: https://dashy.zoi.local
-- **Authentik**: https://auth.zoi.local  
+- **Authentik**: http://auth.zoi.local  
 - **FastAPI**: https://api.zoi.local
 - **LiteLLM Proxy**: https://llm.zoi.local
 - **Traefik Dashboard**: https://traefik.zoi.local

@@ -39,7 +39,7 @@ AUTHENTIK_PASSWORD=change-me-authentik-admin
 
 # Base URLs
 BASE_URL=https://dashy.zoi.local
-AUTHENTIK_URL=https://auth.zoi.local
+AUTHENTIK_URL=http://auth.zoi.local
 
 # Domain configuration
 DOMAIN=zoi.local
@@ -171,7 +171,7 @@ docker-compose -f docker-compose.core.yml logs dashy
 
 # Test manual authentication
 curl -k -I https://dashy.zoi.local
-curl -k -I https://auth.zoi.local
+curl -k -I http://auth.zoi.local
 
 # View Playwright test results
 npm run show-report

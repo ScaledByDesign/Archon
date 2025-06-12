@@ -253,7 +253,7 @@ class CORSAndSecurityMiddleware(BaseHTTPMiddleware):
         self.allowed_origins = allowed_origins or [
             "http://zoi.local:3000",
             "http://zoi.local:8000", 
-            "https://auth.zoi.local",
+            "http://auth.zoi.local",
             "https://zoi.local"
         ]
         self.allowed_methods = allowed_methods or [

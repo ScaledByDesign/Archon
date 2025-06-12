@@ -55,15 +55,15 @@ sections:
     icon: 'fas fa-shield-alt'
     items:
       - title: 'Authentik SSO'
-        url: 'https://auth.zoi.cc'
+        url: 'http://auth.zoi.cc'
         description: 'Identity & access management'
         icon: 'hl-authentik'
         statusCheck: true
-        statusUrl: 'https://auth.zoi.cc/api/v3/root/config/'
+        statusUrl: 'http://auth.zoi.cc/api/v3/root/config/'
         tags: ['auth','sso']
 
       - title: 'Authentik HTTPS'
-        url: 'https://auth.zoi.cc'
+        url: 'http://auth.zoi.cc'
         description: 'Secure authentication portal'
         icon: 'hl-authentik'
         statusCheck: false

@@ -1,6 +1,0 @@
-2025-05-31 02:00:00 - Starting automated secret rotation
-2025-05-31 02:00:00 - Log file: /Users/nova/Sites/zoi/logs/rotation/rotation_20250531_020000.log
-[0;34m=== Automated Secret Rotation ===[0m
-[1;33mStarted at: Sat May 31 02:00:00 CDT 2025[0m
-[1;33mChecking rotation status...[0m
-2025-05-31 02:00:00 - Secret rotation failed with exit code 7

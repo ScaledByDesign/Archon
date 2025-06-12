@@ -15,7 +15,7 @@ from .jwt_handler import JWTHandler
 logger = logging.getLogger(__name__)
 
 # Initialize JWT handler
-AUTHENTIK_BASE_URL = os.getenv('AUTHENTIK_BASE_URL', 'https://auth.zoi.local')
+AUTHENTIK_BASE_URL = os.getenv('AUTHENTIK_BASE_URL', 'http://auth.zoi.local')
 jwt_handler = JWTHandler(AUTHENTIK_BASE_URL)
 
 # HTTP Bearer token scheme

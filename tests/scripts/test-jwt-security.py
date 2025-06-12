@@ -32,7 +32,7 @@ class JWTSecurityTester:
     """Comprehensive JWT Security Tester"""
     
     def __init__(self):
-        self.authentik_base_url = os.getenv('AUTHENTIK_BASE_URL', 'https://auth.zoi.local')
+        self.authentik_base_url = os.getenv('AUTHENTIK_BASE_URL', 'http://auth.zoi.local')
         self.fastapi_base_url = os.getenv('FASTAPI_BASE_URL', 'http://zoi.local:8000')
         self.jwt_handler = JWTHandler(self.authentik_base_url)
         self.http_client = httpx.AsyncClient(verify=False, timeout=30.0)

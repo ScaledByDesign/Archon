@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: dashy-05-outpost-permissions
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+    blueprints.goauthentik.io/description: "Step 5: Ensure outpost permissions are configured"
+context: {}
+entries:
+  # Ensure the authentik Admins group exists and has superuser permissions
+  - model: authentik_core.group
+    state: present
+    identifiers:
+      name: "authentik Admins"
+    attrs:
+      name: "authentik Admins"
+      is_superuser: true
+
+  # Note: Outpost service account users are automatically created when outposts start
+  # They need to be added to authentik Admins group manually via SQL or admin UI
+  # This is documented here for reference and can be automated via post-deployment scripts

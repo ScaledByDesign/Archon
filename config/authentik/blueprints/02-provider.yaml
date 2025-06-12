@@ -13,13 +13,13 @@ entries:
     identifiers:
       name: Dashy Forward Auth
     attrs:
-      name: Dashy Forward Auth
-      mode: forward_single
-      external_host: !Env [DASHY_HOST, http://dashy.zoi.local]
+      name: "Dashy Forward Auth"
+      mode: forward_domain
+      external_host: http://dashy.zoi.local
       internal_host: http://dashy:8080
       cookie_domain: zoi.local
-      authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-explicit-consent]]
-      invalidation_flow: !Find [authentik_flows.flow, [slug, default-provider-invalidation-flow]]
+      authorization_flow: !Find [authentik_flows.flow, [slug, "default-provider-authorization-explicit-consent"]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, "default-invalidation-flow"]]
 
   # Create Application
   - model: authentik_core.application
@@ -29,5 +29,6 @@ entries:
     attrs:
       name: Dashy Forward Auth App
       slug: dashy-forward-auth-app
+      group: dashy-users
       provider: !Find [authentik_providers_proxy.proxyprovider, [name, Dashy Forward Auth]]
       launch_url: !Env [DASHY_HOST, http://dashy.zoi.local]

@@ -190,7 +190,7 @@ def sample_jwt_payload():
         "permissions": ["read", "write"],
         "exp": 9999999999,  # Far future expiration
         "iat": 1640995200,  # Fixed issued at time
-        "iss": "https://auth.zoi.local",
+        "iss": "http://auth.zoi.local",
         "aud": "fastapi-client"
     }
 

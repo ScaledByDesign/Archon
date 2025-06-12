@@ -87,7 +87,7 @@ docker-compose ps
 Your services will be available at:
 
 - **Chat Interface:** https://chat.zoi.cc
-- **Admin Dashboard:** https://auth.zoi.cc
+- **Admin Dashboard:** http://auth.zoi.cc
 - **System Dashboard:** https://dashy.zoi.cc
 - **API Endpoint:** https://api.zoi.cc
 - **Health Monitoring:** https://health.zoi.cc
@@ -109,7 +109,7 @@ docker-compose logs traefik | grep -i cert
 ## Post-Deployment
 
 ### Initial Setup
-1. Access https://auth.zoi.cc to configure Authentik authentication
+1. Access http://auth.zoi.cc to configure Authentik authentication
 2. Visit https://chat.zoi.cc to access the Open WebUI interface
 3. Configure your LLM models via the API endpoints
 

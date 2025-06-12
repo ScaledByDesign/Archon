@@ -104,7 +104,7 @@ test.describe('Authentik-Traefik Forward Auth Integration Tests', () => {
       // Test that all zoi.local subdomains work with authentication
       const domains = [
         'https://dashy.zoi.local',
-        'https://auth.zoi.local',
+        'http://auth.zoi.local',
         'https://traefik.zoi.local',
         'https://api.zoi.local'
       ];

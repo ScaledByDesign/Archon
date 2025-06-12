@@ -33,7 +33,7 @@ class JWTSecurityConfig:
         self.algorithm = os.getenv('JWT_ALGORITHM', 'RS256')
         
         # Issuer and audience
-        self.issuer = os.getenv('AUTHENTIK_ISSUER', 'https://auth.zoi.local/application/o/default/')
+        self.issuer = os.getenv('AUTHENTIK_ISSUER', 'http://auth.zoi.local/application/o/default/')
         self.audience = os.getenv('JWT_AUDIENCE', 'rag-system')
         
         # Clock skew tolerance (in seconds)

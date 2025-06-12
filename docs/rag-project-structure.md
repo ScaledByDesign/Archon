@@ -846,7 +846,7 @@ A production-ready Retrieval-Augmented Generation (RAG) system with enterprise f
    - Traefik Dashboard: https://traefik.zoi.local
    - RabbitMQ Management: http://zoi.local:15672
    - n8n Workflows: https://n8n.zoi.local
-   - Authentik: https://auth.zoi.local
+   - Authentik: http://auth.zoi.local
    - Monitoring: https://aim.zoi.local
    - Health Checks: https://health.zoi.local
    - Backups: https://backup.zoi.local
@@ -867,7 +867,7 @@ Add your LLM API keys in `.env`:
 2. Set `ACME_EMAIL` for Let's Encrypt SSL certificates
 
 ### Authentication
-1. Access Authentik at https://auth.zoi.local
+1. Access Authentik at http://auth.zoi.local
 2. Default admin user is created on first run
 3. Configure OAuth2 applications for services
 

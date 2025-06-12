@@ -31,7 +31,7 @@ def mock_jwt_handler():
 def mock_oauth_client():
     """Mock OAuth client for unit testing."""
     mock_client = Mock()
-    mock_client.get_authorization_url.return_value = "https://auth.example.com/authorize"
+    mock_client.get_authorization_url.return_value = "http://auth.example.com/authorize"
     mock_client.exchange_code.return_value = {
         "access_token": "mock_access_token",
         "refresh_token": "mock_refresh_token",

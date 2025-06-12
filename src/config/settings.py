@@ -108,7 +108,7 @@ class AuthSettings(BaseSettings):
     oauth_client_secret: Optional[str] = Field(default=None, env="FASTAPI_OAUTH_CLIENT_SECRET")
     oauth_redirect_uri: Optional[str] = Field(default="http://zoi.local:8000/api/auth/callback", env="FASTAPI_OAUTH_REDIRECT_URI")
     oauth_scope: str = Field(default="openid email profile rag:api", env="OAUTH_SCOPE")
-    oauth_provider_url: str = Field(default="https://authentik-server:9443", env="OAUTH_PROVIDER_URL")
+    oauth_provider_url: str = Field(default="http://authentik-server:9443", env="OAUTH_PROVIDER_URL")
     
     # JWT Settings
     jwt_secret_key: Optional[str] = Field(default=None, env="JWT_SECRET_KEY")
