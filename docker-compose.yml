@@ -288,7 +288,7 @@ services:
     env_file:
       - ./config/authentik/authentik.env
     environment:
-      - AUTHENTIK_HOST_BROWSER=https://auth.zoi.local
+      - AUTHENTIK_HOST_BROWSER=http://auth.zoi.local
     ports:
       - "9000:9000"
       - "9444:9443"
@@ -309,10 +309,11 @@ services:
       - "traefik.http.routers.authentik-rtr-outpost.rule=HostRegexp(`{subdomain:.+}.zoi.local`) && PathPrefix(`/outpost.goauthentik.io/`)"
       - "traefik.http.routers.authentik-rtr-outpost.entrypoints=web"
       - "traefik.http.routers.authentik-rtr-outpost.service=authentik"
+      - "traefik.http.routers.authentik-rtr-outpost.priority=100"
       - "traefik.http.routers.authentik-rtr.service=authentik"
     healthcheck:
       test: ["CMD-SHELL", "ak healthcheck"]
-      start_period: 30s
+      start_period: 60s
       interval: 30s
       timeout: 30s
     networks:
