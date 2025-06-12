@@ -166,6 +166,7 @@ services:
       - frontend_network
       - backend_network
       - infrastructure_network
+      - auth_network
 
   # FastAPI Services
   fastapi:
@@ -301,11 +302,11 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.authentik.rule=Host(`auth.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.authentik.rule=Host(`auth.zoi.local`)"
       - "traefik.http.routers.authentik.entrypoints=web"
       - "traefik.http.services.authentik.loadbalancer.server.port=9000"
       ## Individual Application forwardAuth regex (catch any subdomain using individual application forwardAuth)
-      - "traefik.http.routers.authentik-rtr-outpost.rule=HostRegexp(`{subdomain:[a-z0-9-]+}.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      #- "traefik.http.routers.authentik-rtr-outpost.rule=HostRegexp(`dashy.zoi.local`) && PathPrefix(`/outpost.goauthentik.io/`)"
       - "traefik.http.routers.authentik-rtr.service=authentik"
     healthcheck:
       test: ["CMD-SHELL", "ak healthcheck"]

@@ -18,5 +18,5 @@ entries:
       providers:
         - !Find [authentik_providers_proxy.proxyprovider, [external_host, http://dashy.zoi.local]]
       config:
-        authentik_host: !Env [AUTHENTIK_HOST, http://authentik-server:9000]
+        authentik_host: !Env [AUTHENTIK_HOST, http://dashy.zoi.local]
         authentik_host_insecure: true
