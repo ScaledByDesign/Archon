@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${PG_USER:-postgres}
       POSTGRES_DB: ${PG_DB:-postgres}
       TZ: America/Chicago
-      POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_MULTIPLE_DATABASES:-fastapi,healthchecks,authentik,litellm}
+      POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_MULTIPLE_DATABASES:-fastapi,healthchecks,authentik,litellm,n8n}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./config/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
@@ -382,7 +382,7 @@ services:
     environment:
       - POSTGRES_DB=authentik
       - POSTGRES_USER=authentik
-      - POSTGRES_PASSWORD=authentik_password
+      - POSTGRES_PASSWORD=${PG_PASS:-secretpass}
     depends_on:
       authentik-server:
         condition: service_healthy

@@ -14,7 +14,7 @@ entries:
       name: dashy-access-policy
     attrs:
       name: dashy-access-policy
-      expression: 'return "dashy-users" in [group.name for group in request.user.ak_groups.all()]'
+      expression: 'return "zoi-users" in [group.name for group in request.user.ak_groups.all()]'
       execution_logging: false
 
   # Bind policy to Dashy application

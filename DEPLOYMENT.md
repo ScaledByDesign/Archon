@@ -9,10 +9,10 @@
    - Docker and Docker Compose installed
 
 2. **Domain Setup:**
-   - Point your DNS records for `zoi.cc` and subdomains to your server IP
+   - Point your DNS records for `zoi.local` and subdomains to your server IP
    - Required DNS A records:
-     - `zoi.cc` → Server IP
-     - `*.zoi.cc` → Server IP (wildcard for subdomains)
+     - `zoi.local` → Server IP
+     - `*.zoi.local` → Server IP (wildcard for subdomains)
 
 3. **Firewall Configuration:**
    ```bash
@@ -39,9 +39,9 @@ cp .env.example .env
 Edit `.env` file with production values:
 
 ```bash
-# Domain is already set to zoi.cc
-DOMAIN=zoi.cc
-ACME_EMAIL=admin@zoi.cc  # Change to your email
+# Domain is already set to zoi.local
+DOMAIN=zoi.local
+ACME_EMAIL=admin@zoi.local  # Change to your email
 
 # Generate strong secrets (minimum 50 characters)
 AUTHENTIK_SECRET_KEY=your-super-long-random-secret-key-min-50-chars
@@ -86,13 +86,13 @@ docker-compose ps
 
 Your services will be available at:
 
-- **Chat Interface:** https://chat.zoi.cc
-- **Admin Dashboard:** http://auth.zoi.cc
-- **System Dashboard:** https://dashy.zoi.cc
-- **API Endpoint:** https://api.zoi.cc
-- **Health Monitoring:** https://health.zoi.cc
-- **Workflow Automation:** https://n8n.zoi.cc
-- **Backup Management:** https://backup.zoi.cc
+- **Chat Interface:** https://chat.zoi.local
+- **Admin Dashboard:** http://auth.zoi.local
+- **System Dashboard:** https://dashy.zoi.local
+- **API Endpoint:** https://api.zoi.local
+- **Health Monitoring:** https://health.zoi.local
+- **Workflow Automation:** https://n8n.zoi.local
+- **Backup Management:** https://backup.zoi.local
 
 ### 5. SSL Certificate Verification
 
@@ -109,17 +109,17 @@ docker-compose logs traefik | grep -i cert
 ## Post-Deployment
 
 ### Initial Setup
-1. Access http://auth.zoi.cc to configure Authentik authentication
-2. Visit https://chat.zoi.cc to access the Open WebUI interface
+1. Access http://auth.zoi.local to configure Authentik authentication
+2. Visit https://chat.zoi.local to access the Open WebUI interface
 3. Configure your LLM models via the API endpoints
 
 ### Monitoring
-- View service status at https://dashy.zoi.cc
+- View service status at https://dashy.zoi.local
 - Check logs: `docker-compose logs <service-name>`
 - Monitor resource usage: `docker stats`
 
 ### Backup
-- Database backups are handled by Backrest at https://backup.zoi.cc
+- Database backups are handled by Backrest at https://backup.zoi.local
 - Configuration files are in the `config/` directory
 
 ## Troubleshooting
@@ -145,8 +145,8 @@ docker-compose restart <service-name>
 ### Domain Resolution
 Verify DNS propagation:
 ```bash
-nslookup zoi.cc
-nslookup chat.zoi.cc
+nslookup zoi.local
+nslookup chat.zoi.local
 ```
 
 ## Security Notes

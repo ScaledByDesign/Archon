@@ -23,9 +23,9 @@ entries:
   - model: authentik_core.group
     state: present
     identifiers:
-      name: dashy-users
+      name: zoi-users
     attrs:
-      name: dashy-users
+      name: zoi-users
       is_superuser: false
       users:
         - !Find [authentik_core.user, [username, testuser]]
