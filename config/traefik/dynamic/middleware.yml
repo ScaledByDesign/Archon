@@ -1,12 +1,12 @@
-# Simple Authentik Forward Auth Middleware
-# Based on official docs: https://docs.goauthentik.io/docs/add-secure-apps/providers/proxy/server_traefik
+# LiteLLM Authentik Middleware Configuration
+# Hybrid approach: Frontend SSO + Direct API access
 
 http:
   middlewares:
     # Simple Authentik Forward Auth (following official documentation)
     authentik-forward-auth:
       forwardAuth:
-        address: "http://auth.zoi.local/outpost.goauthentik.io/auth/traefik"
+        address: "http://authentik-server:9000/outpost.goauthentik.io/auth/traefik"
         trustForwardHeader: true
         authResponseHeaders:
           - "X-authentik-username"
@@ -30,3 +30,23 @@ http:
           - "X-Real-IP"
           - "X-Forwarded-For"
           - "Cookie"
+
+    # Auto-inject LiteLLM master key for authenticated frontend users
+    litellm-frontend-auth-inject:
+      headers:
+        customRequestHeaders:
+          Authorization: "Bearer sk-6df5295f77391ff7611a0fab11b989287012f48e46f58ae0"
+          X-User-Context: "authenticated-via-authentik"
+
+    # Combined middleware chain for LiteLLM Frontend (UI with SSO + key injection)
+    litellm-frontend-auth:
+      chain:
+        middlewares:
+          - authentik-forward-auth
+          - litellm-frontend-auth-inject
+
+    # n8n Frontend Authentication (UI only, no key injection needed)
+    n8n-frontend-auth:
+      chain:
+        middlewares:
+          - authentik-forward-auth

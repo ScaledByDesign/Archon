@@ -21,8 +21,6 @@ RUN pip install --no-cache-dir pytest pytest-asyncio pytest-mock
 # Copy source code
 COPY src/ ./src/
 COPY tests/ ./tests/
-COPY pytest.ini .
-COPY Makefile .
 
 # Create non-root user for security
 RUN useradd --create-home --shell /bin/bash app \

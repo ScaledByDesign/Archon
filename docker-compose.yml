@@ -122,8 +122,18 @@ services:
       retries: 5
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.llm.rule=Host(`llm.${DOMAIN:-zoi.local}`)"
-      - "traefik.http.routers.llm.entrypoints=web"
+      # API route - higher priority, no authentication (direct access)
+      - "traefik.http.routers.llm-api.rule=Host(`llm.${DOMAIN:-zoi.local}`) && PathPrefix(`/v1`)"
+      - "traefik.http.routers.llm-api.entrypoints=web"
+      - "traefik.http.routers.llm-api.priority=100"
+      - "traefik.http.routers.llm-api.service=llm"
+      # Frontend route - lower priority, with authentication and key injection
+      - "traefik.http.routers.llm-frontend.rule=Host(`llm.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.llm-frontend.entrypoints=web"
+      - "traefik.http.routers.llm-frontend.priority=50"
+      - "traefik.http.routers.llm-frontend.middlewares=litellm-frontend-auth@file"
+      - "traefik.http.routers.llm-frontend.service=llm"
+      # Service definition
       - "traefik.http.services.llm.loadbalancer.server.port=4000"
     networks:
       - backend_network
@@ -205,36 +215,60 @@ services:
       - database_network
       - infrastructure_network
 
-  worker:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: fastapi-worker
+  # n8n Workflow Automation
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
     restart: unless-stopped
-    volumes:
-      - ./src:/app/src:ro
-      - ./tests:/app/tests:ro
-      - ./requirements.txt:/app/requirements.txt:ro
+    ports:
+      - "5678:5678"
     env_file:
-      - ./config/fastapi/.env
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://zoi.local:8000/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 60s
-    networks:
-      - backend_network
-      - database_network
+      - ./config/n8n/n8n.env
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - /etc/localtime:/etc/localtime:ro
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
+      traefik:
         condition: service_healthy
-      mongo:
+      authentik-server:
         condition: service_healthy
-      qdrant:
-        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:5678/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      
+      # Webhook/API routes - higher priority, no authentication (direct access)
+      - "traefik.http.routers.n8n-webhooks.rule=Host(`n8n.${DOMAIN:-zoi.local}`) && (PathPrefix(`/webhook`) || PathPrefix(`/api`))"
+      - "traefik.http.routers.n8n-webhooks.entrypoints=web"
+      - "traefik.http.routers.n8n-webhooks.priority=100"
+      - "traefik.http.routers.n8n-webhooks.service=n8n"
+      
+      # Frontend/UI routes - lower priority, with authentication
+      - "traefik.http.routers.n8n-frontend.rule=Host(`n8n.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.n8n-frontend.entrypoints=web"
+      - "traefik.http.routers.n8n-frontend.priority=50"
+      - "traefik.http.routers.n8n-frontend.middlewares=n8n-frontend-auth@file"
+      - "traefik.http.routers.n8n-frontend.service=n8n"
+      
+      # Service definition
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+      
+      # Separate router for outpost callbacks without forward auth to prevent infinite loops  
+      - "traefik.http.routers.n8n-outpost.rule=Host(`n8n.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.n8n-outpost.entrypoints=web"
+      - "traefik.http.routers.n8n-outpost.service=authentik"
+      - "traefik.http.routers.n8n-outpost.priority=200"
+    networks:
+      - backend_network
+      - frontend_network
+      - database_network
+      - auth_network
 
   # Optional Services
   dashy:
@@ -399,6 +433,7 @@ volumes:
   dashy_data:
   authentik_media:
   authentik_templates:
+  n8n_data:
 
 networks:
   frontend_network:

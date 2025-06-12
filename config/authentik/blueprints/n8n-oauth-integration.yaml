@@ -1,0 +1,76 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: 07-n8n-forward-auth-integration
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+    blueprints.goauthentik.io/description: "Step 7: n8n Forward Auth for hybrid authentication"
+context: {}
+entries:
+  # Forward Auth Provider for n8n UI access
+  - model: authentik_providers_proxy.proxyprovider
+    state: present
+    identifiers:
+      name: n8n Forward Auth
+    attrs:
+      name: "n8n Forward Auth"
+      mode: forward_domain
+      external_host: http://n8n.zoi.local
+      internal_host: http://n8n:5678
+      cookie_domain: zoi.local
+      skip_path_regex: ^/(webhook|api)/.*$  # Skip webhook and API paths for direct access
+      authorization_flow: !Find [authentik_flows.flow, [slug, "default-provider-authorization-explicit-consent"]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, "default-invalidation-flow"]]
+
+  # Forward Auth Application for n8n UI access  
+  - model: authentik_core.application
+    state: present
+    identifiers:
+      slug: n8n-forward-auth-app
+    attrs:
+      name: n8n UI
+      slug: n8n-forward-auth-app
+      group: zoi-users  # Use existing group from 01-users.yaml
+      provider: !Find [authentik_providers_proxy.proxyprovider, [name, "n8n Forward Auth"]]
+      launch_url: http://n8n.zoi.local
+      meta_description: "n8n Web UI Forward Auth Access"
+      meta_publisher: "Zoi System"
+
+  # Access policy for n8n (reuse zoi-users group)
+  - model: authentik_policies_expression.expressionpolicy
+    state: present
+    identifiers:
+      name: n8n-access-policy
+    attrs:
+      name: n8n-access-policy
+      expression: 'return "zoi-users" in [group.name for group in request.user.ak_groups.all()]'
+      execution_logging: false
+
+  # Bind policy to Forward Auth application
+  - model: authentik_policies.policybinding
+    state: present
+    identifiers:
+      policy: !Find [authentik_policies_expression.expressionpolicy, [name, n8n-access-policy]]
+      target: !Find [authentik_core.application, [slug, n8n-forward-auth-app]]
+    attrs:
+      policy: !Find [authentik_policies_expression.expressionpolicy, [name, n8n-access-policy]]
+      target: !Find [authentik_core.application, [slug, n8n-forward-auth-app]]
+      enabled: true
+      order: 0
+      timeout: 30
+
+  # Update embedded outpost to include n8n provider alongside existing ones
+  - model: authentik_outposts.outpost
+    state: present
+    identifiers:
+      name: "authentik Embedded Outpost"
+    attrs:
+      name: "authentik Embedded Outpost"
+      type: proxy
+      providers:
+        - !Find [authentik_providers_proxy.proxyprovider, [name, "Dashy Forward Auth"]]
+        - !Find [authentik_providers_proxy.proxyprovider, [name, "n8n Forward Auth"]]
+      config:
+        authentik_host: http://auth.zoi.local
+        authentik_host_insecure: true
+        log_level: info

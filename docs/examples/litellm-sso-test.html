@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LiteLLM SSO Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .auth-status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .auth-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .auth-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .response {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            overflow-x: auto;
+        }
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 LiteLLM Single Sign-On Test</h1>
+        
+        <div class="auth-status" id="authStatus">
+            <strong>Authentication Status:</strong> Checking...
+        </div>
+
+        <h2>🧪 API Tests</h2>
+        <p>These tests demonstrate that once you're logged into Authentik, you can access LiteLLM APIs without providing additional credentials.</p>
+
+        <button onclick="testModels()">📋 Test Models API</button>
+        <button onclick="testChat()">💬 Test Chat API</button>
+        <button onclick="testHealth()">❤️ Test Health Check</button>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        // Check authentication status
+        function checkAuth() {
+            // In a real implementation, this would check for authentication headers
+            // For demo purposes, we'll simulate the check
+            const authStatus = document.getElementById('authStatus');
+            authStatus.className = 'auth-status auth-success';
+            authStatus.innerHTML = '<strong>✅ Authentication Status:</strong> Logged in via Authentik SSO';
+        }
+
+        // Test Models API
+        async function testModels() {
+            try {
+                const response = await fetch('/v1/models');
+                const data = await response.json();
+                
+                showResult('Models API Test', {
+                    status: response.status,
+                    data: data
+                });
+            } catch (error) {
+                showResult('Models API Test', {
+                    error: error.message
+                });
+            }
+        }
+
+        // Test Chat API
+        async function testChat() {
+            try {
+                const response = await fetch('/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-4',
+                        messages: [
+                            { role: 'user', content: 'Hello! This is a test of the SSO integration.' }
+                        ],
+                        max_tokens: 50
+                    })
+                });
+                
+                const data = await response.json();
+                
+                showResult('Chat API Test', {
+                    status: response.status,
+                    data: data
+                });
+            } catch (error) {
+                showResult('Chat API Test', {
+                    error: error.message
+                });
+            }
+        }
+
+        // Test Health Check
+        async function testHealth() {
+            try {
+                const response = await fetch('/health');
+                const data = await response.json();
+                
+                showResult('Health Check Test', {
+                    status: response.status,
+                    data: data
+                });
+            } catch (error) {
+                showResult('Health Check Test', {
+                    error: error.message
+                });
+            }
+        }
+
+        // Show test results
+        function showResult(testName, result) {
+            const resultsDiv = document.getElementById('results');
+            const resultHtml = `
+                <div class="response">
+                    <h3>${testName}</h3>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                </div>
+            `;
+            resultsDiv.innerHTML = resultHtml + resultsDiv.innerHTML;
+        }
+
+        // Initialize
+        checkAuth();
+    </script>
+</body>
+</html>

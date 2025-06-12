@@ -405,20 +405,6 @@ general_settings:
   master_key: sk-6df5295f77391ff7611a0fab11b989287012f48e46f58ae0
   database_url: null  # Use in-memory mode to avoid Prisma config issues
   
-  # JWT Authentication Configuration for Authentik OAuth2
-  enable_jwt_auth: true
-  litellm_jwtauth:
-    # Authentik OAuth2 Provider settings
-    audience: "litellm-api-client"  # Must match client_id in Authentik blueprint
-    issuer: "http://auth.zoi.local/application/o/litellm-oauth2-provider/"  # Authentik OAuth2 provider URL
-    user_roles_jwt_field: "groups"  # Field in JWT containing user groups
-    user_allowed_roles: ["zoi-users"]  # Groups allowed to access LiteLLM
-    enforce_rbac: true
-    
-    # JWT validation settings
-    jwks_url: "http://auth.zoi.local/application/o/litellm-oauth2-provider/jwks/"  # JWKS endpoint
-    token_expiry_buffer_seconds: 30  # Buffer for token expiry validation
-    
   # CORS settings for web integration
   allowed_origins: ["*"]
   allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]

@@ -21,11 +21,11 @@ entries:
       invalidation_flow: !Find [authentik_flows.flow, [slug, "default-invalidation-flow"]]
       
       # Redirect URIs for LiteLLM callback
-      redirect_uris: |
-        http://llm.zoi.local/auth/callback
-        http://llm.zoi.local/v1/auth/callback
-        https://llm.zoi.local/auth/callback
-        https://llm.zoi.local/v1/auth/callback
+      redirect_uris:
+        - "http://llm.zoi.local/auth/callback"
+        - "http://llm.zoi.local/v1/auth/callback"
+        - "https://llm.zoi.local/auth/callback"
+        - "https://llm.zoi.local/v1/auth/callback"
       
       # JWT Configuration for API access
       sub_mode: hashed_user_id
@@ -133,3 +133,4 @@ entries:
       config:
         authentik_host: http://auth.zoi.local
         authentik_host_insecure: true
+        log_level: info
