@@ -102,21 +102,21 @@ services:
     container_name: litellm
     restart: unless-stopped
     ports:
-      - "4000:4000"
-    environment:
-      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY:-sk-1234}
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-1234}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-sk-XXXXXXXX}
-      - TZ=America/Chicago
-      - LITELLM_SALT_KEY=${LITELLM_SALT_KEY:-sk-XXXXXXXX}
-      - DATABASE_URL=postgresql://${PG_USER:-postgres}:${PG_PASS:-secretpass}@postgres:5432/litellm
-      - PORT=4000
-      - STORE_MODEL_IN_DB="True"
+      - "4005:4000"
+    env_file:
+      - ./config/litellm/litellm.env
     volumes:
       - ./config/litellm/config.yaml:/app/config.yaml
+    depends_on:
+      postgres:
+        condition: service_healthy
+      traefik:
+        condition: service_healthy
+      authentik-server:
+        condition: service_healthy
     command: ["--config", "/app/config.yaml"]
     healthcheck:
-      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/zoi.local/4000' && echo 'OK' || exit 1"]
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:4000/ || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -128,6 +128,8 @@ services:
     networks:
       - backend_network
       - frontend_network
+      - database_network
+      - auth_network
 
   traefik:
     image: traefik:latest

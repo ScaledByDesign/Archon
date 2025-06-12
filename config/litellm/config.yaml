@@ -6,7 +6,7 @@ model_list:
   - model_name: gpt-4
     litellm_params:
       model: gpt-4
-      api_key: os.environ/OPENAI_API_KEY
+      api_key: ${OPENAI_API_KEY}
       api_base: https://api.openai.com/v1
       max_tokens: 4096
       temperature: 0.7
@@ -21,7 +21,7 @@ model_list:
   - model_name: gpt-4-turbo
     litellm_params:
       model: gpt-4-turbo-preview
-      api_key: os.environ/OPENAI_API_KEY
+      api_key: ${OPENAI_API_KEY}
       api_base: https://api.openai.com/v1
       max_tokens: 4096
       temperature: 0.7
@@ -36,7 +36,7 @@ model_list:
   - model_name: gpt-4-vision
     litellm_params:
       model: gpt-4-vision-preview
-      api_key: os.environ/OPENAI_API_KEY
+      api_key: ${OPENAI_API_KEY}
       api_base: https://api.openai.com/v1
       max_tokens: 4096
       temperature: 0.7
@@ -51,7 +51,7 @@ model_list:
   - model_name: gpt-3.5-turbo
     litellm_params:
       model: gpt-3.5-turbo
-      api_key: os.environ/OPENAI_API_KEY
+      api_key: ${OPENAI_API_KEY}
       api_base: https://api.openai.com/v1
       max_tokens: 4096
       temperature: 0.7
@@ -67,7 +67,7 @@ model_list:
   - model_name: text-embedding-3-large
     litellm_params:
       model: text-embedding-3-large
-      api_key: os.environ/OPENAI_API_KEY
+      api_key: ${OPENAI_API_KEY}
       api_base: https://api.openai.com/v1
     model_info:
       mode: embedding
@@ -78,7 +78,7 @@ model_list:
   - model_name: text-embedding-3-small
     litellm_params:
       model: text-embedding-3-small
-      api_key: os.environ/OPENAI_API_KEY
+      api_key: ${OPENAI_API_KEY}
       api_base: https://api.openai.com/v1
     model_info:
       mode: embedding
@@ -90,8 +90,8 @@ model_list:
   - model_name: azure-gpt-4
     litellm_params:
       model: azure/gpt-4
-      api_key: os.environ/AZURE_OPENAI_API_KEY
-      api_base: os.environ/AZURE_OPENAI_ENDPOINT
+      api_key: ${AZURE_OPENAI_API_KEY}
+      api_base: ${AZURE_OPENAI_ENDPOINT}
       api_version: "2024-02-15-preview"
       max_tokens: 4096
       temperature: 0.7
@@ -105,7 +105,7 @@ model_list:
   - model_name: claude-3-opus
     litellm_params:
       model: claude-3-opus-20240229
-      api_key: os.environ/ANTHROPIC_API_KEY
+      api_key: ${ANTHROPIC_API_KEY}
       api_base: https://api.anthropic.com
       max_tokens: 4096
       temperature: 0.7
@@ -120,7 +120,7 @@ model_list:
   - model_name: claude-3-sonnet
     litellm_params:
       model: claude-3-sonnet-20240229
-      api_key: os.environ/ANTHROPIC_API_KEY
+      api_key: ${ANTHROPIC_API_KEY}
       api_base: https://api.anthropic.com
       max_tokens: 4096
       temperature: 0.7
@@ -135,7 +135,7 @@ model_list:
   - model_name: claude-3-haiku
     litellm_params:
       model: claude-3-haiku-20240307
-      api_key: os.environ/ANTHROPIC_API_KEY
+      api_key: ${ANTHROPIC_API_KEY}
       api_base: https://api.anthropic.com
       max_tokens: 4096
       temperature: 0.7
@@ -151,7 +151,7 @@ model_list:
   - model_name: gemini-pro
     litellm_params:
       model: gemini/gemini-pro
-      api_key: os.environ/GOOGLE_API_KEY
+      api_key: ${GOOGLE_API_KEY}
       max_tokens: 4096
       temperature: 0.7
     model_info:
@@ -165,7 +165,7 @@ model_list:
   - model_name: gemini-pro-vision
     litellm_params:
       model: gemini/gemini-pro-vision
-      api_key: os.environ/GOOGLE_API_KEY
+      api_key: ${GOOGLE_API_KEY}
       max_tokens: 4096
       temperature: 0.7
     model_info:
@@ -180,7 +180,7 @@ model_list:
   - model_name: command-r-plus
     litellm_params:
       model: cohere/command-r-plus
-      api_key: os.environ/COHERE_API_KEY
+      api_key: ${COHERE_API_KEY}
       max_tokens: 4096
       temperature: 0.7
     model_info:
@@ -194,7 +194,7 @@ model_list:
   - model_name: command-r
     litellm_params:
       model: cohere/command-r
-      api_key: os.environ/COHERE_API_KEY
+      api_key: ${COHERE_API_KEY}
       max_tokens: 4096
       temperature: 0.7
     model_info:
@@ -209,7 +209,7 @@ model_list:
   - model_name: embed-english-v3
     litellm_params:
       model: cohere/embed-english-v3.0
-      api_key: os.environ/COHERE_API_KEY
+      api_key: ${COHERE_API_KEY}
     model_info:
       mode: embedding
       input_cost_per_token: 0.0000001
@@ -302,7 +302,7 @@ router_settings:
     # Redis configuration for usage tracking (optional, falls back to simple-shuffle)
     redis_host: "redis"
     redis_port: 6379
-    redis_password: os.environ/REDIS_PASSWORD
+    redis_password: ${REDIS_PASSWORD}
     ttl: 30  # seconds to cache usage data
   
   # Retry configuration for failed requests
@@ -372,7 +372,7 @@ litellm_settings:
   tpm: 150000  # tokens per minute
   
   # Enhanced logging for production monitoring
-  set_verbose: true
+  set_verbose: "true"
   log_level: "INFO"
   
   # Health check settings optimized for M4 Mac Mini
@@ -398,12 +398,12 @@ litellm_settings:
   load_balancing_strategy: "weighted_round_robin"
   
   # Error handling
-  drop_params: true  # Drop unsupported parameters instead of failing
+  drop_params: "true"  # Drop unsupported parameters instead of failing
 
 # Enhanced General Settings
 general_settings:
-  master_key: os.environ/LITELLM_MASTER_KEY
-  database_url: null  # Use in-memory for now, can be configured later
+  master_key: sk-6df5295f77391ff7611a0fab11b989287012f48e46f58ae0
+  database_url: null  # Use in-memory mode to avoid Prisma config issues
   
   # CORS settings for web integration
   allowed_origins: ["*"]
@@ -411,9 +411,9 @@ general_settings:
   allowed_headers: ["*"]
   
   # UI settings
-  ui_access_mode: "admin_only"
-  ui_username: "admin"
-  ui_password: os.environ/LITELLM_UI_PASSWORD
+  ui_access_mode: "all"
+  # ui_username: "admin"
+  # ui_password: ${LITELLM_UI_PASSWORD}
   
   # Custom headers for identification
   headers:
@@ -436,8 +436,8 @@ general_settings:
 
 # Environment-specific overrides
 environment_variables:
-  LITELLM_LOG: INFO
-  LITELLM_DROP_PARAMS: true
-  LITELLM_SET_VERBOSE: true
-  LITELLM_SUCCESS_CALLBACK: ["prometheus"]
-  LITELLM_FAILURE_CALLBACK: ["prometheus"]
+  LITELLM_LOG: "INFO"
+  LITELLM_DROP_PARAMS: "true"
+  LITELLM_SET_VERBOSE: "true"
+  LITELLM_SUCCESS_CALLBACK: "prometheus"
+  LITELLM_FAILURE_CALLBACK: "prometheus"
