@@ -27,3 +27,5 @@ entries:
     attrs:
       name: dashy-users
       is_superuser: false
+      users:
+        - !Find [authentik_core.user, [username, testuser]]

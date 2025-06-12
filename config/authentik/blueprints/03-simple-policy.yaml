@@ -1,0 +1,31 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: dashy-03-simple-policy
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+    blueprints.goauthentik.io/description: "Step 3: Simple group-based access policy"
+context: {}
+entries:
+  # Create simple group membership policy
+  - model: authentik_policies_expression.expressionpolicy
+    state: present
+    identifiers:
+      name: dashy-access-policy
+    attrs:
+      name: dashy-access-policy
+      expression: 'return "dashy-users" in [group.name for group in request.user.ak_groups.all()]'
+      execution_logging: false
+
+  # Bind policy to Dashy application
+  - model: authentik_policies.policybinding
+    state: present
+    identifiers:
+      policy: !Find [authentik_policies_expression.expressionpolicy, [name, dashy-access-policy]]
+      target: !Find [authentik_core.application, [slug, dashy-forward-auth-app]]
+    attrs:
+      policy: !Find [authentik_policies_expression.expressionpolicy, [name, dashy-access-policy]]
+      target: !Find [authentik_core.application, [slug, dashy-forward-auth-app]]
+      enabled: true
+      order: 0
+      timeout: 30
