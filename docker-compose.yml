@@ -306,8 +306,9 @@ services:
       - "traefik.http.routers.authentik.rule=Host(`auth.zoi.local`)"
       - "traefik.http.routers.authentik.entrypoints=web"
       - "traefik.http.services.authentik.loadbalancer.server.port=9000"
-      ## Individual Application forwardAuth regex (catch any subdomain using individual application forwardAuth)
-      #- "traefik.http.routers.authentik-rtr-outpost.rule=HostRegexp(`dashy.zoi.local`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.authentik-rtr-outpost.rule=HostRegexp(`{subdomain:.+}.zoi.local`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.authentik-rtr-outpost.entrypoints=web"
+      - "traefik.http.routers.authentik-rtr-outpost.service=authentik"
       - "traefik.http.routers.authentik-rtr.service=authentik"
     healthcheck:
       test: ["CMD-SHELL", "ak healthcheck"]
