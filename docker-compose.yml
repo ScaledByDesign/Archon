@@ -130,7 +130,7 @@ services:
       - frontend_network
 
   traefik:
-    image: traefik:v3.0
+    image: traefik:latest
     container_name: traefik
     restart: unless-stopped
     command:
@@ -313,7 +313,6 @@ services:
       start_period: 30s
       interval: 30s
       timeout: 30s
-      retries: 3
     networks:
       - auth_network
       - frontend_network
@@ -343,7 +342,6 @@ services:
       start_period: 30s
       interval: 30s
       timeout: 30s
-      retries: 3
     networks:
       - auth_network
       - backend_network
