@@ -1,0 +1,23 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: dashy-04-outpost-provider-assignment
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+    blueprints.goauthentik.io/description: "Step 4: Assign Dashy provider to embedded outpost"
+context: {}
+entries:
+  # Assign Dashy Forward Auth provider to embedded outpost
+  - model: authentik_outposts.outpost
+    state: present
+    identifiers:
+      name: authentik Embedded Outpost
+    attrs:
+      name: authentik Embedded Outpost
+      type: proxy
+      providers:
+        - !Find [authentik_core.provider, [name, "Dashy Forward Auth"]]
+      config:
+        authentik_host: http://auth.zoi.local
+        authentik_host_insecure: true
+      

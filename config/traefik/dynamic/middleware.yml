@@ -37,7 +37,7 @@ http:
     # Authentik Forward Authentication with clean redirects
     authentik-forward-auth:
       forwardAuth:
-        address: "http://auth.zoi.local/outpost.goauthentik.io/auth/traefik"
+        address: "http://authentik-server:9000/outpost.goauthentik.io/auth/traefik"
         trustForwardHeader: true
         authResponseHeaders:
           - "X-authentik-username"
