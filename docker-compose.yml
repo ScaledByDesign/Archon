@@ -426,6 +426,55 @@ services:
     networks:
       - database_network
 
+  # OpenWebUI Chat UI
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:latest
+    container_name: openwebui
+    restart: unless-stopped
+    ports:
+      - "8088:8088"
+    env_file:
+      - ./config/openwebui/openwebui.env
+    volumes:
+      - openwebui_data:/app/data
+      - ./config/openwebui/oauth2-config.yaml:/app/config/oauth2-config.yaml:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      traefik:
+        condition: service_healthy
+      authentik-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:8088/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      # API/Webhook routes (if applicable) - higher priority, no authentication
+      - "traefik.http.routers.openwebui-api.rule=Host(`openwebui.${DOMAIN:-zoi.local}`) && (PathPrefix(`/api`) || PathPrefix(`/webhook`))"
+      - "traefik.http.routers.openwebui-api.entrypoints=web"
+      - "traefik.http.routers.openwebui-api.priority=100"
+      - "traefik.http.routers.openwebui-api.service=openwebui"
+      # Frontend/UI routes - lower priority, with authentication
+      - "traefik.http.routers.openwebui-frontend.rule=Host(`openwebui.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.openwebui-frontend.entrypoints=web"
+      - "traefik.http.routers.openwebui-frontend.priority=50"
+      - "traefik.http.routers.openwebui-frontend.middlewares=openwebui-frontend-auth@file"
+      - "traefik.http.routers.openwebui-frontend.service=openwebui"
+      # Service definition
+      - "traefik.http.services.openwebui.loadbalancer.server.port=8088"
+      # Authentik outpost callbacks - highest priority
+      - "traefik.http.routers.openwebui-outpost.rule=Host(`openwebui.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.openwebui-outpost.entrypoints=web"
+      - "traefik.http.routers.openwebui-outpost.service=authentik"
+      - "traefik.http.routers.openwebui-outpost.priority=200"
+    networks:
+      - backend_network
+      - frontend_network
+      - auth_network
+
 volumes:
   postgres_data:
   redis_data:
@@ -435,6 +484,7 @@ volumes:
   authentik_media:
   authentik_templates:
   n8n_data:
+  openwebui_data:
 
 networks:
   frontend_network:

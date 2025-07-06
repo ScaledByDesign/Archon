@@ -50,3 +50,9 @@ http:
       chain:
         middlewares:
           - authentik-forward-auth
+
+    # OpenWebUI Frontend Authentication (UI only, no key injection needed)
+    openwebui-frontend-auth:
+      chain:
+        middlewares:
+          - authentik-forward-auth

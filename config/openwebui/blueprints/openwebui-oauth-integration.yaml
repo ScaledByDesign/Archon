@@ -1,0 +1,96 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: 0X-openwebui-oauth-integration
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+    blueprints.goauthentik.io/description: "Step X: OpenWebUI OAuth2/OIDC and Forward Auth Integration"
+context: {}
+entries:
+  # OAuth2/OIDC Provider (if service supports OAuth2)
+  - model: authentik_providers_oauth2.oauth2provider
+    state: present
+    identifiers:
+      name: OpenWebUI OAuth2 Provider
+    attrs:
+      name: "OpenWebUI OAuth2 Provider"
+      client_type: confidential
+      client_id: "openwebui-oauth-client"
+      client_secret: !Env [OPENWEBUI_OAUTH_CLIENT_SECRET, "openwebui-secret-change-me"]
+      authorization_flow: !Find [authentik_flows.flow, [slug, "default-provider-authorization-explicit-consent"]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, "default-invalidation-flow"]]
+      redirect_uris:
+        - "http://openwebui.zoi.local/auth/callback"
+        - "http://openwebui.zoi.local/oauth/callback"
+        - "https://openwebui.zoi.local/auth/callback"
+        - "https://openwebui.zoi.local/oauth/callback"
+      sub_mode: hashed_user_id
+      include_claims_in_id_token: true
+      issuer_mode: per_provider
+      access_token_validity: hours=1
+      refresh_token_validity: days=7
+      property_mappings:
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, openid]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, profile]]
+        - !Find [authentik_providers_oauth2.scopemapping, [scope_name, email]]
+  # Forward Auth Provider for UI access
+  - model: authentik_providers_proxy.proxyprovider
+    state: present
+    identifiers:
+      name: OpenWebUI Forward Auth
+    attrs:
+      name: "OpenWebUI Forward Auth"
+      mode: forward_domain
+      external_host: "http://openwebui.zoi.local"
+      authorization_flow: !Find [authentik_flows.flow, [slug, "default-provider-authorization-explicit-consent"]]
+      invalidation_flow: !Find [authentik_flows.flow, [slug, "default-invalidation-flow"]]
+      skip_path_regex: '^/(api|webhook)/.*$'
+  # OAuth2 Application
+  - model: authentik_core.application
+    state: present
+    identifiers:
+      name: OpenWebUI OAuth2 API
+    attrs:
+      name: "OpenWebUI OAuth2 API"
+      slug: "openwebui-oauth2-api"
+      provider: !Find [authentik_providers_oauth2.oauth2provider, [name, "OpenWebUI OAuth2 Provider"]]
+      policy_engine_mode: any
+      group: "zoi-users"
+  # Forward Auth Application  
+  - model: authentik_core.application
+    state: present
+    identifiers:
+      name: OpenWebUI Frontend
+    attrs:
+      name: "OpenWebUI Frontend"
+      slug: "openwebui-frontend"
+      provider: !Find [authentik_providers_proxy.proxyprovider, [name, "OpenWebUI Forward Auth"]]
+      policy_engine_mode: any
+      group: "zoi-users"
+  # Policy Binding - Reuse existing group access
+  - model: authentik_policies.policybinding
+    state: present
+    identifiers:
+      target: !Find [authentik_core.application, [slug, "openwebui-frontend"]]
+      policy: !Find [authentik_policies_expression.expressionpolicy, [name, "dashy-users-group-policy"]]
+    attrs:
+      target: !Find [authentik_core.application, [slug, "openwebui-frontend"]]
+      policy: !Find [authentik_policies_expression.expressionpolicy, [name, "dashy-users-group-policy"]]
+      order: 0
+      enabled: true
+  # Update Embedded Outpost (add new providers)
+  - model: authentik_outposts.outpost
+    state: present
+    identifiers:
+      name: "authentik Embedded Outpost"
+    attrs:
+      name: "authentik Embedded Outpost"
+      type: proxy
+      providers:
+        - !Find [authentik_providers_proxy.proxyprovider, [name, "Dashy Forward Auth"]]
+        - !Find [authentik_providers_proxy.proxyprovider, [name, "LiteLLM Forward Auth"]]
+        - !Find [authentik_providers_proxy.proxyprovider, [name, "OpenWebUI Forward Auth"]]
+      config:
+        authentik_host: http://auth.zoi.local
+        authentik_host_insecure: true
+        log_level: info 
