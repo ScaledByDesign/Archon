@@ -15,17 +15,15 @@ entries:
     attrs:
       name: "LiteLLM OAuth2 Provider"
       client_type: confidential
-      client_id: "litellm-api-client"
+      client_id: "litellm-oauth-client"
       client_secret: !Env [LITELLM_OAUTH_CLIENT_SECRET, "litellm-secret-change-me"]
       authorization_flow: !Find [authentik_flows.flow, [slug, "default-provider-authorization-explicit-consent"]]
       invalidation_flow: !Find [authentik_flows.flow, [slug, "default-invalidation-flow"]]
       
-      # Redirect URIs for LiteLLM callback
+      # Redirect URIs for LiteLLM SSO callback
       redirect_uris:
-        - "http://llm.zoi.local/auth/callback"
-        - "http://llm.zoi.local/v1/auth/callback"
-        - "https://llm.zoi.local/auth/callback"
-        - "https://llm.zoi.local/v1/auth/callback"
+        - "http://llm.zoi.local/sso/callback"
+        - "https://llm.zoi.local/sso/callback"
       
       # JWT Configuration for API access
       sub_mode: hashed_user_id

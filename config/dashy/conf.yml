@@ -29,26 +29,26 @@ sections:
     icon: 'fas fa-server'
     items:
       - title: 'FastAPI Main'
-        url: 'https://api.zoi.local'
+        url: 'http://api.zoi.local'
         description: 'RAG query & action API'
         icon: 'hl-fastapi'
         statusCheck: true
-        statusUrl: 'https://api.zoi.local/health'
+        statusUrl: 'http://api.zoi.local/health'
         tags: ['api','docs']
 
       - title: 'FastAPI Docs'
-        url: 'https://api.zoi.local/docs'
+        url: 'http://api.zoi.local/docs'
         description: 'OpenAPI/Swagger documentation'
         icon: 'fas fa-book-open'
         statusCheck: false
         tags: ['docs','api']
 
       - title: 'LiteLLM Proxy'
-        url: 'https://llm.zoi.local'
+        url: 'http://llm.zoi.local'
         description: 'Multi-model LLM gateway'
         icon: 'fas fa-route'
         statusCheck: true
-        statusUrl: 'https://llm.zoi.local/health'
+        statusUrl: 'http://llm.zoi.local/health'
         tags: ['ai','proxy']
 
   - name: '🔐 Authentication & Security'
@@ -73,14 +73,14 @@ sections:
     icon: 'fas fa-brain'
     items:
       - title: 'SuperAGI'
-        url: 'https://agi.zoi.local'
+        url: 'http://agi.zoi.local'
         description: 'Autonomous AI agent platform'
         icon: 'fas fa-robot'
         statusCheck: false
         tags: ['ai','autonomous']
 
       - title: 'Open WebUI'
-        url: 'https://webui.zoi.local'
+        url: 'http://webui.zoi.local'
         description: 'Web interface for AI models'
         icon: 'fas fa-comments'
         statusCheck: false
@@ -90,22 +90,22 @@ sections:
     icon: 'fas fa-database'
     items:
       - title: 'Qdrant Vector DB'
-        url: 'https://qdrant.zoi.local'
+        url: 'http://qdrant.zoi.local'
         description: 'Vector similarity search engine'
         icon: 'fas fa-vector-square'
         statusCheck: true
-        statusUrl: 'https://qdrant.zoi.local/'
+        statusUrl: 'http://qdrant.zoi.local/'
         tags: ['vector','search']
 
       - title: 'Redis Insight'
-        url: 'https://redis.zoi.local'
+        url: 'http://redis.zoi.local'
         description: 'Redis database management'
         icon: 'hl-redis'
         statusCheck: false
         tags: ['redis','cache']
 
       - title: 'Backrest Backup'
-        url: 'https://backup.zoi.local'
+        url: 'http://backup.zoi.local'
         description: 'Backup management system'
         icon: 'fas fa-archive'
         statusCheck: false
@@ -115,33 +115,33 @@ sections:
     icon: 'fas fa-project-diagram'
     items:
       - title: 'n8n Workflows'
-        url: 'https://n8n.zoi.local'
+        url: 'http://n8n.zoi.local'
         description: 'Workflow automation engine'
         icon: 'hl-n8n'
         statusCheck: false
         tags: ['automation','workflows']
 
       - title: 'RabbitMQ Management'
-        url: 'https://rabbitmq.zoi.local'
+        url: 'http://rabbitmq.zoi.local'
         description: 'Message queue administration'
         icon: 'hl-rabbitmq'
         statusCheck: true
-        statusUrl: 'https://rabbitmq.zoi.local/api/overview'
+        statusUrl: 'http://rabbitmq.zoi.local/api/overview'
         tags: ['queue','messaging']
 
   - name: '🌐 Infrastructure & Networking'
     icon: 'fas fa-network-wired'
     items:
       - title: 'Traefik Dashboard'
-        url: 'https://traefik.zoi.local'
+        url: 'http://traefik.zoi.local'
         description: 'Reverse proxy & load balancer'
         icon: 'hl-traefik'
         statusCheck: true
-        statusUrl: 'https://traefik.zoi.local/api/rawdata'
+        statusUrl: 'http://traefik.zoi.local/api/rawdata'
         tags: ['proxy','routing']
 
       - title: 'Dashy Dashboard'
-        url: 'https://dashy.zoi.local'
+        url: 'http://dashy.zoi.local'
         description: 'This dashboard'
         icon: 'fas fa-tachometer-alt'
         statusCheck: false
@@ -151,7 +151,7 @@ sections:
     icon: 'fas fa-chart-pie'
     items:
       - title: 'Healthchecks'
-        url: 'https://healthchecks.zoi.local'
+        url: 'http://healthchecks.zoi.local'
         description: 'Service health monitoring'
         icon: 'fas fa-heartbeat'
         statusCheck: false
@@ -159,7 +159,7 @@ sections:
 
       - title: 'Container Status'
         type: 'iframe'
-        url: 'https://traefik.zoi.local/dashboard'
+        url: 'http://traefik.zoi.local/dashboard'
         description: 'Live container status via Traefik'
         height: 400
 
@@ -174,26 +174,26 @@ sections:
         description: 'Primary database'
         icon: 'hl-postgresql'
         statusCheck: true
-        statusUrl: 'https://api.zoi.local/health'
+        statusUrl: 'http://api.zoi.local/health'
         tags: ['database','core']
 
       - title: 'Redis'
         description: 'Cache & session store'
         icon: 'hl-redis'
         statusCheck: true
-        statusUrl: 'https://api.zoi.local/health'
+        statusUrl: 'http://api.zoi.local/health'
         tags: ['cache','core']
 
       - title: 'MongoDB'
         description: 'Document database'
         icon: 'hl-mongodb'
         statusCheck: true
-        statusUrl: 'https://api.zoi.local/health'
+        statusUrl: 'http://api.zoi.local/health'
         tags: ['database','documents']
 
       - title: 'Worker Processes'
         description: 'Background task workers'
         icon: 'fas fa-cogs'
         statusCheck: true
-        statusUrl: 'https://api.zoi.local/health'
+        statusUrl: 'http://api.zoi.local/health'
         tags: ['workers','processing']

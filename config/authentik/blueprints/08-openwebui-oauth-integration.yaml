@@ -1,10 +1,10 @@
 # yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
 version: 1
 metadata:
-  name: 0X-openwebui-oauth-integration
+  name: 08-openwebui-oauth-integration
   labels:
     blueprints.goauthentik.io/instantiate: "true"
-    blueprints.goauthentik.io/description: "Step X: OpenWebUI OAuth2/OIDC and Forward Auth Integration"
+    blueprints.goauthentik.io/description: "Step 8: OpenWebUI OAuth2/OIDC and Forward Auth Integration"
 context: {}
 entries:
   # OAuth2/OIDC Provider (if service supports OAuth2)
@@ -41,7 +41,9 @@ entries:
     attrs:
       name: "OpenWebUI Forward Auth"
       mode: forward_domain
-      external_host: "http://openwebui.zoi.local"
+      external_host: http://openwebui.zoi.local
+      internal_host: http://openwebui:8088
+      cookie_domain: zoi.local
       authorization_flow: !Find [authentik_flows.flow, [slug, "default-provider-authorization-explicit-consent"]]
       invalidation_flow: !Find [authentik_flows.flow, [slug, "default-invalidation-flow"]]
       skip_path_regex: '^/(api|webhook)/.*$'
@@ -72,10 +74,10 @@ entries:
     state: present
     identifiers:
       target: !Find [authentik_core.application, [slug, "openwebui-frontend"]]
-      policy: !Find [authentik_policies_expression.expressionpolicy, [name, "dashy-users-group-policy"]]
+      policy: !Find [authentik_policies_expression.expressionpolicy, [name, "dashy-access-policy"]]
     attrs:
       target: !Find [authentik_core.application, [slug, "openwebui-frontend"]]
-      policy: !Find [authentik_policies_expression.expressionpolicy, [name, "dashy-users-group-policy"]]
+      policy: !Find [authentik_policies_expression.expressionpolicy, [name, "dashy-access-policy"]]
       order: 0
       enabled: true
   # Update Embedded Outpost (add new providers)
