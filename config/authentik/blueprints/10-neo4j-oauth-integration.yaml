@@ -1,0 +1,61 @@
+version: 1
+metadata:
+  name: 10-neo4j-oauth-integration
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+context:
+  neo4j_client_id: neo4j-oauth-client
+  neo4j_client_secret: change-me-neo4j-oauth-secret
+entries:
+  # Forward Auth Provider for Neo4j Browser
+  - identifiers:
+      pk: neo4j-forward-auth-provider
+    model: authentik_providers_proxy.proxyprovider
+    attrs:
+      name: Neo4j Forward Auth Provider
+      authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+      mode: forward_single
+      external_host: http://neo4j.zoi.local
+      cookie_domain: .zoi.local
+      token_validity: hours=24
+      skip_path_regex: ^/(db|browser/assets)/.*$
+
+  # Neo4j Forward Auth Application
+  - identifiers:
+      pk: neo4j-forward-auth-app
+    model: authentik_core.application
+    attrs:
+      name: Neo4j Browser
+      slug: neo4j-browser
+      provider: !KeyOf authentik_providers_proxy.proxyprovider neo4j-forward-auth-provider
+      policy_engine_mode: any
+      meta_launch_url: http://neo4j.zoi.local
+      meta_description: Neo4j Graph Database Browser
+      meta_publisher: Zoi Infrastructure
+      meta_icon: https://neo4j.com/wp-content/uploads/2018/06/neo4j-logo-2018-1.png
+
+  # Policy Binding for Neo4j Forward Auth
+  - identifiers:
+      pk: neo4j-forward-auth-policy-binding
+    model: authentik_policies.policybinding
+    attrs:
+      target: !KeyOf authentik_core.application neo4j-forward-auth-app
+      group: !Find [authentik_core.group, [name, zoi-users]]
+      order: 0
+      enabled: true
+
+  # Add Neo4j Forward Auth Provider to Embedded Outpost
+  - identifiers:
+      pk: embedded-outpost-neo4j-provider
+    model: authentik_outposts.outpost
+    state: present
+    attrs:
+      name: authentik Embedded Outpost
+      type: proxy
+      providers:
+        - !KeyOf authentik_providers_proxy.proxyprovider dashy-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider n8n-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider openwebui-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider litellm-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider flowise-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider neo4j-forward-auth-provider

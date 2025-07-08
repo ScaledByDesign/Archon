@@ -1,0 +1,107 @@
+version: 1
+metadata:
+  name: 12-langfuse-oauth-integration
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+context:
+  langfuse_client_id: langfuse-oauth-client
+  langfuse_client_secret: change-me-langfuse-oauth-secret
+entries:
+  # OAuth2 Provider for Langfuse
+  - identifiers:
+      pk: langfuse-oauth-provider
+    model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: Langfuse OAuth2 Provider
+      client_type: confidential
+      client_id: !Context langfuse_client_id
+      client_secret: !Context langfuse_client_secret
+      authorization_grant_type: authorization-code
+      redirect_uris: |
+        http://langfuse.zoi.local/api/auth/callback/authentik
+        http://langfuse.zoi.local/auth/callback
+      signing_key: !KeyOf authentik_crypto.certificatekeypair "authentik Self-signed Certificate"
+      access_token_validity: hours=24
+      refresh_token_validity: days=30
+      include_claims_in_id_token: true
+      issuer_mode: per_provider
+      sub_mode: hashed_user_id
+
+  # Forward Auth Provider for Langfuse
+  - identifiers:
+      pk: langfuse-forward-auth-provider
+    model: authentik_providers_proxy.proxyprovider
+    attrs:
+      name: Langfuse Forward Auth Provider
+      authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+      mode: forward_single
+      external_host: http://langfuse.zoi.local
+      cookie_domain: .zoi.local
+      token_validity: hours=24
+      skip_path_regex: ^/(api|health|metrics)/.*$
+
+  # Langfuse OAuth2 Application
+  - identifiers:
+      pk: langfuse-oauth-app
+    model: authentik_core.application
+    attrs:
+      name: Langfuse OAuth2
+      slug: langfuse-oauth
+      provider: !KeyOf authentik_providers_oauth2.oauth2provider langfuse-oauth-provider
+      policy_engine_mode: any
+      meta_launch_url: http://langfuse.zoi.local
+      meta_description: Langfuse LLM Observability Platform - OAuth2 Integration
+      meta_publisher: Zoi Infrastructure
+      meta_icon: https://langfuse.com/favicon.ico
+
+  # Langfuse Forward Auth Application
+  - identifiers:
+      pk: langfuse-forward-auth-app
+    model: authentik_core.application
+    attrs:
+      name: Langfuse Forward Auth
+      slug: langfuse-forward-auth
+      provider: !KeyOf authentik_providers_proxy.proxyprovider langfuse-forward-auth-provider
+      policy_engine_mode: any
+      meta_launch_url: http://langfuse.zoi.local
+      meta_description: Langfuse LLM Observability Platform - Forward Auth
+      meta_publisher: Zoi Infrastructure
+      meta_icon: https://langfuse.com/favicon.ico
+
+  # Policy Binding for Langfuse OAuth2
+  - identifiers:
+      pk: langfuse-oauth-policy-binding
+    model: authentik_policies.policybinding
+    attrs:
+      target: !KeyOf authentik_core.application langfuse-oauth-app
+      group: !Find [authentik_core.group, [name, zoi-users]]
+      order: 0
+      enabled: true
+
+  # Policy Binding for Langfuse Forward Auth
+  - identifiers:
+      pk: langfuse-forward-auth-policy-binding
+    model: authentik_policies.policybinding
+    attrs:
+      target: !KeyOf authentik_core.application langfuse-forward-auth-app
+      group: !Find [authentik_core.group, [name, zoi-users]]
+      order: 0
+      enabled: true
+
+  # Add Langfuse Forward Auth Provider to Embedded Outpost
+  - identifiers:
+      pk: embedded-outpost-langfuse-provider
+    model: authentik_outposts.outpost
+    state: present
+    attrs:
+      name: authentik Embedded Outpost
+      type: proxy
+      providers:
+        - !KeyOf authentik_providers_proxy.proxyprovider dashy-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider n8n-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider openwebui-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider litellm-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider flowise-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider neo4j-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider searxng-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider langfuse-forward-auth-provider

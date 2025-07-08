@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${PG_USER:-postgres}
       POSTGRES_DB: ${PG_DB:-postgres}
       TZ: America/Chicago
-      POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_MULTIPLE_DATABASES:-fastapi,healthchecks,authentik,litellm,n8n}
+      POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_MULTIPLE_DATABASES:-fastapi,healthchecks,authentik,litellm,n8n,flowise,langfuse}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./config/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
@@ -82,7 +82,7 @@ services:
       - qdrant_data:/qdrant/storage
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
-      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/zoi.local/6333' || exit 1"]
+      test: ["CMD-SHELL", "timeout 5 bash -c '</dev/tcp/localhost/6333' || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -313,6 +313,51 @@ services:
       - "traefik.http.routers.dashy-outpost.service=authentik"
       - "traefik.http.routers.dashy-outpost.priority=100"
 
+  # Portal App Organizer
+  portal:
+    build:
+      context: ./portal
+      dockerfile: Dockerfile
+    container_name: portal
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./config/portal/portal.env
+    volumes:
+      - portal_data:/app/data
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD-SHELL", "ps aux | grep '[n]ext-server' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - frontend_network
+      - backend_network
+      - auth_network
+      - monitoring_network
+    depends_on:
+      traefik:
+        condition: service_healthy
+      authentik-server:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      
+      # Main Portal UI with authentication
+      - "traefik.http.routers.portal.rule=Host(`portal.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.portal.entrypoints=web"
+      - "traefik.http.routers.portal.middlewares=authentik-forward-auth@file"
+      - "traefik.http.services.portal.loadbalancer.server.port=3000"
+      
+      # Authentik Forward Auth Outpost
+      - "traefik.http.routers.portal-outpost.rule=Host(`portal.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.portal-outpost.entrypoints=web"
+      - "traefik.http.routers.portal-outpost.service=authentik"
+      - "traefik.http.routers.portal-outpost.priority=200"
+
   # Authentication & Identity Provider
   authentik-server:
     image: ghcr.io/goauthentik/server:latest
@@ -484,6 +529,7 @@ volumes:
   mongo_data:
   qdrant_data:
   dashy_data:
+  portal_data:
   authentik_media:
   authentik_templates:
   n8n_data:

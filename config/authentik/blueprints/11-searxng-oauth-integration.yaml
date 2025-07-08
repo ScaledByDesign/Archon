@@ -1,0 +1,62 @@
+version: 1
+metadata:
+  name: 11-searxng-oauth-integration
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+context:
+  searxng_client_id: searxng-oauth-client
+  searxng_client_secret: change-me-searxng-oauth-secret
+entries:
+  # Forward Auth Provider for SearXNG
+  - identifiers:
+      pk: searxng-forward-auth-provider
+    model: authentik_providers_proxy.proxyprovider
+    attrs:
+      name: SearXNG Forward Auth Provider
+      authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+      mode: forward_single
+      external_host: http://search.zoi.local
+      cookie_domain: .zoi.local
+      token_validity: hours=24
+      skip_path_regex: ^/(search|autocompleter|config|stats|healthz)/.*$
+
+  # SearXNG Forward Auth Application
+  - identifiers:
+      pk: searxng-forward-auth-app
+    model: authentik_core.application
+    attrs:
+      name: SearXNG Search
+      slug: searxng-search
+      provider: !KeyOf authentik_providers_proxy.proxyprovider searxng-forward-auth-provider
+      policy_engine_mode: any
+      meta_launch_url: http://search.zoi.local
+      meta_description: SearXNG Privacy-Respecting Search Engine
+      meta_publisher: Zoi Infrastructure
+      meta_icon: https://raw.githubusercontent.com/searxng/searxng/master/src/brand/searxng.svg
+
+  # Policy Binding for SearXNG Forward Auth
+  - identifiers:
+      pk: searxng-forward-auth-policy-binding
+    model: authentik_policies.policybinding
+    attrs:
+      target: !KeyOf authentik_core.application searxng-forward-auth-app
+      group: !Find [authentik_core.group, [name, zoi-users]]
+      order: 0
+      enabled: true
+
+  # Add SearXNG Forward Auth Provider to Embedded Outpost
+  - identifiers:
+      pk: embedded-outpost-searxng-provider
+    model: authentik_outposts.outpost
+    state: present
+    attrs:
+      name: authentik Embedded Outpost
+      type: proxy
+      providers:
+        - !KeyOf authentik_providers_proxy.proxyprovider dashy-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider n8n-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider openwebui-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider litellm-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider flowise-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider neo4j-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider searxng-forward-auth-provider

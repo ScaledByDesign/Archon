@@ -56,3 +56,27 @@ http:
       chain:
         middlewares:
           - authentik-forward-auth
+
+    # Flowise Frontend Authentication (UI only, no key injection needed)
+    flowise-frontend-auth:
+      chain:
+        middlewares:
+          - authentik-forward-auth
+
+    # Neo4j Frontend Authentication (UI only, no key injection needed)
+    neo4j-frontend-auth:
+      chain:
+        middlewares:
+          - authentik-forward-auth
+
+    # SearXNG Frontend Authentication (UI only, no key injection needed)
+    searxng-frontend-auth:
+      chain:
+        middlewares:
+          - authentik-forward-auth
+
+    # Langfuse Frontend Authentication (UI only, no key injection needed)
+    langfuse-frontend-auth:
+      chain:
+        middlewares:
+          - authentik-forward-auth

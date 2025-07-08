@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mobile-friendly touch improvements */
+@media (max-width: 768px) {
+  /* Improve touch targets */
+  button, a, input, select, textarea {
+    min-height: 44px;
+  }
+  
+  /* Better touch feedback */
+  button:active, a:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  
+  /* Improve scrolling */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@layer base {
+  html {
+    @apply h-full;
+  }
+  
+  body {
+    @apply h-full overflow-hidden;
+  }
+}
+
+@layer components {
+  .sidebar-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+  }
+  
+  .sidebar-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .sidebar-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .sidebar-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.3);
+    border-radius: 3px;
+  }
+  
+  .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.5);
+  }
+
+  .app-icon {
+    @apply w-8 h-8 flex items-center justify-center text-lg;
+  }
+
+  .app-icon img {
+    @apply w-full h-full object-contain rounded;
+  }
+
+  .status-indicator {
+    @apply absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-gray-800;
+  }
+
+  .status-online {
+    @apply bg-green-500;
+  }
+
+  .status-offline {
+    @apply bg-red-500;
+  }
+
+  .status-unknown {
+    @apply bg-gray-500;
+  }
+
+  .iframe-container {
+    @apply relative w-full h-full bg-white rounded-lg overflow-hidden;
+  }
+
+  .iframe-loading {
+    @apply absolute inset-0 flex items-center justify-center bg-gray-100;
+  }
+
+  .drag-overlay {
+    @apply bg-gray-800 border border-gray-600 rounded-lg p-2 shadow-lg;
+  }
+
+  .drop-indicator {
+    @apply absolute left-0 right-0 h-0.5 bg-blue-500 rounded-full;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

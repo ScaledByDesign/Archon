@@ -1,0 +1,135 @@
+# SearXNG Settings Configuration
+# Following Zoi project standards for search engine configuration
+
+general:
+  debug: false
+  instance_name: "Zoi Search"
+  privacypolicy_url: false
+  donation_url: false
+  contact_url: false
+  enable_metrics: false
+
+search:
+  safe_search: 0
+  autocomplete: "google"
+  autocomplete_min: 4
+  default_lang: "en"
+  ban_time_on_fail: 5
+  max_ban_time_on_fail: 120
+  formats:
+    - html
+    - json
+
+server:
+  port: 8080
+  bind_address: "0.0.0.0"
+  secret_key: "__SEARXNG_SECRET_KEY__"
+  base_url: "http://search.zoi.local"
+  image_proxy: false
+  http_protocol_version: "1.1"
+  method: "POST"
+  default_http_headers:
+    X-Content-Type-Options: nosniff
+    X-XSS-Protection: 1; mode=block
+    X-Download-Options: noopen
+    X-Robots-Tag: noindex, nofollow
+    Referrer-Policy: no-referrer
+
+ui:
+  static_path: ""
+  templates_path: ""
+  default_theme: simple
+  default_locale: ""
+  theme_args:
+    simple_style: auto
+  center_alignment: false
+  cache_url: "redis://redis:6379/1"
+  query_in_title: false
+  infinite_scroll: false
+  search_on_category_select: true
+  hotkeys: default
+
+redis:
+  url: "redis://redis:6379/1"
+
+outgoing:
+  request_timeout: 3.0
+  max_request_timeout: 10.0
+  useragent_suffix: ""
+  pool_connections: 100
+  pool_maxsize: 20
+  enable_http2: true
+
+engines:
+  - name: google
+    engine: google
+    shortcut: g
+    use_mobile_ui: false
+
+  - name: bing
+    engine: bing
+    shortcut: b
+
+  - name: duckduckgo
+    engine: duckduckgo
+    shortcut: ddg
+
+  - name: startpage
+    engine: startpage
+    shortcut: sp
+
+  - name: wikipedia
+    engine: wikipedia
+    shortcut: wp
+    base_url: 'https://{language}.wikipedia.org/'
+
+  - name: github
+    engine: github
+    shortcut: gh
+
+  - name: stackoverflow
+    engine: stackoverflow
+    shortcut: so
+
+  - name: arxiv
+    engine: arxiv
+    shortcut: arx
+
+  - name: pubmed
+    engine: pubmed
+    shortcut: pub
+
+  - name: semantic scholar
+    engine: semantic_scholar
+    shortcut: se
+
+categories_as_tabs:
+  general:
+    - google
+    - bing
+    - duckduckgo
+    - startpage
+  
+  images:
+    - google images
+    - bing images
+  
+  videos:
+    - google videos
+    - bing videos
+  
+  news:
+    - google news
+    - bing news
+  
+  map:
+    - openstreetmap
+  
+  it:
+    - github
+    - stackoverflow
+  
+  science:
+    - arxiv
+    - pubmed
+    - semantic scholar

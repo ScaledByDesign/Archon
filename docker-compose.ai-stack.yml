@@ -1,0 +1,419 @@
+# AI Stack Services - Extended Infrastructure
+# Services: Flowise, Neo4j, SearXNG, Langfuse (web + worker), ClickHouse, MinIO
+# Reference: https://github.com/coleam00/local-ai-packaged
+# Protocol: Zoi add-new-service standards
+
+version: '3.8'
+
+# YAML anchors for shared configurations
+x-langfuse-env: &langfuse-env
+  # Database Configuration
+  DATABASE_URL: postgresql://langfuse:${PG_PASS:-secretpass}@postgres:5432/langfuse
+  
+  # ClickHouse Configuration (required for Langfuse v3)
+  CLICKHOUSE_URL: http://clickhouse:8123
+  CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+  CLICKHOUSE_USER: langfuse
+  CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-langfuse123!}
+  CLICKHOUSE_DATABASE: langfuse
+  CLICKHOUSE_CLUSTER_ENABLED: false
+  
+  # Authentication Configuration
+  SALT: ${LANGFUSE_SALT:-8a196ed6279050a30b1eadd9a1917e036f00a407f5c6b953577c49510c21102d}
+  # ENCRYPTION_KEY: Loaded from env_file instead
+  
+  # Redis Configuration
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  REDIS_AUTH: ${REDIS_PASSWORD:-change-me-redis-pass}
+  REDIS_TLS_ENABLED: false
+  
+  # MinIO S3 Configuration
+  LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+  LANGFUSE_S3_EVENT_UPLOAD_REGION: auto
+  LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minio
+  LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minio123!}
+  LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://minio:9000
+  LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: true
+  LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+  
+  LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+  LANGFUSE_S3_MEDIA_UPLOAD_REGION: auto
+  LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: minio
+  LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD:-minio123!}
+  LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://minio:9000
+  LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: true
+  LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+  
+  # Feature Flags
+  TELEMETRY_ENABLED: false
+  LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: true
+  LANGFUSE_ENABLE_TELEMETRY: false
+  
+  # Performance Configuration
+  LANGFUSE_INGESTION_QUEUE_DELAY_MS: 1000
+  LANGFUSE_INGESTION_CLICKHOUSE_WRITE_INTERVAL_MS: 5000
+
+services:
+  # Flowise - No/low code AI agent builder
+  flowise:
+    image: flowiseai/flowise:latest
+    container_name: flowise
+    restart: unless-stopped
+    expose:
+      - 3000
+    ports:
+      - "3001:3000"
+    env_file:
+      - ./config/flowise/flowise.env
+    volumes:
+      - flowise_data:/root/.flowise
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/v1/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      
+      # API/webhook routes - no authentication (highest priority)
+      - "traefik.http.routers.flowise-api.rule=Host(`flowise.${DOMAIN:-zoi.local}`) && (PathPrefix(`/api`) || PathPrefix(`/webhook`))"
+      - "traefik.http.routers.flowise-api.entrypoints=web"
+      - "traefik.http.routers.flowise-api.priority=100"
+      - "traefik.http.routers.flowise-api.service=flowise"
+      
+      # Frontend routes - with authentication
+      - "traefik.http.routers.flowise-frontend.rule=Host(`flowise.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.flowise-frontend.entrypoints=web"
+      - "traefik.http.routers.flowise-frontend.priority=50"
+      - "traefik.http.routers.flowise-frontend.middlewares=flowise-frontend-auth@file"
+      - "traefik.http.routers.flowise-frontend.service=flowise"
+      
+      # Service configuration
+      - "traefik.http.services.flowise.loadbalancer.server.port=3000"
+      
+      # Authentik outpost callbacks - highest priority
+      - "traefik.http.routers.flowise-outpost.rule=Host(`flowise.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.flowise-outpost.entrypoints=web"
+      - "traefik.http.routers.flowise-outpost.service=authentik"
+      - "traefik.http.routers.flowise-outpost.priority=200"
+    networks:
+      - backend_network
+      - frontend_network
+      - auth_network
+      - database_network
+
+  # Neo4j - Graph Database
+  neo4j:
+    image: neo4j:5.15-community
+    container_name: neo4j
+    restart: unless-stopped
+    expose:
+      - 7474
+      - 7687
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    env_file:
+      - ./config/neo4j/neo4j.env
+    volumes:
+      - neo4j_data:/data
+      - neo4j_logs:/logs
+      - neo4j_import:/var/lib/neo4j/import
+      - neo4j_plugins:/plugins
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD", "cypher-shell", "-u", "neo4j", "-p", "${NEO4J_AUTH_PASSWORD:-neo4j123!}", "RETURN 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      
+      # Database/API routes - no authentication (highest priority)
+      - "traefik.http.routers.neo4j-api.rule=Host(`neo4j.${DOMAIN:-zoi.local}`) && (PathPrefix(`/db`) || PathPrefix(`/browser/assets`))"
+      - "traefik.http.routers.neo4j-api.entrypoints=web"
+      - "traefik.http.routers.neo4j-api.priority=100"
+      - "traefik.http.routers.neo4j-api.service=neo4j"
+      
+      # Frontend routes - with authentication
+      - "traefik.http.routers.neo4j-frontend.rule=Host(`neo4j.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.neo4j-frontend.entrypoints=web"
+      - "traefik.http.routers.neo4j-frontend.priority=50"
+      - "traefik.http.routers.neo4j-frontend.middlewares=neo4j-frontend-auth@file"
+      - "traefik.http.routers.neo4j-frontend.service=neo4j"
+      
+      # Service configuration
+      - "traefik.http.services.neo4j.loadbalancer.server.port=7474"
+      
+      # Authentik outpost callbacks - highest priority
+      - "traefik.http.routers.neo4j-outpost.rule=Host(`neo4j.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.neo4j-outpost.entrypoints=web"
+      - "traefik.http.routers.neo4j-outpost.service=authentik"
+      - "traefik.http.routers.neo4j-outpost.priority=200"
+    networks:
+      - backend_network
+      - frontend_network
+      - auth_network
+      - database_network
+
+  # SearXNG - Privacy-respecting search engine
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    restart: unless-stopped
+    expose:
+      - 8080
+    ports:
+      - "8082:8080"
+    env_file:
+      - ./config/searxng/searxng.env
+    volumes:
+      - ./config/searxng/settings.yml:/etc/searxng/settings.yml:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "1"
+    labels:
+      - "traefik.enable=true"
+      
+      # Search/API routes - no authentication (highest priority)
+      - "traefik.http.routers.searxng-api.rule=Host(`search.${DOMAIN:-zoi.local}`) && (PathPrefix(`/search`) || PathPrefix(`/autocompleter`) || PathPrefix(`/config`) || PathPrefix(`/stats`) || PathPrefix(`/healthz`))"
+      - "traefik.http.routers.searxng-api.entrypoints=web"
+      - "traefik.http.routers.searxng-api.priority=100"
+      - "traefik.http.routers.searxng-api.service=searxng"
+      
+      # Frontend routes - with authentication
+      - "traefik.http.routers.searxng-frontend.rule=Host(`search.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.searxng-frontend.entrypoints=web"
+      - "traefik.http.routers.searxng-frontend.priority=50"
+      - "traefik.http.routers.searxng-frontend.middlewares=searxng-frontend-auth@file"
+      - "traefik.http.routers.searxng-frontend.service=searxng"
+      
+      # Service configuration
+      - "traefik.http.services.searxng.loadbalancer.server.port=8080"
+      
+      # Authentik outpost callbacks - highest priority
+      - "traefik.http.routers.searxng-outpost.rule=Host(`search.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.searxng-outpost.entrypoints=web"
+      - "traefik.http.routers.searxng-outpost.service=authentik"
+      - "traefik.http.routers.searxng-outpost.priority=200"
+    networks:
+      - backend_network
+      - frontend_network
+      - auth_network
+
+  # ClickHouse - Analytics database for Langfuse
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    restart: unless-stopped
+    user: "101:101"
+    expose:
+      - 8123
+      - 9000
+      - 9009
+    ports:
+      - "8123:8123"
+      - "9001:9000"
+    environment:
+      CLICKHOUSE_DB: langfuse
+      CLICKHOUSE_USER: langfuse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-langfuse123!}
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - clickhouse_logs:/var/log/clickhouse-server
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8123/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - backend_network
+      - database_network
+
+  # MinIO - S3-compatible object storage for Langfuse
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    expose:
+      - 9000
+      - 9001
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio123!}
+    volumes:
+      - minio_data:/data
+      - /etc/localtime:/etc/localtime:ro
+    # Create the 'langfuse' bucket before starting the service
+    entrypoint: sh
+    command: -c 'mkdir -p /data/langfuse && minio server --address ":9000" --console-address ":9001" /data'
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - backend_network
+      - database_network
+
+  # Langfuse Worker - Background processing
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3
+    container_name: langfuse-worker
+    restart: unless-stopped
+    expose:
+      - 3030
+    environment:
+      <<: *langfuse-env
+      # Override encryption key with correct value
+      ENCRYPTION_KEY: 26df3f0ae23bf9a491c331323533ea1d57ffdc20f2633f6b7783a5cea005f9a6
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    networks:
+      - backend_network
+      - database_network
+
+  # Langfuse Web - Frontend interface
+  langfuse-web:
+    image: langfuse/langfuse:3
+    container_name: langfuse-web
+    restart: unless-stopped
+    expose:
+      - 3000
+    ports:
+      - "3002:3000"
+    environment:
+      <<: *langfuse-env
+      # Override encryption key with correct value
+      ENCRYPTION_KEY: 26df3f0ae23bf9a491c331323533ea1d57ffdc20f2633f6b7783a5cea005f9a6
+      
+      # Web-specific configuration
+      NEXTAUTH_URL: http://langfuse.${DOMAIN:-zoi.local}
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-langfuse-nextauth-secret-2024-change-me}
+      
+      # Admin Configuration
+      LANGFUSE_INIT_ORG_ID: ${LANGFUSE_ORG_ID:-zoi-org}
+      LANGFUSE_INIT_ORG_NAME: ${LANGFUSE_ORG_NAME:-Zoi Organization}
+      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_PROJECT_ID:-zoi-project}
+      LANGFUSE_INIT_PROJECT_NAME: ${LANGFUSE_PROJECT_NAME:-Zoi AI Project}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_ADMIN_EMAIL:-admin@zoi.local}
+      LANGFUSE_INIT_USER_NAME: ${LANGFUSE_ADMIN_NAME:-Admin}
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_ADMIN_PASSWORD:-admin123!}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      langfuse-worker:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/public/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      
+      # API/health routes - no authentication (highest priority)
+      - "traefik.http.routers.langfuse-api.rule=Host(`langfuse.${DOMAIN:-zoi.local}`) && (PathPrefix(`/api`) || PathPrefix(`/health`) || PathPrefix(`/metrics`))"
+      - "traefik.http.routers.langfuse-api.entrypoints=web"
+      - "traefik.http.routers.langfuse-api.priority=100"
+      - "traefik.http.routers.langfuse-api.service=langfuse"
+      
+      # Frontend routes - with authentication
+      - "traefik.http.routers.langfuse-frontend.rule=Host(`langfuse.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.langfuse-frontend.entrypoints=web"
+      - "traefik.http.routers.langfuse-frontend.priority=50"
+      - "traefik.http.routers.langfuse-frontend.middlewares=langfuse-frontend-auth@file"
+      - "traefik.http.routers.langfuse-frontend.service=langfuse"
+      
+      # Service configuration
+      - "traefik.http.services.langfuse.loadbalancer.server.port=3000"
+      
+      # Authentik outpost callbacks - highest priority
+      - "traefik.http.routers.langfuse-outpost.rule=Host(`langfuse.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.langfuse-outpost.entrypoints=web"
+      - "traefik.http.routers.langfuse-outpost.service=authentik"
+      - "traefik.http.routers.langfuse-outpost.priority=200"
+    networks:
+      - backend_network
+      - frontend_network
+      - auth_network
+      - database_network
+
+volumes:
+  flowise_data:
+    driver: local
+  neo4j_data:
+    driver: local
+  neo4j_logs:
+    driver: local
+  neo4j_import:
+    driver: local
+  neo4j_plugins:
+    driver: local
+  clickhouse_data:
+    driver: local
+  clickhouse_logs:
+    driver: local
+  minio_data:
+    driver: local
+
+networks:
+  frontend_network:
+    external: true
+    name: zoi_frontend_network
+  backend_network:
+    external: true
+    name: zoi_backend_network
+  database_network:
+    external: true
+    name: zoi_database_network
+  auth_network:
+    external: true
+    name: zoi_auth_network
