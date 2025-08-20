@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  litellm:
+    image: ghcr.io/berriai/litellm:latest
+    ports:
+      - "7010:4000"
+    volumes:
+      - ./litellm-config.yaml:/app/config.yaml
+
+  autorouter:
+    build: ./autorouter
+    ports:
+      - "7020:4100"
+
+  vllm:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "7030:8000"
+    environment:
+      - CUDA_VISIBLE_DEVICES=1
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "7040:11434"
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "7050:6333"

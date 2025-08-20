@@ -1,0 +1,208 @@
+{
+  "apps": [
+    {
+      "id": "dashy",
+      "name": "Dashy Dashboard",
+      "url": "http://dashy.zoi.local",
+      "icon": "📊",
+      "group": "Dashboards",
+      "order": 0,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "authentik",
+      "name": "Authentik Auth",
+      "url": "http://auth.zoi.local",
+      "icon": "🔐",
+      "group": "Infrastructure",
+      "order": 1,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "fastapi",
+      "name": "FastAPI Backend",
+      "url": "http://api.zoi.local",
+      "icon": "⚡",
+      "group": "Development",
+      "order": 2,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "litellm",
+      "name": "LiteLLM Proxy",
+      "url": "http://llm.zoi.local",
+      "icon": "🤖",
+      "group": "AI",
+      "order": 3,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "openwebui",
+      "name": "Open WebUI",
+      "url": "http://openwebui.zoi.local",
+      "icon": "💬",
+      "group": "AI",
+      "order": 4,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "n8n",
+      "name": "n8n Workflows",
+      "url": "http://n8n.zoi.local",
+      "icon": "🔄",
+      "group": "Automation",
+      "order": 5,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "traefik",
+      "name": "Traefik Dashboard",
+      "url": "http://traefik.zoi.local",
+      "icon": "🚦",
+      "group": "Infrastructure",
+      "order": 6,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "qdrant",
+      "name": "Qdrant Vector DB",
+      "url": "http://qdrant.zoi.local",
+      "icon": "🗄️",
+      "group": "Database",
+      "order": 7,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "postgres",
+      "name": "PostgreSQL",
+      "url": "http://localhost:5432",
+      "icon": "🐘",
+      "group": "Database",
+      "order": 8,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "redis",
+      "name": "Redis Cache",
+      "url": "http://localhost:6379",
+      "icon": "🔴",
+      "group": "Database",
+      "order": 9,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "mongo",
+      "name": "MongoDB",
+      "url": "http://localhost:27017",
+      "icon": "🍃",
+      "group": "Database",
+      "order": 10,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "flowise",
+      "name": "Flowise AI",
+      "url": "http://flowise.zoi.local",
+      "icon": "🤖",
+      "group": "AI",
+      "order": 11,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "langfuse",
+      "name": "Langfuse LLM Ops",
+      "url": "http://langfuse.zoi.local",
+      "icon": "📊",
+      "group": "AI",
+      "order": 12,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "neo4j",
+      "name": "Neo4j Graph DB",
+      "url": "http://neo4j.zoi.local",
+      "icon": "🕸️",
+      "group": "Database",
+      "order": 13,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "searxng",
+      "name": "SearXNG Search",
+      "url": "http://search.zoi.local",
+      "icon": "🔍",
+      "group": "Tools",
+      "order": 14,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "clickhouse",
+      "name": "ClickHouse Analytics",
+      "url": "http://localhost:8123",
+      "icon": "📈",
+      "group": "Database",
+      "order": 15,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    },
+    {
+      "id": "minio",
+      "name": "MinIO Object Storage",
+      "url": "http://localhost:9003",
+      "icon": "🗂️",
+      "group": "Storage",
+      "order": 16,
+      "status": "unknown",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2025-07-08T05:50:22.416Z"
+    }
+  ],
+  "groups": [
+    "Infrastructure",
+    "Development",
+    "AI",
+    "Automation",
+    "Dashboards",
+    "Database",
+    "Tools",
+    "Storage"
+  ],
+  "settings": {
+    "theme": "dark",
+    "showStatus": false,
+    "autoRefresh": false,
+    "sidebarCollapsed": false
+  },
+  "version": "1.0.0"
+}
