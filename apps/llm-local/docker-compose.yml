@@ -1,33 +1,118 @@
-version: '3.8'
+version: '3.9'
+name: sff-llm-standalone
+
+networks:
+  ai:
+    driver: bridge
+
+volumes:
+  ollama-data:
+  flowsie-data:
+  neo4j-data:
 
 services:
-  litellm:
-    image: ghcr.io/berriai/litellm:latest
-    ports:
-      - "7010:4000"
-    volumes:
-      - ./litellm-config.yaml:/app/config.yaml
-
-  autorouter:
-    build: ./autorouter
-    ports:
-      - "7020:4100"
-
-  vllm:
-    image: vllm/vllm-openai:latest
-    ports:
-      - "7030:8000"
-    environment:
-      - CUDA_VISIBLE_DEVICES=1
-
+  # 🧠 Ollama (5070 Ti)
   ollama:
     image: ollama/ollama:latest
+    container_name: ollama
     ports:
-      - "7040:11434"
+      - "${OLLAMA_PORT:-7040}:11434"
+    volumes:
+      - ollama-data:/root/.ollama
     environment:
       - CUDA_VISIBLE_DEVICES=0
+    restart: unless-stopped
+    networks: [ai]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:11434/api/tags || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
 
+  # 🤖 vLLM (3090)
+  vllm:
+    image: vllm/vllm-openai:latest
+    container_name: vllm
+    ports:
+      - "${VLLM_PORT:-7030}:8000"
+    environment:
+      - CUDA_VISIBLE_DEVICES=1
+    restart: unless-stopped
+    networks: [ai]
+    healthcheck:
+      test: ["CMD", "bash", "-lc", "curl -fsSL http://localhost:8000/v1/models || exit 1"]
+      interval: 20s
+      timeout: 8s
+      retries: 15
+
+  # 🚪 LiteLLM Router
+  litellm:
+    image: ghcr.io/berriai/litellm:latest
+    container_name: litellm
+    ports:
+      - "${LITELLM_PORT:-7010}:4000"
+    volumes:
+      - ./litellm-config.yaml:/app/config.yaml:ro
+    environment:
+      - LITELLM_CONFIG=/app/config.yaml
+    depends_on: [vllm, ollama]
+    restart: unless-stopped
+    networks: [ai]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:4000/health || exit 1"]
+      interval: 20s
+      timeout: 5s
+      retries: 10
+
+  # 🔀 AutoRouter (Zoi meta router)
+  autorouter:
+    image: node:20-slim
+    container_name: zoi-autorouter
+    working_dir: /srv
+    command: bash -lc "npm install && node server.js"
+    volumes:
+      - ./autorouter:/srv:ro
+    ports:
+      - "${AUTOROUTER_PORT:-7020}:7020"
+    environment:
+      - PORT=7020
+      - LITELLM_URL=http://litellm:4000/v1
+    depends_on: [litellm]
+    restart: unless-stopped
+    networks: [ai]
+
+  # 🧠 Vector Database (Qdrant for RAG)
   qdrant:
     image: qdrant/qdrant:latest
+    container_name: qdrant
     ports:
-      - "7050:6333"
+      - "${QDRANT_PORT:-7050}:6333"
+    restart: unless-stopped
+    networks: [ai]
+
+  # 🌊 Flowsie UI (Flowise fork)
+  flowsie:
+    image: flowiseai/flowise:latest
+    container_name: flowsie
+    ports:
+      - "${FLOWSIE_PORT:-7070}:3000"
+    volumes:
+      - flowsie-data:/root/.flowise
+    environment:
+      - PORT=3000
+    restart: unless-stopped
+    networks: [ai]
+
+  # 🧠 Neo4j - Graph Database for structured reasoning
+  neo4j:
+    image: neo4j:5.20
+    container_name: neo4j
+    ports:
+      - "${NEO4J_HTTP_PORT:-7060}:7474"   # Browser UI (HTTP)
+      - "${NEO4J_BOLT_PORT:-7061}:7687"   # Bolt protocol (drivers, APIs)
+    environment:
+      NEO4J_AUTH: neo4j/test123    # ⚠️ You should change this in production
+    volumes:
+      - neo4j-data:/data
+    restart: unless-stopped
+    networks: [ai]
