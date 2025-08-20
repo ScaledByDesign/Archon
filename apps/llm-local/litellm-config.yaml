@@ -39,6 +39,17 @@ litellm_settings:
     namespace: "litellm"
     supported_call_types: ["acompletion", "atext_completion", "aembedding", "atranscription"]
 
+  # Development-focused default parameters
+  default_params:
+    temperature: 0.1        # Default to precise, deterministic responses
+    max_tokens: 4096        # Generous token limit for code explanations
+    top_p: 0.9             # Focused sampling for technical accuracy
+    frequency_penalty: 0.05 # Slight penalty to reduce repetitive code patterns
+    presence_penalty: 0.02  # Encourage diverse technical approaches
+
+  # Development-specific prompt enhancements
+  system_message_prefix: "You are a senior software engineer and technical architect. Focus on providing accurate, well-structured, and production-ready solutions. Include relevant code examples, best practices, and consider security, performance, and maintainability."
+
   # Vector Store Configuration for RAG
   vector_store:
     type: "qdrant"
@@ -56,31 +67,41 @@ litellm_settings:
 # Model registry (aliases)
 # ------------------------------
 model_list:
-  # === High-performance coding on RTX 5070 Ti via vLLM ===
-  # vLLM is running Qwen/Qwen2.5-Coder-7B-Instruct - optimized for coding tasks
+  # === High-performance development-focused model on RTX 5070 Ti via vLLM ===
+  # vLLM is currently running Qwen/Qwen3-0.6B (optimized for development tasks)
   - model_name: zoi-coder-vllm
     litellm_params:
-      model: openai/Qwen/Qwen2.5-Coder-7B-Instruct  # This matches what vLLM is serving
+      model: openai/Qwen/Qwen3-0.6B  # This matches what vLLM actually loaded
       api_base: http://vllm:8000/v1
       api_key: dummy
-      # Generation defaults for coding tasks
-      temperature: 0.1
-      max_tokens: 4096
-      top_p: 0.95
+      # Development-optimized parameters
+      temperature: 0.05  # Very low for precise, deterministic code
+      max_tokens: 6144   # Increased for longer code explanations
+      top_p: 0.9        # Slightly more focused for technical accuracy
+      frequency_penalty: 0.1  # Reduce repetition in code examples
+      presence_penalty: 0.05  # Encourage diverse technical solutions
 
-  # === General reasoning / thinking on 5070 Ti via Ollama ===
+  # === Development-focused reasoning on 5070 Ti via Ollama ===
   - model_name: zoi-thinker
     litellm_params:
       model: ollama/qwen2.5:7b
       api_base: http://ollama:11434
       api_key: dummy
+      # Parameters optimized for technical analysis and architecture planning
+      temperature: 0.2   # Low for logical, structured thinking
+      max_tokens: 4096   # Sufficient for detailed technical explanations
+      top_p: 0.9        # Focused responses for technical accuracy
 
-  # === Light code helper (fast fixes, small diffs) on 5070 Ti via Ollama ===
+  # === Fast development assistant on 5070 Ti via Ollama ===
   - model_name: zoi-helper
     litellm_params:
       model: ollama/qwen2.5-coder:7b-instruct
       api_base: http://ollama:11434
       api_key: dummy
+      # Parameters optimized for quick code fixes and suggestions
+      temperature: 0.1   # Very precise for code accuracy
+      max_tokens: 3072   # Good balance for code snippets and explanations
+      top_p: 0.85       # Slightly more focused for coding tasks
 
   # === Embeddings (for RAG) on 5070 Ti via Ollama ===
   - model_name: zoi-embed
@@ -91,12 +112,16 @@ model_list:
     model_info:
       mode: embeddings  # lets LiteLLM know this is an embedding model
 
-  # === RAG-Enabled Models (with Vector Store Integration) ===
+  # === RAG-Enhanced Development Models (with Vector Store Integration) ===
   - model_name: zoi-rag-helper
     litellm_params:
       model: ollama/qwen2.5-coder:7b-instruct
       api_base: http://ollama:11434
       api_key: dummy
+      # Development-focused parameters with RAG context
+      temperature: 0.15  # Slightly higher for creative solutions with context
+      max_tokens: 5120   # Larger for context-aware explanations
+      top_p: 0.9        # Balanced for incorporating retrieved knowledge
     model_info:
       enable_rag: true
       vector_store: "qdrant"
@@ -108,29 +133,38 @@ model_list:
       model: ollama/qwen2.5:7b
       api_base: http://ollama:11434
       api_key: dummy
+      # Strategic development planning with RAG context
+      temperature: 0.25  # Moderate for architectural decisions with context
+      max_tokens: 6144   # Large for comprehensive technical analysis
+      top_p: 0.92       # Slightly broader for innovative solutions
     model_info:
       enable_rag: true
       vector_store: "qdrant"
       embedding_model: "zoi-embed"
       rag_context_window: 4000
 
-  # === Compatibility Aliases ===
-  # Common model names that route to our local models
+  # === Development-Optimized Compatibility Aliases ===
+  # Common model names that route to our local models with dev-focused parameters
   - model_name: gpt-3.5-turbo
     litellm_params:
-      model: openai/Qwen/Qwen2.5-Coder-7B-Instruct
+      model: openai/Qwen/Qwen3-0.6B
       api_base: http://vllm:8000/v1
       api_key: dummy
-      temperature: 0.7
-      max_tokens: 2048
+      # Development-focused parameters for GPT-3.5 compatibility
+      temperature: 0.1   # Low for precise code generation
+      max_tokens: 4096   # Increased for longer code examples
+      top_p: 0.9        # Focused for technical accuracy
+      frequency_penalty: 0.1  # Reduce code repetition
 
   - model_name: gpt-4
     litellm_params:
       model: ollama/qwen2.5:7b
       api_base: http://ollama:11434
       api_key: dummy
-      temperature: 0.3
-      max_tokens: 4096
+      # Development-focused parameters for GPT-4 compatibility
+      temperature: 0.15  # Low-moderate for balanced creativity and precision
+      max_tokens: 6144   # Large for comprehensive solutions
+      top_p: 0.92       # Slightly broader for innovative approaches
 
 # ------------------------------
 # Router groups (optional use)
