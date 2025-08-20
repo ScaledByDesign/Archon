@@ -1,0 +1,73 @@
+# Docker ignore file for better caching and smaller build context
+
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Build artifacts
+build/
+dist/
+target/
+
+# Cache directories
+.cache/
+cache/
+
+# Environment files (keep only the one we need)
+.env.local
+.env.development
+.env.test
+.env.production
+.env.backup
+
+# Docker files we don't need in build context
+docker-compose.override.yml
+docker-compose.*.yml
+!docker-compose.yml
+
+# Large model files (they should be mounted, not copied)
+*.bin
+*.safetensors
+*.gguf
+*.pt
+*.pth
+models/

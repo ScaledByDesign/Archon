@@ -316,7 +316,7 @@ services:
   # Portal App Organizer
   portal:
     build:
-      context: ./portal
+      context: ./apps/portal
       dockerfile: Dockerfile
     container_name: portal
     restart: unless-stopped

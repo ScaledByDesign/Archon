@@ -1,9 +1,148 @@
+# ============================================
+# Zoi — LiteLLM front door (container port 4000, host 7010)
+# Internal backends:
+#   - vLLM (3090):   http://vllm:8000/v1
+#   - Ollama (5070): http://ollama:11434/v1
+# ============================================
+
+general_settings:
+  telemetry: false
+  timeout: 120
+  prometheus_metrics: true
+  set_verbose: true
+  json_logs: true
+  # Optional global rate limits (uncomment to enable)
+  # rpm: 6000
+  # tpm: 2000000
+
+  # Database settings for persistence
+  store_model_in_db: true
+
+  # Health check settings
+  health_check: true
+
+  # Callback settings for monitoring
+  success_callback: ["prometheus"]
+  failure_callback: ["prometheus"]
+
+# ------------------------------
+# LiteLLM Settings
+# ------------------------------
+litellm_settings:
+  set_verbose: true
+  cache: true
+  cache_params:
+    type: "redis"
+    host: "redis"
+    port: 6379
+    ttl: 600
+    namespace: "litellm"
+    supported_call_types: ["acompletion", "atext_completion", "aembedding", "atranscription"]
+
+# ------------------------------
+# Model registry (aliases)
+# ------------------------------
 model_list:
-  - model_name: zoi-planner
+  # === Heavy coding / planner on RTX 5070 Ti via vLLM ===
+  # vLLM is currently running microsoft/DialoGPT-medium (auto-resolved to Qwen/Qwen3-0.6B)
+  - model_name: zoi-coder-30b
     litellm_params:
-      model: "openai/gpt-4"
-      api_base: "http://vllm:8000/v1"
+      model: openai/microsoft/DialoGPT-medium  # This matches what vLLM is serving
+      api_base: http://vllm:8000/v1
+      api_key: dummy
+      # Generation defaults for coding tasks
+      temperature: 0.2
+      max_tokens: 4096
+      top_p: 0.95
+
+  # === General reasoning / thinking on 5070 Ti via Ollama ===
+  - model_name: zoi-thinker
+    litellm_params:
+      model: ollama/qwen3-4b-thinking-2507
+      api_base: http://ollama:11434
+      api_key: dummy
+
+  # === Light code helper (fast fixes, small diffs) on 5070 Ti via Ollama ===
   - model_name: zoi-helper
     litellm_params:
-      model: "ollama/qwen2.5-coder:7b-instruct"
-      api_base: "http://ollama:11434"
+      model: ollama/qwen2.5-coder:7b-instruct
+      api_base: http://ollama:11434
+      api_key: dummy
+
+  # === Embeddings (for RAG) on 5070 Ti via Ollama ===
+  - model_name: zoi-embed
+    litellm_params:
+      model: ollama/mxbai-embed-large
+      api_base: http://ollama:11434
+      api_key: dummy
+    model_info:
+      mode: embeddings  # lets LiteLLM know this is an embedding model
+
+  # === Compatibility Aliases ===
+  # Common model names that route to our local models
+  - model_name: gpt-3.5-turbo
+    litellm_params:
+      model: openai/microsoft/DialoGPT-medium
+      api_base: http://vllm:8000/v1
+      api_key: dummy
+      temperature: 0.7
+      max_tokens: 2048
+
+  - model_name: gpt-4
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b-instruct
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.3
+      max_tokens: 4096
+
+# ------------------------------
+# Router groups (optional use)
+# ------------------------------
+router_settings:
+  routes:
+    # Complex coding, multi-file, long-context → prefer 30B on vLLM
+    - name: code_heavy_route
+      models: [zoi-coder-30b, zoi-helper]
+      retry_policy: { max_retries: 2, backoff: exponential }
+
+    # General reasoning / plans / critiques
+    - name: reason_route
+      models: [zoi-thinker, zoi-coder-30b]
+      retry_policy: { max_retries: 2, backoff: exponential }
+
+    # Quick code edits
+    - name: code_light_route
+      models: [zoi-helper]
+
+    # Embeddings API
+    - name: embed_route
+      models: [zoi-embed]
+
+# ------------------------------
+# Fallbacks (per alias)
+# ------------------------------
+fallbacks:
+  # If heavy coder is busy or fails, try helper
+  zoi-coder-30b: [zoi-helper]
+  # If thinker fails, bounce to helper or heavy coder
+  zoi-thinker: [zoi-helper, zoi-coder-30b]
+  # If helper fails, try thinker
+  zoi-helper: [zoi-thinker]
+
+# ------------------------------
+# (Optional) Cost hints to bias routing toward cheaper models
+# ------------------------------
+litellm_model_cost_map:
+  zoi-coder-30b:
+    input_cost_per_token: 0.0000009
+    output_cost_per_token: 0.0000012
+  zoi-thinker:
+    input_cost_per_token: 0.0000004
+    output_cost_per_token: 0.0000006
+  zoi-helper:
+    input_cost_per_token: 0.0000003
+    output_cost_per_token: 0.0000004
+  zoi-embed:
+    input_cost_per_token: 0.0000002
+    output_cost_per_token: 0.0000002

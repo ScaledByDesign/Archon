@@ -3,7 +3,6 @@
 This stack is tuned for:
 - RTX 5070 Ti → helper tasks (Ollama)
 - RTX 3090 → planner tasks (vLLM)
-- Branded with Zoi-themed ports
 
 ## Ports
 - LiteLLM → http://localhost:7010/v1
