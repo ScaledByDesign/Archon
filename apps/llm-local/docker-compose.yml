@@ -9,6 +9,7 @@ volumes:
   neo4j-data:
   postgres-data:
   redis-data:
+  text-gen-data:
 
 services:
   # 🧠 Ollama (RTX 5070 Ti GPU Enabled)
@@ -53,7 +54,7 @@ services:
       - HF_HOME=/root/.cache/huggingface
       - TRANSFORMERS_CACHE=/root/.cache/huggingface/transformers
       - VLLM_CACHE_DIR=/models/cache
-    command: ["microsoft/DialoGPT-medium", "--host", "0.0.0.0", "--port", "8000"]
+    command: ["Qwen/Qwen2.5-Coder-7B-Instruct", "--host", "0.0.0.0", "--port", "8000", "--max-model-len", "8192", "--gpu-memory-utilization", "0.9"]
     deploy:
       resources:
         reservations:
@@ -200,5 +201,28 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # 📚 Text Generation WebUI - GGUF Model Server
+  text-generation-webui:
+    image: atinoda/text-generation-webui:default
+    container_name: text-gen-webui
+    ports:
+      - "${TEXT_GEN_PORT:-7080}:7860"
+      - "${TEXT_GEN_API_PORT:-7081}:5000"
+    volumes:
+      - "${GGUF_MODELS:-D:/models/gguf}:/app/models"
+      - text-gen-data:/app/characters
+      - text-gen-data:/app/presets
+    environment:
+      - CLI_ARGS=--api --listen --listen-port 7860 --api-port 5000 --loader llama.cpp
+    restart: unless-stopped
+    networks: [ai]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
 

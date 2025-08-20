@@ -39,26 +39,39 @@ litellm_settings:
     namespace: "litellm"
     supported_call_types: ["acompletion", "atext_completion", "aembedding", "atranscription"]
 
+  # Vector Store Configuration for RAG
+  vector_store:
+    type: "qdrant"
+    host: "qdrant"
+    port: 6333
+    collection_name: "zoi_knowledge_base"
+    vector_size: 1024  # mxbai-embed-large dimension
+    distance: "cosine"
+    enable_rag: true
+    similarity_threshold: 0.7
+    max_results: 5
+    embedding_model: "zoi-embed"
+
 # ------------------------------
 # Model registry (aliases)
 # ------------------------------
 model_list:
-  # === Heavy coding / planner on RTX 5070 Ti via vLLM ===
-  # vLLM is currently running microsoft/DialoGPT-medium (auto-resolved to Qwen/Qwen3-0.6B)
-  - model_name: zoi-coder-30b
+  # === High-performance coding on RTX 5070 Ti via vLLM ===
+  # vLLM is running Qwen/Qwen2.5-Coder-7B-Instruct - optimized for coding tasks
+  - model_name: zoi-coder-vllm
     litellm_params:
-      model: openai/microsoft/DialoGPT-medium  # This matches what vLLM is serving
+      model: openai/Qwen/Qwen2.5-Coder-7B-Instruct  # This matches what vLLM is serving
       api_base: http://vllm:8000/v1
       api_key: dummy
       # Generation defaults for coding tasks
-      temperature: 0.2
+      temperature: 0.1
       max_tokens: 4096
       top_p: 0.95
 
   # === General reasoning / thinking on 5070 Ti via Ollama ===
   - model_name: zoi-thinker
     litellm_params:
-      model: ollama/qwen3-4b-thinking-2507
+      model: ollama/qwen2.5:7b
       api_base: http://ollama:11434
       api_key: dummy
 
@@ -78,11 +91,34 @@ model_list:
     model_info:
       mode: embeddings  # lets LiteLLM know this is an embedding model
 
+  # === RAG-Enabled Models (with Vector Store Integration) ===
+  - model_name: zoi-rag-helper
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b-instruct
+      api_base: http://ollama:11434
+      api_key: dummy
+    model_info:
+      enable_rag: true
+      vector_store: "qdrant"
+      embedding_model: "zoi-embed"
+      rag_context_window: 4000
+
+  - model_name: zoi-rag-thinker
+    litellm_params:
+      model: ollama/qwen2.5:7b
+      api_base: http://ollama:11434
+      api_key: dummy
+    model_info:
+      enable_rag: true
+      vector_store: "qdrant"
+      embedding_model: "zoi-embed"
+      rag_context_window: 4000
+
   # === Compatibility Aliases ===
   # Common model names that route to our local models
   - model_name: gpt-3.5-turbo
     litellm_params:
-      model: openai/microsoft/DialoGPT-medium
+      model: openai/Qwen/Qwen2.5-Coder-7B-Instruct
       api_base: http://vllm:8000/v1
       api_key: dummy
       temperature: 0.7
@@ -90,7 +126,7 @@ model_list:
 
   - model_name: gpt-4
     litellm_params:
-      model: ollama/qwen2.5-coder:7b-instruct
+      model: ollama/qwen2.5:7b
       api_base: http://ollama:11434
       api_key: dummy
       temperature: 0.3
@@ -101,14 +137,14 @@ model_list:
 # ------------------------------
 router_settings:
   routes:
-    # Complex coding, multi-file, long-context → prefer 30B on vLLM
+    # Complex coding, multi-file, long-context → prefer vLLM for performance
     - name: code_heavy_route
-      models: [zoi-coder-30b, zoi-helper]
+      models: [zoi-coder-vllm, zoi-helper]
       retry_policy: { max_retries: 2, backoff: exponential }
 
     # General reasoning / plans / critiques
     - name: reason_route
-      models: [zoi-thinker, zoi-coder-30b]
+      models: [zoi-thinker, zoi-coder-vllm]
       retry_policy: { max_retries: 2, backoff: exponential }
 
     # Quick code edits
