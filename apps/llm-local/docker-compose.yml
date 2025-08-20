@@ -24,6 +24,10 @@ services:
       - OLLAMA_HOST=0.0.0.0
       - OLLAMA_ORIGINS=*
       - OLLAMA_MODELS=/root/.ollama
+      - OLLAMA_NUM_PARALLEL=1  # Limit parallel model loading
+      - OLLAMA_MAX_LOADED_MODELS=2  # Limit concurrent loaded models
+      - OLLAMA_LOAD_TIMEOUT=600  # 10 minute load timeout
+      - OLLAMA_REQUEST_TIMEOUT=300  # 5 minute request timeout
     deploy:
       resources:
         reservations:
@@ -35,9 +39,9 @@ services:
     networks: [ai]
     healthcheck:
       test: ["CMD-SHELL", "curl -fsSL http://localhost:11434/api/tags || exit 1"]
-      interval: 20s
-      timeout: 5s
-      retries: 10
+      interval: 60s  # Increased interval
+      timeout: 30s   # Increased timeout
+      retries: 5     # Reduced retries
 
   # 🤖 vLLM (RTX 5070 Ti GPU Enabled)
   vllm:
@@ -138,6 +142,9 @@ services:
       - flowsie-data:/root/.flowise
     environment:
       - PORT=3000
+      # Authentication Configuration
+      - FLOWISE_USERNAME=admin
+      - FLOWISE_PASSWORD=admin123
       # Redis Configuration for Caching and Queue Management
       - REDIS_URL=redis://redis:6379
       - REDIS_HOST=redis

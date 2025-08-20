@@ -1,0 +1,562 @@
+{
+  "name": "Zoi — Agentic Coding (Prod, Local-First, Safe Apply)",
+  "vars": [
+    { "key": "user_input" },
+    { "key": "chat_summary" },
+    { "key": "query_vector" },
+    { "key": "retrieved_context" },
+    { "key": "filtered_context" },
+    { "key": "needs_research" },
+    { "key": "research_results" },
+    { "key": "research_context" },
+    { "key": "merged_context" },
+    { "key": "task" },
+    { "key": "language" },
+    { "key": "plan" },
+    { "key": "coder_output" },
+    { "key": "diff" },
+    { "key": "tests" },
+    { "key": "propose1" },
+    { "key": "critique1" },
+    { "key": "lgtm1" },
+    { "key": "propose2" },
+    { "key": "critique2" },
+    { "key": "lgtm2" },
+    { "key": "final_diff" },
+    { "key": "apply_result" },
+    { "key": "pr_result" }
+  ],
+  "nodes": [
+    { "id": "input", "type": "ChatInput", "data": { "label": "Chat Input", "placeholder": "Describe the coding task…" }},
+
+    {
+      "id": "mem",
+      "type": "ConversationSummaryBufferMemory",
+      "data": {
+        "label": "Compressive Memory (Summary Buffer)",
+        "memoryKey": "chat_history",
+        "inputKey": "input",
+        "outputKey": "response",
+        "maxTokenLimit": 1800,
+        "summarizerProvider": "openai",
+        "summarizerBaseUrl": "http://litellm:4000/v1",
+        "summarizerModel": "zoi-thinker",
+        "summaryPrompt": "Summarize technical context, decisions, constraints, and next steps. Keep compact and actionable.",
+        "includeNames": true
+      }
+    },
+
+    {
+      "id": "embed",
+      "type": "LLMEmbeddings",
+      "data": {
+        "label": "Embed Query",
+        "provider": "openai",
+        "baseUrl": "http://litellm:4000/v1",
+        "model": "zoi-embed",
+        "inputTextVar": "user_input",
+        "outputVectorVar": "query_vector"
+      }
+    },
+
+    {
+      "id": "memoryRead",
+      "type": "CustomNode",
+      "data": {
+        "label": "Local Recall (Qdrant + Neo4j)",
+        "customCode": "async function run(input){const axios=require('axios');const text=input.user_input||'';const vector=input.query_vector||[];const q=await axios.post('http://qdrant:6333/collections/code_docs/points/search',{vector,top:8,with_payload:true,score_threshold:0.2}).then(r=>r.data||{result:[]}).catch(()=>({result:[]}));const qC=(q.result||[]).map((x,i)=>({id:x.id??`q${i}`,score:x.score||0,text:(x.payload&&(x.payload.text||x.payload.chunk||x.payload.diff||x.payload.plan))||'',meta:x.payload||{}}));const neo=await axios.post('http://neo4j-proxy:4001/query',{query:text}).then(r=>r.data||{results:[]}).catch(()=>({results:[]}));const nC=(neo.results||[]).map((x,i)=>({id:x.id??`n${i}`,score:0.5,text:x.text||'',meta:x}));const combined=[...qC,...nC].filter(c=>c.text&&c.text.length>0);return{retrieved_context:combined};}"
+      },
+      "inputs": {
+        "user_input": { "connections": [{ "node": "input", "output": "output" }] },
+        "query_vector": { "connections": [{ "node": "embed", "output": "vector" }] }
+      }
+    },
+
+    {
+      "id": "gate",
+      "type": "CustomNode",
+      "data": {
+        "label": "Context Gate (local-first)",
+        "customCode": "async function run(input){const chunks=input.retrieved_context||[];const RECALL_MIN=Number(process.env.RECALL_MIN||3);const SCORE_MIN=Number(process.env.SCORE_MIN||0.55);const good=chunks.filter(c=>(c.score||0)>=SCORE_MIN).length;return{needs_research: good<RECALL_MIN};}"
+      }
+    },
+
+    {
+      "id": "contextBuilder",
+      "type": "CustomNode",
+      "data": {
+        "label": "Build Local Context",
+        "customCode": "async function run(input){const chunks=input.retrieved_context||[];const top=chunks.sort((a,b)=>(b.score||0)-(a.score||0)).slice(0,4);const text=top.map(c=>`[${c.id}] ${c.text}`).join('\\n\\n');return{filtered_context: text?`CONTEXT (local)\\n${text}`:''};}"
+      }
+    },
+
+    {
+      "id": "research-plan",
+      "type": "LLM",
+      "data": {
+        "label": "Research Query Planner",
+        "provider": "openai",
+        "baseUrl": "http://litellm:4000/v1",
+        "model": "zoi-thinker",
+        "temperature": 0.2,
+        "maxTokens": 200,
+        "responseFormat": { "type": "json_object" },
+        "systemMessage": "Generate up to 3 precise web search queries. Output JSON: {\"queries\":[\"...\"],\"notes\":\"...\"}.",
+        "prompt": "User task:\\n{{user_input}}\\n\\nExisting local context:\\n{{filtered_context}}\\n\\nReturn concise queries (max 3) as JSON."
+      }
+    },
+
+    {
+      "id": "research-mapper",
+      "type": "CustomNode",
+      "data": {
+        "label": "Run Web Searches (Tavily)",
+        "customCode": "async function run(input){const axios=require('axios');const key=process.env.TAVILY_API_KEY||input.TAVILY_API_KEY;const q=(input.research_queries&&input.research_queries.queries)||[];const out=[];for(const s of q){try{const r=await axios.post('https://api.tavily.com/search',{api_key:key,query:s,search_depth:'advanced',include_answer:true,include_raw_content:false,max_results:5},{timeout:20000});out.push({query:s,data:r.data});}catch(e){out.push({query:s,error:String(e)});} }return{research_results:out};}"
+      }
+    },
+
+    {
+      "id": "research-summarize",
+      "type": "LLM",
+      "data": {
+        "label": "Summarize Research → Citations",
+        "provider": "openai",
+        "baseUrl": "http://litellm:4000/v1",
+        "model": "zoi-thinker",
+        "temperature": 0.2,
+        "maxTokens": 500,
+        "systemMessage": "Condense search results into succinct technical context with citations.",
+        "prompt": "User task:\\n{{user_input}}\\nResults (JSON):\\n{{research_results}}\\n\\nProduce CONTEXT (research) with bullet points and markdown citations [ref1], then list refs with titles+URLs."
+      }
+    },
+
+    {
+      "id": "merge-context",
+      "type": "CustomNode",
+      "data": {
+        "label": "Merge Local + Research",
+        "customCode": "async function run(input){const a=input.filtered_context||'';const b=input.research_context||'';const merged=[a,b].filter(Boolean).join('\\n\\n');return{merged_context:merged};}"
+      }
+    },
+
+    {
+      "id": "context-upsert",
+      "type": "CustomNode",
+      "data": {
+        "label": "Persist Merged Context (Qdrant + Neo4j) with Dedupe",
+        "customCode": "async function run(input){const axios=require('axios');const crypto=require('crypto');const now=Date.now();const text=(input.merged_context||'').slice(0,8000);if(!text)return input;const hash=crypto.createHash('sha1').update(text).digest('hex');const vector=input.query_vector||[];try{const exists=await axios.post('http://qdrant:6333/collections/code_docs/points/scroll',{filter:{must:[{key:'hash',match:{value:hash}}]},limit:1,with_payload:true});if(!exists.data||!exists.data.points||exists.data.points.length===0){if(vector.length){await axios.post('http://qdrant:6333/collections/code_docs/points',{points:[{id:now,vector,payload:{kind:'context',hash,text,ts:now}}]});}}}catch(_){}try{await axios.post('http://neo4j-proxy:4001/write',{task:input.user_input,context:text,ts:now,hash});}catch(_){}return input;}"
+      }
+    },
+
+    {
+      "id": "classifier",
+      "type": "LLM",
+      "data": {
+        "label": "Task Classifier (strict JSON)",
+        "provider": "openai",
+        "baseUrl": "http://litellm:4000/v1",
+        "model": "zoi-thinker",
+        "temperature": 0.1,
+        "maxTokens": 200,
+        "responseFormat": { "type": "json_object" },
+        "systemMessage": "You are a strict JSON classifier. Output only valid JSON matching the schema.",
+        "prompt": "Schema:\\n{\\n  \"task\": \"heavy_code|light_code|analysis\",\\n  \"language\": \"ts|py|go|java|other\"\\n}\\nClassify the user's latest message (+ summary). Return ONLY the JSON object."
+      },
+      "inputs": {
+        "user_input": { "connections": [{ "node": "input", "output": "output" }] },
+        "chat_history": { "connections": [{ "node": "mem", "output": "memory" }] }
+      }
+    },
+
+    {
+      "id": "planner",
+      "type": "LLM",
+      "data": {
+        "label": "Planner (Staff Eng)",
+        "provider": "openai",
+        "baseUrl": "http://litellm:4000/v1",
+        "model": "zoi-thinker",
+        "temperature": 0.2,
+        "maxTokens": 700,
+        "systemMessage": "You are a Staff Software Engineer. Produce a precise, minimal plan.",
+        "prompt": "If CONTEXT is present, cite like [path:line] or [refN].\\n\\nCONTEXT:\\n{{merged_context}}\\n\\nConversation summary:\\n{{chat_summary}}\\n\\nProduce:\\n1) Goal\\n2) Files to edit (paths)\\n3) Numbered steps\\n4) Test plan\\n5) Risks\\n\\nUser task: {{user_input}}"
+      },
+      "inputs": {
+        "user_input": { "connections": [{ "node": "input", "output": "output" }] },
+        "merged_context": { "connections": [{ "node": "merge-context", "output": "merged_context" }] },
+        "chat_summary": { "connections": [{ "node": "mem", "output": "summary" }] }
+      }
+    },
+
+    {
+      "id": "router",
+      "type": "IfElse",
+      "data": {
+        "label": "Route by Task Type",
+        "conditions": [
+          { "var": "task", "op": "equals", "value": "heavy_code", "next": "coder_heavy" },
+          { "var": "task", "op": "equals", "value": "light_code", "next": "coder_light" }
+        ],
+        "defaultNext": "coder_light"
+      },
+      "inputs": { "task": { "connections": [{ "node": "classifier", "output": "output.task" }] } }
+    },
+
+    {
+      "id": "coder_heavy",
+      "type": "LLM",
+      "data": {
+        "label": "Coder (30B on 3090)",
+        "provider": "openai",
+        "baseUrl": "http://litellm:4000/v1",
+        "model": "zoi-coder-30b",
+        "temperature": 0.15,
+        "maxTokens": 1800,
+        "systemMessage": "You are a precise coding agent. Output unified diff and TESTS.",
+        "prompt": "PLAN:\\n{{plan}}\\n\\n{{merged_context}}\\n\\nUser task: {{user_input}}\\n\\nReturn ONLY:\\n1) A git-style unified diff for ALL changes. Include full content for new files.\\n2) A 'TESTS:' section with exact commands and brief expectations."
+      },
+      "inputs": {
+        "plan": { "connections": [{ "node": "planner", "output": "output" }] },
+        "merged_context": { "connections": [{ "node": "merge-context", "output": "merged_context" }] },
+        "user_input": { "connections": [{ "node": "input", "output": "output" }] }
+      }
+    },
+
+    {
+      "id": "coder_light",
+      "type": "LLM",
+      "data": {
+        "label": "Coder (Helper on 5070 Ti)",
+        "provider": "openai",
+        "baseUrl": "http://litellm:4000/v1",
+        "model": "zoi-helper",
+        "temperature": 0.2,
+        "maxTokens": 1200,
+        "systemMessage": "You are a precise coding agent. Output unified diff and TESTS.",
+        "prompt": "PLAN:\\n{{plan}}\\n\\n{{merged_context}}\\n\\nUser task: {{user_input}}\\n\\nReturn ONLY:\\n1) A git-style unified diff for ALL changes. Include full content for new files.\\n2) A 'TESTS:' section with exact commands and brief expectations."
+      },
+      "inputs": {
+        "plan": { "connections": [{ "node": "planner", "output": "output" }] },
+        "merged_context": { "connections": [{ "node": "merge-context", "output": "merged_context" }] },
+        "user_input": { "connections": [{ "node": "input", "output": "output" }] }
+      }
+    },
+
+    {
+      "id": "static-checks",
+      "type": "CustomNode",
+      "data": {
+        "label": "Static Checks (paths/size/denylist)",
+        "customCode": "async function run(input){const diff=input.coder_output||'';const allow=(process.env.ALLOW_PATHS||'/workspace').split(',');const denyRe=new RegExp(process.env.DENY_RE||'(^|/)\\.git|(^|/)\\.env|(^|/)\\.ssh|(^|/)node_modules');const files=[...diff.matchAll(/^\\+\\+\\+\\s+b\\/(.+)$/gm)].map(m=>m[1]);let ok=true;const errors=[];for(const f of files){if(denyRe.test(f)){ok=false;errors.push(`denied path: ${f}`);}if(!allow.some(p=>f.startsWith(p.replace(/^\\//,'')))){ok=false;errors.push(`outside allowed roots: ${f}`);} }const bytes=Buffer.byteLength(diff,'utf8');const MAX_BYTES=Number(process.env.MAX_DIFF_BYTES||800000);if(bytes>MAX_BYTES){ok=false;errors.push(`diff too large: ${bytes} bytes`);}return{diff_ok:ok,check_errors:errors.join('\\n')};}"
+      },
+      "inputs": { "coder_output": { "connections": [{ "node": "coder_heavy", "output": "output" }, { "node": "coder_light", "output": "output" }] } }
+    },
+
+    {
+      "id": "coder_rewrite",
+      "type": "LLM",
+      "data": {
+        "label": "Constrain Patch (if static checks failed)",
+        "provider": "openai",
+        "baseUrl": "http://litellm:4000/v1",
+        "model": "zoi-helper",
+        "temperature": 0.2,
+        "maxTokens": 1200,
+        "systemMessage": "Regenerate a safe patch constrained to allowed paths.",
+        "prompt": "Static check errors:\\n{{check_errors}}\\n\\nRe-emit the unified diff respecting restrictions. After the diff, include TESTS as before."
+      },
+      "inputs": { "check_errors": { "connections": [{ "node": "static-checks", "output": "check_errors" }] } }
+    },
+
+    {
+      "id": "pick-diff",
+      "type": "IfElse",
+      "data": {
+        "label": "Pick Original or Rewritten Diff",
+        "conditions": [
+          { "var": "diff_ok", "op": "equals", "value": true, "next": "extractDiff" }
+        ],
+        "defaultNext": "extractDiff_rewrite"
+      },
+      "inputs": { "diff_ok": { "connections": [{ "node": "static-checks", "output": "diff_ok" }] } }
+    },
+
+    {
+      "id": "extractDiff",
+      "type": "CustomNode",
+      "data": {
+        "label": "Extract DIFF & TESTS (orig)",
+        "customCode": "async function run(input){const txt=input.coder_output||'';const diffMatch=txt.match(/```[a-zA-Z]*\\n([\\s\\S]*?)```/m)||txt.match(/(^diff[\\s\\S]*)/m);const diff=diffMatch?diffMatch[1]:txt;const testsMatch=txt.match(/TESTS:\\n([\\s\\S]*)$/m);const tests=testsMatch?testsMatch[1].trim():'';return{diff,tests};}"
+      },
+      "inputs": { "coder_output": { "connections": [{ "node": "coder_heavy", "output": "output" }, { "node": "coder_light", "output": "output" }] } }
+    },
+
+    {
+      "id": "extractDiff_rewrite",
+      "type": "CustomNode",
+      "data": {
+        "label": "Extract DIFF & TESTS (rewritten)",
+        "customCode": "async function run(input){const txt=input.coder_rewrite||'';const diffMatch=txt.match(/```[a-zA-Z]*\\n([\\s\\S]*?)```/m)||txt.match(/(^diff[\\s\\S]*)/m);const diff=diffMatch?diffMatch[1]:txt;const testsMatch=txt.match(/TESTS:\\n([\\s\\S]*)$/m);const tests=testsMatch?testsMatch[1].trim():'';return{diff,tests};}"
+      },
+      "inputs": { "coder_rewrite": { "connections": [{ "node": "coder_rewrite", "output": "output" }] } }
+    },
+
+    {
+      "id": "propose1",
+      "type": "HttpRequest",
+      "data": {
+        "label": "PROPOSE #1 (dry run)",
+        "method": "POST",
+        "url": "http://sandbox-runner:8080/propose",
+        "headers": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": "{\"diff\":\"{{diff}}\",\"test_cmd\":\"{{tests}}\"}",
+        "timeout": 180000
+      },
+      "inputs": {
+        "diff": { "connections": [{ "node": "extractDiff", "output": "diff" }, { "node": "extractDiff_rewrite", "output": "diff" }] },
+        "tests": { "connections": [{ "node": "extractDiff", "output": "tests" }, { "node": "extractDiff_rewrite", "output": "tests" }] }
+      }
+    },
+
+    {
+      "id": "critic1",
+      "type": "LLM",
+      "data": {
+        "label": "Critic / Repair #1",
+        "provider": "openai",
+        "baseUrl": "http://litellm:4000/v1",
+        "model": "zoi-thinker",
+        "temperature": 0.1,
+        "maxTokens": 800,
+        "systemMessage": "You are a strict code reviewer.",
+        "prompt": "PROPOSE #1 RESULT:\\n{{propose1}}\\n\\nIf apply or tests failed, return a corrected unified diff ONLY. If good, reply exactly: LGTM"
+      }
+    },
+
+    {
+      "id": "lgtm1",
+      "type": "CustomNode",
+      "data": {
+        "label": "LGTM Gate #1",
+        "customCode": "async function run(input){const out=(input.critic_out||'').trim();const ok=/^LGTM$/i.test(out);return{lgtm:ok,final_diff: ok? (input.prev_diff||'') : out};}"
+      },
+      "inputs": {
+        "critic_out": { "connections": [{ "node": "critic1", "output": "output" }] },
+        "prev_diff": { "connections": [{ "node": "extractDiff", "output": "diff" }, { "node": "extractDiff_rewrite", "output": "diff" }] }
+      }
+    },
+
+    {
+      "id": "propose2",
+      "type": "HttpRequest",
+      "data": {
+        "label": "PROPOSE #2 (if repaired)",
+        "method": "POST",
+        "url": "http://sandbox-runner:8080/propose",
+        "headers": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": "{\"diff\":\"{{final_diff}}\",\"test_cmd\":\"{{tests}}\"}",
+        "timeout": 180000
+      },
+      "inputs": {
+        "final_diff": { "connections": [{ "node": "lgtm1", "output": "final_diff" }] },
+        "tests": { "connections": [{ "node": "extractDiff", "output": "tests" }, { "node": "extractDiff_rewrite", "output": "tests" }] }
+      }
+    },
+
+    {
+      "id": "critic2",
+      "type": "LLM",
+      "data": {
+        "label": "Critic / Repair #2",
+        "provider": "openai",
+        "baseUrl": "http://litellm:4000/v1",
+        "model": "zoi-thinker",
+        "temperature": 0.1,
+        "maxTokens": 800,
+        "systemMessage": "You are a strict code reviewer.",
+        "prompt": "PROPOSE #2 RESULT:\\n{{propose2}}\\n\\nIf apply or tests failed, return a corrected unified diff ONLY. If good, reply exactly: LGTM"
+      }
+    },
+
+    {
+      "id": "lgtm2",
+      "type": "CustomNode",
+      "data": {
+        "label": "LGTM Gate #2 (final)",
+        "customCode": "async function run(input){const out=(input.critic_out||'').trim();const ok=/^LGTM$/i.test(out);return{lgtm:ok,final_diff: ok? (input.prev_diff||'') : out};}"
+      },
+      "inputs": {
+        "critic_out": { "connections": [{ "node": "critic2", "output": "output" }] },
+        "prev_diff": { "connections": [{ "node": "lgtm1", "output": "final_diff" }] }
+      }
+    },
+
+    {
+      "id": "apply-gate",
+      "type": "IfElse",
+      "data": {
+        "label": "Apply Policy (env-controlled)",
+        "conditions": [
+          { "var": "AUTO_APPLY", "op": "equals", "value": "true", "next": "apply" }
+        ],
+        "defaultNext": "finalize"
+      }
+    },
+
+    {
+      "id": "apply",
+      "type": "HttpRequest",
+      "data": {
+        "label": "APPLY (commit to branch)",
+        "method": "POST",
+        "url": "http://sandbox-runner:8080/apply",
+        "headers": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": "{\"diff\":\"{{final_diff}}\",\"branch\":\"zoi/{{slug}}\",\"author\":\"Zoi Agent\",\"email\":\"zoi@example.com\"}",
+        "timeout": 180000
+      },
+      "inputs": {
+        "final_diff": { "connections": [{ "node": "lgtm2", "output": "final_diff" }] },
+        "slug": { "connections": [{ "node": "slugify", "output": "slug" }] }
+      }
+    },
+
+    {
+      "id": "open-pr-gate",
+      "type": "IfElse",
+      "data": {
+        "label": "PR Policy (env-controlled)",
+        "conditions": [
+          { "var": "AUTO_PR", "op": "equals", "value": "true", "next": "open-pr" }
+        ],
+        "defaultNext": "finalize"
+      }
+    },
+
+    {
+      "id": "open-pr",
+      "type": "HttpRequest",
+      "data": {
+        "label": "Open PR (optional)",
+        "method": "POST",
+        "url": "http://sandbox-runner:8080/pr",
+        "headers": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": "{\"branch\":\"zoi/{{slug}}\",\"title\":\"{{pr_title}}\",\"base\":\"main\"}",
+        "timeout": 60000
+      },
+      "inputs": {
+        "slug": { "connections": [{ "node": "slugify", "output": "slug" }] },
+        "pr_title": { "connections": [{ "node": "pr-title", "output": "output" }] }
+      }
+    },
+
+    {
+      "id": "slugify",
+      "type": "CustomNode",
+      "data": {
+        "label": "Slugify Task",
+        "customCode": "async function run(input){const s=(input.user_input||'task').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');return{slug:s.slice(0,48)||'task'};}"
+      },
+      "inputs": { "user_input": { "connections": [{ "node": "input", "output": "output" }] } }
+    },
+
+    {
+      "id": "pr-title",
+      "type": "LLM",
+      "data": {
+        "label": "PR Title",
+        "provider": "openai",
+        "baseUrl": "http://litellm:4000/v1",
+        "model": "zoi-thinker",
+        "temperature": 0.2,
+        "maxTokens": 60,
+        "systemMessage": "Create a short imperative PR title.",
+        "prompt": "Goal + key change from plan:\\n{{plan}}\\n\\nReturn a concise PR title (<= 12 words)."
+      },
+      "inputs": { "plan": { "connections": [{ "node": "planner", "output": "output" }] } }
+    },
+
+    {
+      "id": "telemetry",
+      "type": "CustomNode",
+      "data": {
+        "label": "Telemetry (best-effort)",
+        "customCode": "async function run(input){const axios=require('axios');const url=process.env.TELEMETRY_URL; if(!url) return input; try{ await axios.post(url, { task: input.user_input, lgtm: input.lgtm2===true, branch: input.slug?`zoi/${input.slug}`:null }); }catch(_){} return input; }"
+      }
+    },
+
+    {
+      "id": "finalize",
+      "type": "TextTemplate",
+      "data": {
+        "label": "Assemble Final",
+        "template": "PLAN:\\n{{plan}}\\n\\nDIFF (final):\\n{{final_diff}}\\n\\nTESTS:\\n{{tests}}"
+      },
+      "inputs": {
+        "plan": { "connections": [{ "node": "planner", "output": "output" }] },
+        "final_diff": { "connections": [{ "node": "lgtm2", "output": "final_diff" }] },
+        "tests": { "connections": [{ "node": "extractDiff", "output": "tests" }, { "node": "extractDiff_rewrite", "output": "tests" }] }
+      }
+    },
+
+    { "id": "output", "type": "ChatOutput", "data": { "label": "Output to User" } }
+  ],
+
+  "edges": [
+    { "source": "input", "target": "mem" },
+    { "source": "input", "target": "embed" },
+    { "source": "embed", "target": "memoryRead" },
+    { "source": "memoryRead", "target": "gate" },
+    { "source": "memoryRead", "target": "contextBuilder" },
+
+    { "source": "gate", "target": "research-plan", "conditionVar": "needs_research", "conditionVal": true },
+    { "source": "research-plan", "target": "research-mapper" },
+    { "source": "research-mapper", "target": "research-summarize" },
+
+    { "source": "contextBuilder", "target": "merge-context" },
+    { "source": "research-summarize", "target": "merge-context" },
+    { "source": "merge-context", "target": "context-upsert" },
+
+    { "source": "mem", "target": "classifier" },
+    { "source": "input", "target": "classifier" },
+
+    { "source": "merge-context", "target": "planner" },
+    { "source": "mem", "target": "planner" },
+    { "source": "input", "target": "planner" },
+
+    { "source": "planner", "target": "router" },
+    { "source": "router", "target": "coder_heavy" },
+    { "source": "router", "target": "coder_light" },
+
+    { "source": "coder_heavy", "target": "static-checks" },
+    { "source": "coder_light", "target": "static-checks" },
+    { "source": "static-checks", "target": "pick-diff" },
+    { "source": "pick-diff", "target": "extractDiff" },
+    { "source": "pick-diff", "target": "extractDiff_rewrite" },
+
+    { "source": "extractDiff", "target": "propose1" },
+    { "source": "extractDiff_rewrite", "target": "propose1" },
+
+    { "source": "propose1", "target": "critic1" },
+    { "source": "critic1", "target": "lgtm1" },
+
+    { "source": "lgtm1", "target": "propose2", "conditionVar": "lgtm", "conditionVal": false },
+    { "source": "lgtm1", "target": "apply-gate", "conditionVar": "lgtm", "conditionVal": true },
+
+    { "source": "propose2", "target": "critic2" },
+    { "source": "critic2", "target": "lgtm2" },
+
+    { "source": "lgtm2", "target": "apply-gate", "conditionVar": "lgtm", "conditionVal": true },
+    { "source": "lgtm2", "target": "finalize", "conditionVar": "lgtm", "conditionVal": false },
+
+    { "source": "apply-gate", "target": "apply" },
+    { "source": "apply", "target": "open-pr-gate" },
+    { "source": "open-pr-gate", "target": "open-pr" },
+
+    { "source": "open-pr", "target": "telemetry" },
+    { "source": "apply", "target": "telemetry" },
+    { "source": "lgtm2", "target": "telemetry" },
+
+    { "source": "telemetry", "target": "finalize" },
+    { "source": "finalize", "target": "output" }
+  ]
+}

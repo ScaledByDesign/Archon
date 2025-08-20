@@ -7,7 +7,7 @@
 
 general_settings:
   telemetry: false
-  timeout: 120
+  timeout: 300  # Increased timeout for local models
   prometheus_metrics: true
   set_verbose: true
   json_logs: true
@@ -20,6 +20,8 @@ general_settings:
 
   # Health check settings
   health_check: true
+  health_check_interval: 120  # Check every 2 minutes
+  health_check_timeout: 60    # 60 second timeout for health checks
 
   # Callback settings for monitoring
   success_callback: ["prometheus"]
@@ -98,6 +100,7 @@ model_list:
       model: ollama/qwen2.5-coder:7b-instruct
       api_base: http://ollama:11434
       api_key: dummy
+      timeout: 180  # 3 minute timeout for local models
       # Parameters optimized for quick code fixes and suggestions
       temperature: 0.1   # Very precise for code accuracy
       max_tokens: 3072   # Good balance for code snippets and explanations
@@ -109,8 +112,9 @@ model_list:
       model: ollama/mxbai-embed-large
       api_base: http://ollama:11434
       api_key: dummy
+      timeout: 60  # 1 minute timeout for embeddings
     model_info:
-      mode: embeddings  # lets LiteLLM know this is an embedding model
+      mode: embedding  # lets LiteLLM know this is an embedding model
 
   # === RAG-Enhanced Development Models (with Vector Store Integration) ===
   - model_name: zoi-rag-helper
@@ -118,6 +122,7 @@ model_list:
       model: ollama/qwen2.5-coder:7b-instruct
       api_base: http://ollama:11434
       api_key: dummy
+      timeout: 240  # 4 minute timeout for RAG models
       # Development-focused parameters with RAG context
       temperature: 0.15  # Slightly higher for creative solutions with context
       max_tokens: 5120   # Larger for context-aware explanations
@@ -133,6 +138,7 @@ model_list:
       model: ollama/qwen2.5:7b
       api_base: http://ollama:11434
       api_key: dummy
+      timeout: 240  # 4 minute timeout for RAG models
       # Strategic development planning with RAG context
       temperature: 0.25  # Moderate for architectural decisions with context
       max_tokens: 6144   # Large for comprehensive technical analysis
