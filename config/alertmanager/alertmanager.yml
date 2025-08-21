@@ -1,0 +1,29 @@
+# Alertmanager Configuration for Zoi Monitoring
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alertmanager@zoi.local'
+  smtp_auth_username: ''
+  smtp_auth_password: ''
+
+# Route configuration
+route:
+  group_by: ['alertname']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'web.hook'
+
+# Receivers configuration
+receivers:
+  - name: 'web.hook'
+    webhook_configs:
+      - url: 'http://localhost:5001/webhook'
+        send_resolved: true
+
+# Inhibit rules
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']

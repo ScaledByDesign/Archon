@@ -1,0 +1,53 @@
+{
+  "$schema": "https://charm.land/crush.json",
+  "providers": {
+    "ollama": {
+      "name": "Ollama Local (Docker)",
+      "base_url": "http://localhost:7040/v1/",
+      "type": "openai",
+      "models": [
+        {
+          "name": "Qwen 2.5 7B (General)",
+          "id": "qwen2.5:7b",
+          "context_window": 32768,
+          "default_max_tokens": 4096,
+          "cost_per_1m_in": 0,
+          "cost_per_1m_out": 0,
+          "description": "General purpose model for conversations and analysis"
+        },
+        {
+          "name": "Qwen 2.5 Coder 7B (Coding)",
+          "id": "qwen2.5-coder:7b-instruct",
+          "context_window": 32768,
+          "default_max_tokens": 4096,
+          "cost_per_1m_in": 0,
+          "cost_per_1m_out": 0,
+          "description": "Specialized coding model for programming tasks"
+        }
+      ]
+    }
+  },
+  "options": {
+    "debug": false,
+    "stream": false,
+    "temperature": 0.7,
+    "max_retries": 3,
+    "timeout": 300
+  },
+  "permissions": {
+    "allowed_tools": [
+      "view",
+      "ls",
+      "grep",
+      "edit",
+      "bash",
+      "write",
+      "glob",
+      "fetch",
+      "sourcegraph",
+      "agent"
+    ]
+  },
+  "default_provider": "ollama",
+  "default_model": "qwen2.5-coder:7b-instruct"
+}

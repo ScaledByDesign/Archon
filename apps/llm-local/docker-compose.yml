@@ -5,7 +5,7 @@ networks:
     driver: bridge
 
 volumes:
-  flowsie-data:
+  langflow-data:
   neo4j-data:
   postgres-data:
   redis-data:
@@ -132,30 +132,34 @@ services:
     restart: unless-stopped
     networks: [ai]
 
-  # 🌊 Flowsie UI (Flowise fork)
-  flowsie:
-    image: flowiseai/flowise:latest
-    container_name: flowsie
+  # 🌊 LangFlow - Visual AI Workflow Builder
+  langflow:
+    image: langflowai/langflow:latest
+    container_name: langflow
     ports:
-      - "${FLOWSIE_PORT:-7070}:3000"
+      - "${LANGFLOW_PORT:-7070}:7860"
     volumes:
-      - flowsie-data:/root/.flowise
+      - langflow-data:/app/langflow
     environment:
-      - PORT=3000
-      # Authentication Configuration
-      - FLOWISE_USERNAME=admin
-      - FLOWISE_PASSWORD=admin123
-      # Redis Configuration for Caching and Queue Management
-      - REDIS_URL=redis://redis:6379
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - MODE=queue
-      - QUEUE_NAME=flowise-queue
-      - WORKER_CONCURRENCY=5
+      - LANGFLOW_HOST=0.0.0.0
+      - LANGFLOW_PORT=7860
+      - LANGFLOW_BACKEND_ONLY=false
+      - LANGFLOW_DATABASE_URL=postgresql://langflow:litellm_password123@postgres:5432/langflow
+      - LANGFLOW_REDIS_URL=redis://redis:6379
+      - LANGFLOW_CACHE_TYPE=redis
+      - LANGFLOW_LOG_LEVEL=INFO
     restart: unless-stopped
     networks: [ai]
     depends_on:
+      - postgres
       - redis
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:7860/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+
 
   # 🧠 Neo4j - Graph Database for structured reasoning
   neo4j:
@@ -171,23 +175,25 @@ services:
     restart: unless-stopped
     networks: [ai]
 
-  # 🐘 PostgreSQL - Local Database for LiteLLM persistence
+  # 🐘 PostgreSQL - Local Database for LiteLLM and LangFlow persistence
   postgres:
     image: postgres:16-alpine
     container_name: litellm-postgres
     ports:
       - "${POSTGRES_PORT:-7063}:5432"
     environment:
-      POSTGRES_DB: litellm
-      POSTGRES_USER: litellm
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: litellm_password123
+      POSTGRES_MULTIPLE_DATABASES: litellm,langflow
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ../../config/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
     restart: unless-stopped
     networks: [ai]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U litellm -d litellm"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5

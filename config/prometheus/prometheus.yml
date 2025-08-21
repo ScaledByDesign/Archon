@@ -1,0 +1,103 @@
+# Prometheus Configuration for Zoi System
+# Comprehensive monitoring of LiteLLM, system resources, and application metrics
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'zoi-local'
+    environment: 'development'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Load alerting rules
+rule_files:
+  - "rules/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+
+  # System metrics via Node Exporter
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['host.docker.internal:9100']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  # Container metrics via cAdvisor
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+    scrape_interval: 15s
+    metrics_path: /metrics
+
+  # LiteLLM Metrics (Cost tracking via database - no direct metrics endpoint)
+  # Note: LiteLLM cost data is tracked via database and API headers
+  # - job_name: 'litellm'
+  #   static_configs:
+  #     - targets: ['host.docker.internal:7010']
+  #   scrape_interval: 10s
+  #   metrics_path: /metrics
+  #   scrape_timeout: 10s
+
+  # Redis Metrics (via exporter)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['host.docker.internal:9121']
+    scrape_interval: 15s
+
+  # PostgreSQL Metrics (via exporter)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['host.docker.internal:9187']
+    scrape_interval: 15s
+
+  # Qdrant Vector Database Metrics
+  - job_name: 'qdrant'
+    static_configs:
+      - targets: ['host.docker.internal:7050']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # Ollama Metrics (no metrics endpoint available)
+  # - job_name: 'ollama'
+  #   static_configs:
+  #     - targets: ['host.docker.internal:7040']
+  #   scrape_interval: 30s
+  #   metrics_path: /metrics
+  #   scrape_timeout: 10s
+
+  # vLLM Metrics (if available)
+  - job_name: 'vllm'
+    static_configs:
+      - targets: ['host.docker.internal:7030']
+    scrape_interval: 30s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # NVIDIA GPU Metrics
+  - job_name: 'nvidia-gpu'
+    static_configs:
+      - targets: ['host.docker.internal:9445']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+# Remote write configuration (optional - for long-term storage)
+# remote_write:
+#   - url: "http://remote-prometheus:9090/api/v1/write"
+#     queue_config:
+#       max_samples_per_send: 1000
+#       max_shards: 200
+#       capacity: 2500

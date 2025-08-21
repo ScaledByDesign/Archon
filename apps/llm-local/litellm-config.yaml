@@ -23,6 +23,12 @@ general_settings:
   health_check_interval: 120  # Check every 2 minutes
   health_check_timeout: 60    # 60 second timeout for health checks
 
+  # Cost tracking settings
+  track_cost_per_model: true
+  track_cost_per_api_key: true
+  track_cost_per_user: true
+  budget_manager: true
+
   # Callback settings for monitoring
   success_callback: ["prometheus"]
   failure_callback: ["prometheus"]
@@ -40,6 +46,12 @@ litellm_settings:
     ttl: 600
     namespace: "litellm"
     supported_call_types: ["acompletion", "atext_completion", "aembedding", "atranscription"]
+
+  # Cost tracking settings
+  track_cost_per_model: true
+  track_cost_per_api_key: true
+  track_cost_per_user: true
+  enable_cost_tracking: true
 
   # Development-focused default parameters
   default_params:
@@ -82,6 +94,12 @@ model_list:
       top_p: 0.9        # Slightly more focused for technical accuracy
       frequency_penalty: 0.1  # Reduce repetition in code examples
       presence_penalty: 0.05  # Encourage diverse technical solutions
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000001   # $1.00 per 1M input tokens (local cost estimate)
+      output_cost_per_token: 0.000002  # $2.00 per 1M output tokens (local cost estimate)
+      max_input_tokens: 8192
+      max_output_tokens: 6144
 
   # === Development-focused reasoning on 5070 Ti via Ollama ===
   - model_name: zoi-thinker
@@ -93,6 +111,12 @@ model_list:
       temperature: 0.2   # Low for logical, structured thinking
       max_tokens: 4096   # Sufficient for detailed technical explanations
       top_p: 0.9        # Focused responses for technical accuracy
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002   # $2.00 per 1M input tokens (7B model cost)
+      output_cost_per_token: 0.000004  # $4.00 per 1M output tokens (7B model cost)
+      max_input_tokens: 32768
+      max_output_tokens: 4096
 
   # === Fast development assistant on 5070 Ti via Ollama ===
   - model_name: zoi-helper
@@ -105,6 +129,12 @@ model_list:
       temperature: 0.1   # Very precise for code accuracy
       max_tokens: 3072   # Good balance for code snippets and explanations
       top_p: 0.85       # Slightly more focused for coding tasks
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002   # $2.00 per 1M input tokens (7B coder model)
+      output_cost_per_token: 0.000003  # $3.00 per 1M output tokens (7B coder model)
+      max_input_tokens: 32768
+      max_output_tokens: 3072
 
   # === Embeddings (for RAG) on 5070 Ti via Ollama ===
   - model_name: zoi-embed
@@ -115,6 +145,10 @@ model_list:
       timeout: 60  # 1 minute timeout for embeddings
     model_info:
       mode: embedding  # lets LiteLLM know this is an embedding model
+      input_cost_per_token: 0.0000005  # $0.50 per 1M input tokens (embedding model)
+      output_cost_per_token: 0.0       # No output tokens for embeddings
+      max_input_tokens: 8192
+      output_vector_size: 1024
 
   # === RAG-Enhanced Development Models (with Vector Store Integration) ===
   - model_name: zoi-rag-helper
@@ -128,6 +162,11 @@ model_list:
       max_tokens: 5120   # Larger for context-aware explanations
       top_p: 0.9        # Balanced for incorporating retrieved knowledge
     model_info:
+      mode: chat
+      input_cost_per_token: 0.000003   # $3.00 per 1M input tokens (RAG-enhanced cost)
+      output_cost_per_token: 0.000004  # $4.00 per 1M output tokens (RAG-enhanced cost)
+      max_input_tokens: 32768
+      max_output_tokens: 5120
       enable_rag: true
       vector_store: "qdrant"
       embedding_model: "zoi-embed"
@@ -144,6 +183,11 @@ model_list:
       max_tokens: 6144   # Large for comprehensive technical analysis
       top_p: 0.92       # Slightly broader for innovative solutions
     model_info:
+      mode: chat
+      input_cost_per_token: 0.000003   # $3.00 per 1M input tokens (RAG-enhanced cost)
+      output_cost_per_token: 0.000005  # $5.00 per 1M output tokens (RAG-enhanced cost)
+      max_input_tokens: 32768
+      max_output_tokens: 6144
       enable_rag: true
       vector_store: "qdrant"
       embedding_model: "zoi-embed"
