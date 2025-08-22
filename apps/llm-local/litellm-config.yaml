@@ -15,6 +15,9 @@ general_settings:
   # rpm: 6000
   # tpm: 2000000
 
+  # Master key for API access
+  master_key: sk-wqn0xwq_vha4MVM2yzw
+
   # Database settings for persistence
   store_model_in_db: true
 
@@ -52,6 +55,13 @@ litellm_settings:
   track_cost_per_api_key: true
   track_cost_per_user: true
   enable_cost_tracking: true
+
+  # MCP Aliases - Map aliases to server names for easier tool access
+  mcp_aliases:
+    "archon": "archon_mcp_server"
+    "knowledge": "archon_mcp_server"
+    "tasks": "archon_mcp_server"
+    "docs": "archon_mcp_server"
 
   # Development-focused default parameters
   default_params:
@@ -216,10 +226,216 @@ model_list:
       max_tokens: 6144   # Large for comprehensive solutions
       top_p: 0.92       # Slightly broader for innovative approaches
 
+  # === GPT OSS as GPT-4 Alternative ===
+  # Route GPT-4 requests to the new OpenAI GPT OSS model for better performance
+  - model_name: gpt-4-oss
+    litellm_params:
+      model: ollama/gpt-oss  # Use the new OpenAI open-source model
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.15  # Match GPT-4 parameters
+      max_tokens: 8192   # Larger context than regular GPT-4
+      top_p: 0.92
+      timeout: 300
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000008
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+
+  - model_name: gpt-4o-mini-oss
+    litellm_params:
+      model: ollama/gpt-oss  # Use GPT OSS for mini requests too
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.1   # Lower for mini-style quick responses
+      max_tokens: 4096   # Smaller for mini compatibility
+      top_p: 0.9
+      timeout: 300
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000001  # Lower cost for "mini" variant
+      output_cost_per_token: 0.000004
+      max_input_tokens: 16384
+      max_output_tokens: 4096
+
+  # === Claude API Hijacking - Route to Local Models ===
+  # These will intercept Claude API calls and route them to your local models
+  - model_name: claude-3-5-sonnet-20241022
+    litellm_params:
+      model: ollama/qwen2.5:7b  # Route to your best reasoning model
+      api_base: http://ollama:11434
+      api_key: dummy
+      # Claude-like parameters for high-quality responses
+      temperature: 0.2   # Moderate for balanced creativity
+      max_tokens: 8192   # Large context for detailed responses
+      top_p: 0.9        # Focused sampling
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000003   # Track as if it were Claude pricing
+      output_cost_per_token: 0.000015  # Track as if it were Claude pricing
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+
+  - model_name: claude-3-sonnet-20240229
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b-instruct  # Route to coding model
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.15  # Lower for more precise responses
+      max_tokens: 6144
+      top_p: 0.9
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000003
+      output_cost_per_token: 0.000015
+      max_input_tokens: 32768
+      max_output_tokens: 6144
+
+  - model_name: claude-3-opus-20240229
+    litellm_params:
+      model: openai/Qwen/Qwen3-0.6B  # Route to your fastest model for "opus" requests
+      api_base: http://vllm:8000/v1
+      api_key: dummy
+      temperature: 0.25  # Higher for more creative responses
+      max_tokens: 8192
+      top_p: 0.92
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000015  # Track as if it were real Opus pricing
+      output_cost_per_token: 0.000075
+      max_input_tokens: 8192
+      max_output_tokens: 8192
+
+  - model_name: claude-3-haiku-20240307
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b-instruct  # Fast model for quick responses
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.1   # Low for quick, precise responses
+      max_tokens: 4096
+      top_p: 0.85
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.00000025  # Track as if it were real Haiku pricing
+      output_cost_per_token: 0.00000125
+      max_input_tokens: 32768
+      max_output_tokens: 4096
+
+  # === ZOI AUTO ROUTER (Smart Load Balancing) ===
+  # Uses cost-based routing to automatically select the best model
+  - model_name: zoi-auto
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b-instruct  # Default to helper model
+      api_base: http://ollama:11434
+      api_key: dummy
+      timeout: 300  # 5 minute timeout
+      temperature: 0.1   # Precise responses
+      max_tokens: 4096   # Balanced token limit
+      top_p: 0.9        # Focused sampling
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002   # Average cost across routed models
+      output_cost_per_token: 0.000004  # Average cost across routed models
+      max_input_tokens: 32768
+      max_output_tokens: 4096
+
+  # === OpenAI GPT OSS Model ===
+  # OpenAI's new open-source GPT model - routed to local Ollama
+  - model_name: gpt-oss
+    litellm_params:
+      model: ollama/gpt-oss  # OpenAI's open-source GPT model
+      api_base: http://ollama:11434
+      api_key: dummy
+      # Parameters optimized for GPT OSS performance
+      temperature: 0.2   # Moderate for balanced creativity and precision
+      max_tokens: 8192   # Large context for detailed responses
+      top_p: 0.9        # Focused sampling
+      timeout: 300      # 5 minute timeout for larger model
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002   # Simulated pricing for tracking
+      output_cost_per_token: 0.000008  # Simulated pricing for tracking
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+
+  # === GPT OSS Aliases for Different Use Cases ===
+  - model_name: gpt-oss-creative
+    litellm_params:
+      model: ollama/gpt-oss
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.7   # Higher for creative tasks
+      max_tokens: 8192
+      top_p: 0.95       # Broader sampling for creativity
+      timeout: 300
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000008
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+
+  - model_name: gpt-oss-precise
+    litellm_params:
+      model: ollama/gpt-oss
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.1   # Lower for precise, factual responses
+      max_tokens: 6144
+      top_p: 0.85       # More focused for accuracy
+      timeout: 300
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000008
+      max_input_tokens: 32768
+      max_output_tokens: 6144
+
 # ------------------------------
-# Router groups (optional use)
+# MCP Servers Configuration
+# ------------------------------
+mcp_servers:
+  # Archon Knowledge Base and Task Management
+  archon_mcp_server:
+    url: "http://archon-mcp:7082"
+    transport: "http"
+    description: "Archon knowledge base, document search, and task management"
+    auth_type: "none"
+    spec_version: "2025-03-26"
+    access_groups: ["dev_group", "knowledge_group"]
+    mcp_info:
+      mcp_server_cost_info:
+        # Default cost for Archon MCP operations
+        default_cost_per_query: 0.001
+        # Custom costs for specific tools
+        tool_name_to_cost_per_query:
+          search_documents: 0.002
+          create_task: 0.001
+          update_task: 0.001
+          get_task_context: 0.001
+          crawl_website: 0.005
+
+# ------------------------------
+# Router settings for intelligent routing
 # ------------------------------
 router_settings:
+  # Use cost-based routing to automatically select the best model
+  routing_strategy: "cost-based-routing"
+
+  # Enable pre-call checks for better routing decisions
+  enable_pre_call_checks: true
+
+  # Model group aliases for compatibility
+  model_group_alias:
+    "zoi:auto": "zoi-auto"  # Map old autorouter calls to new model
+
+  # Retry and timeout settings
+  num_retries: 2
+  timeout: 300
+
+  # Route definitions for different use cases
   routes:
     # Complex coding, multi-file, long-context → prefer vLLM for performance
     - name: code_heavy_route
@@ -231,9 +447,10 @@ router_settings:
       models: [zoi-thinker, zoi-coder-vllm]
       retry_policy: { max_retries: 2, backoff: exponential }
 
-    # Quick code edits
+    # Quick code edits and general assistance
     - name: code_light_route
-      models: [zoi-helper]
+      models: [zoi-helper, zoi-thinker]
+      retry_policy: { max_retries: 2, backoff: exponential }
 
     # Embeddings API
     - name: embed_route
@@ -243,6 +460,8 @@ router_settings:
 # Fallbacks (per alias)
 # ------------------------------
 fallbacks:
+  # If auto router fails, fall back to helper
+  zoi-auto: [zoi-helper, zoi-thinker]
   # If heavy coder is busy or fails, try helper
   zoi-coder-30b: [zoi-helper]
   # If thinker fails, bounce to helper or heavy coder

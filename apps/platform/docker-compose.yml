@@ -1,0 +1,288 @@
+name: zoi-platform
+
+services:
+  # Core Infrastructure
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASS:-secretpass}
+      POSTGRES_USER: ${PG_USER:-postgres}
+      POSTGRES_DB: ${PG_DB:-postgres}
+      TZ: America/Chicago
+      POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_MULTIPLE_DATABASES:-fastapi,healthchecks,authentik,litellm,n8n,langflow,langfuse}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./config/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend_network
+      - database_network
+    ports:
+      - "7200:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    environment:
+      TZ: America/Chicago
+    volumes:
+      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - redis_data:/data
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-change-me-redis-pass}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend_network
+      - database_network
+    ports:
+      - "7201:6379"
+
+  mongo:
+    image: mongo:7
+    container_name: mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASS:-change-me-mongo-pass}
+      TZ: America/Chicago
+    volumes:
+      - mongo_data:/data/db
+      - ./config/mongodb/init-multiple-databases.js:/docker-entrypoint-initdb.d/init-multiple-databases.js:ro
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - database_network
+    ports:
+      - "7202:27017"
+
+  traefik:
+    image: traefik:latest
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - "--configFile=/etc/traefik/traefik.yml"
+      - "--api"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "80:80"
+      - "443:443"  # Removed for HTTP-only local dev
+      - "8080:8080"  # Dashboard port
+      - "8081:8081"  # Insecure API port
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./config/traefik/dynamic:/configuration/dynamic:ro
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - DOMAIN=zoi.local
+      - TZ=America/Chicago
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.dashboard.entrypoints=web"
+      - "traefik.http.routers.dashboard.service=api@internal"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - frontend_network
+      - backend_network
+      - infrastructure_network
+      - auth_network
+
+  # Optional Services
+  dashy:
+    image: lissy93/dashy:latest
+    container_name: dashy
+    restart: unless-stopped
+    ports:
+      - "7207:8080"
+    volumes:
+      - ./config/dashy/conf.yml:/app/user-data/conf.yml:ro
+      - dashy_data:/app/user-data/icons
+    environment:
+      - NODE_ENV=production
+      - UID=1000
+      - GID=1000
+      - CONFIG_PATH=/app/user-data/conf.yml
+    healthcheck:
+      test: ["CMD", "node", "/app/services/healthcheck"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - frontend_network
+      - monitoring_network
+      - auth_network
+    depends_on:
+      traefik:
+        condition: service_healthy
+      authentik-server:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashy.rule=Host(`dashy.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.dashy.entrypoints=web"
+      - "traefik.http.routers.dashy.middlewares=authentik-forward-auth@file"
+      - "traefik.http.services.dashy.loadbalancer.server.port=8080"
+      # Separate router for outpost callbacks without forward auth to prevent infinite loops
+      - "traefik.http.routers.dashy-outpost.rule=Host(`dashy.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.dashy-outpost.entrypoints=web"
+      - "traefik.http.routers.dashy-outpost.service=authentik"
+      - "traefik.http.routers.dashy-outpost.priority=100"
+
+  # Authentication & Identity Provider
+  authentik-server:
+    image: ghcr.io/goauthentik/server:latest
+    container_name: authentik-server
+    restart: unless-stopped
+    entrypoint: ["/bin/bash", "-c"]
+    #command: ["(/blueprints/startup-scripts/apply-blueprints.sh &) && exec ak server"]
+    command: ["ak server"]
+    volumes:
+      - authentik_media:/media
+      - authentik_templates:/templates
+      - ./config/authentik/blueprints:/blueprints/custom
+      - ./config/authentik/startup-scripts:/blueprints/startup-scripts:ro
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - ./config/authentik/authentik.env
+    environment:
+      - AUTHENTIK_HOST_BROWSER=http://auth.zoi.local
+    ports:
+      - "7208:9000"
+      - "7209:9443"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      traefik:
+        condition: service_healthy
+      authentik-worker:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.authentik.rule=Host(`auth.zoi.local`)"
+      - "traefik.http.routers.authentik.entrypoints=web"
+      - "traefik.http.services.authentik.loadbalancer.server.port=9000"
+      - "traefik.http.routers.authentik-rtr-outpost.rule=HostRegexp(`{subdomain:.+}.zoi.local`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.authentik-rtr-outpost.entrypoints=web"
+      - "traefik.http.routers.authentik-rtr-outpost.service=authentik"
+      - "traefik.http.routers.authentik-rtr-outpost.priority=100"
+      - "traefik.http.routers.authentik-rtr-auth-outpost.rule=Host(`auth.zoi.local`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.authentik-rtr-auth-outpost.entrypoints=web"
+      - "traefik.http.routers.authentik-rtr-auth-outpost.service=authentik"
+      - "traefik.http.routers.authentik-rtr-auth-outpost.priority=150"
+    healthcheck:
+      test: ["CMD-SHELL", "ak healthcheck"]
+      start_period: 60s
+      interval: 30s
+      timeout: 30s
+    networks:
+      - auth_network
+      - frontend_network
+      - backend_network
+      - database_network
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:latest
+    container_name: authentik-worker
+    restart: unless-stopped
+    command: worker
+    volumes:
+      - authentik_media:/media
+      - authentik_templates:/templates
+      - ./config/authentik/blueprints:/blueprints/custom
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    env_file:
+      - ./config/authentik/authentik.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "ak healthcheck"]
+      start_period: 30s
+      interval: 30s
+      timeout: 30s
+    networks:
+      - auth_network
+      - backend_network
+      - database_network
+
+  authentik-post-deploy:
+    image: postgres:16-alpine
+    restart: "no"
+    command: >
+      sh -c "
+        echo 'Waiting for Authentik blueprints to be applied...';
+        sleep 60;
+        echo 'Running post-deployment outpost permissions fix...';
+        export PGPASSWORD=$$POSTGRES_PASSWORD;
+        psql -h postgres -U $$POSTGRES_USER -d $$POSTGRES_DB -c \"
+          INSERT INTO authentik_core_user_ak_groups (user_id, group_id) 
+          SELECT u.id, g.group_uuid 
+          FROM authentik_core_user u, authentik_core_group g 
+          WHERE u.username LIKE 'ak-outpost-%' 
+          AND g.name = 'authentik Admins' 
+          ON CONFLICT DO NOTHING;
+        \";
+        echo '✅ Post-deployment outpost permissions setup complete!';
+      "
+    environment:
+      - POSTGRES_DB=authentik
+      - POSTGRES_USER=authentik
+      - POSTGRES_PASSWORD=${PG_PASS:-secretpass}
+    depends_on:
+      authentik-server:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - database_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongo_data:
+  dashy_data:
+  authentik_media:
+  authentik_templates:
+
+networks:
+  frontend_network:
+    driver: bridge
+  backend_network:
+    driver: bridge
+  database_network:
+    driver: bridge
+  infrastructure_network:
+    driver: bridge
+  monitoring_network:
+    driver: bridge
+  auth_network:
+    driver: bridge

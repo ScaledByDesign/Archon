@@ -112,7 +112,7 @@ else
 fi
 
 # Check Qdrant (vector store)
-if curl -s "http://localhost:7050/health" >/dev/null 2>&1; then
+if curl -s "http://localhost:7060/health" >/dev/null 2>&1; then
     echo -e "  ✅ Qdrant: ${GREEN}UP${NC} (vector store)"
 else
     echo -e "  ❌ Qdrant: ${RED}DOWN${NC}"

@@ -295,6 +295,107 @@ model_list:
   #     max_input_tokens: 8192
   #     output_vector_size: 768
 
+  # === OpenAI GPT OSS Models ===
+  # OpenAI's new open-source GPT model - routed to local Ollama
+  - model_name: gpt-oss
+    litellm_params:
+      model: ollama/gpt-oss  # OpenAI's open-source GPT model
+      api_base: http://ollama:11434
+      api_key: dummy
+      # Parameters optimized for GPT OSS performance
+      temperature: 0.2   # Moderate for balanced creativity and precision
+      max_tokens: 8192   # Large context for detailed responses
+      top_p: 0.9        # Focused sampling
+      timeout: 300      # 5 minute timeout for larger model
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_parallel_function_calling: false
+      supports_vision: false
+      input_cost_per_token: 0.000002   # Simulated pricing for tracking
+      output_cost_per_token: 0.000008  # Simulated pricing for tracking
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+
+  # === GPT OSS Aliases for Different Use Cases ===
+  - model_name: gpt-oss-creative
+    litellm_params:
+      model: ollama/gpt-oss
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.7   # Higher for creative tasks
+      max_tokens: 8192
+      top_p: 0.95       # Broader sampling for creativity
+      timeout: 300
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_parallel_function_calling: false
+      supports_vision: false
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000008
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+
+  - model_name: gpt-oss-precise
+    litellm_params:
+      model: ollama/gpt-oss
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.1   # Lower for precise, factual responses
+      max_tokens: 6144
+      top_p: 0.85       # More focused for accuracy
+      timeout: 300
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_parallel_function_calling: false
+      supports_vision: false
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000008
+      max_input_tokens: 32768
+      max_output_tokens: 6144
+
+  # === GPT OSS as GPT-4 Alternative ===
+  # Route GPT-4 requests to the new OpenAI GPT OSS model for better performance
+  - model_name: gpt-4-oss
+    litellm_params:
+      model: ollama/gpt-oss  # Use the new OpenAI open-source model
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.15  # Match GPT-4 parameters
+      max_tokens: 8192   # Larger context than regular GPT-4
+      top_p: 0.92
+      timeout: 300
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_parallel_function_calling: false
+      supports_vision: false
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000008
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+
+  - model_name: gpt-4o-mini-oss
+    litellm_params:
+      model: ollama/gpt-oss  # Use GPT OSS for mini requests too
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.1   # Lower for mini-style quick responses
+      max_tokens: 4096   # Smaller for mini compatibility
+      top_p: 0.9
+      timeout: 300
+    model_info:
+      mode: chat
+      supports_function_calling: false
+      supports_parallel_function_calling: false
+      supports_vision: false
+      input_cost_per_token: 0.000001  # Lower cost for "mini" variant
+      output_cost_per_token: 0.000004
+      max_input_tokens: 16384
+      max_output_tokens: 4096
+
 # Router Configuration for Load Balancing and Optimization
 router_settings:
   routing_strategy: "usage-based-routing"  # Options: simple-shuffle, least-busy, usage-based-routing

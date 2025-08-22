@@ -1,0 +1,228 @@
+name: zoi-mcp
+services:
+  # Server Service (FastAPI + Socket.IO + Crawling)
+  archon-server:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.server
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+        ARCHON_SERVER_PORT: ${ARCHON_SERVER_PORT:-8181}
+    container_name: Archon-Server
+    ports:
+      - "${ARCHON_SERVER_PORT:-8181}:${ARCHON_SERVER_PORT:-8181}"
+    environment:
+      # Database Configuration (Local PostgreSQL)
+      - DATABASE_URL=${DATABASE_URL}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      # Legacy Supabase (kept for compatibility)
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      # AI Configuration (Local LiteLLM)
+      - LITELLM_BASE_URL=${LITELLM_BASE_URL}
+      - LITELLM_API_KEY=${LITELLM_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - DEFAULT_MODEL=${DEFAULT_MODEL}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      - EMBEDDING_DIMENSIONS=${EMBEDDING_DIMENSIONS}
+      # Service Configuration
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
+      - SERVICE_DISCOVERY_MODE=docker_compose
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ARCHON_SERVER_PORT=${ARCHON_SERVER_PORT:-8181}
+      - ARCHON_MCP_PORT=${ARCHON_MCP_PORT:-8051}
+      - ARCHON_AGENTS_PORT=${ARCHON_AGENTS_PORT:-8052}
+    networks:
+      - app-network
+      - zoi-llm_ai
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # Docker socket for MCP container control
+      - ./python/src:/app/src # Mount source code for hot reload
+      - ./python/tests:/app/tests # Mount tests for UI test execution
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      [
+        "python",
+        "-m",
+        "uvicorn",
+        "src.server.main:socket_app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "${ARCHON_SERVER_PORT:-8181}",
+        "--reload",
+      ]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:${ARCHON_SERVER_PORT:-8181}/health'')"',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archon-server.rule=Host(`archon-api.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.archon-server.entrypoints=web"
+      - "traefik.http.services.archon-server.loadbalancer.server.port=${ARCHON_SERVER_PORT:-8181}"
+
+  # Lightweight MCP Server Service (HTTP-based)
+  archon-mcp:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.mcp
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+        ARCHON_MCP_PORT: ${ARCHON_MCP_PORT:-8051}
+    container_name: Archon-MCP
+    ports:
+      - "${ARCHON_MCP_PORT:-8051}:${ARCHON_MCP_PORT:-8051}"
+    environment:
+      # Database Configuration (Local PostgreSQL)
+      - DATABASE_URL=${DATABASE_URL}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      # Legacy Supabase (kept for compatibility)
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      # AI Configuration (Local LiteLLM)
+      - LITELLM_BASE_URL=${LITELLM_BASE_URL}
+      - LITELLM_API_KEY=${LITELLM_API_KEY}
+      - DEFAULT_MODEL=${DEFAULT_MODEL}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      # Service Configuration
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
+      - SERVICE_DISCOVERY_MODE=docker_compose
+      - TRANSPORT=sse
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # MCP needs to know where to find other services
+      - API_SERVICE_URL=http://archon-server:${ARCHON_SERVER_PORT:-8181}
+      - AGENTS_SERVICE_URL=http://archon-agents:${ARCHON_AGENTS_PORT:-8052}
+      - ARCHON_MCP_PORT=${ARCHON_MCP_PORT:-8051}
+      - ARCHON_SERVER_PORT=${ARCHON_SERVER_PORT:-8181}
+      - ARCHON_AGENTS_PORT=${ARCHON_AGENTS_PORT:-8052}
+    networks:
+      - app-network
+      - zoi-llm_ai
+    depends_on:
+      - archon-server
+      - archon-agents
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          'python -c "import socket; s=socket.socket(); s.connect((''localhost'', ${ARCHON_MCP_PORT:-8051})); s.close()"',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s # Give dependencies time to start
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archon-mcp.rule=Host(`archon-mcp.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.archon-mcp.entrypoints=web"
+      - "traefik.http.services.archon-mcp.loadbalancer.server.port=${ARCHON_MCP_PORT:-8051}"
+
+  # AI Agents Service (ML/Reranking)
+  archon-agents:
+    build:
+      context: ./python
+      dockerfile: Dockerfile.agents
+      args:
+        BUILDKIT_INLINE_CACHE: 1
+        ARCHON_AGENTS_PORT: ${ARCHON_AGENTS_PORT:-8052}
+    container_name: Archon-Agents
+    ports:
+      - "${ARCHON_AGENTS_PORT:-8052}:${ARCHON_AGENTS_PORT:-8052}"
+    environment:
+      # Database Configuration (Local PostgreSQL)
+      - DATABASE_URL=${DATABASE_URL}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      # Legacy Supabase (kept for compatibility)
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      # AI Configuration (Local LiteLLM)
+      - LITELLM_BASE_URL=${LITELLM_BASE_URL}
+      - LITELLM_API_KEY=${LITELLM_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - DEFAULT_MODEL=${DEFAULT_MODEL}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL}
+      # Service Configuration
+      - LOGFIRE_TOKEN=${LOGFIRE_TOKEN:-}
+      - SERVICE_DISCOVERY_MODE=docker_compose
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ARCHON_AGENTS_PORT=${ARCHON_AGENTS_PORT:-8052}
+    networks:
+      - app-network
+      - zoi-llm_ai
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:${ARCHON_AGENTS_PORT:-8052}/health'')"',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archon-agents.rule=Host(`archon-agents.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.archon-agents.entrypoints=web"
+      - "traefik.http.services.archon-agents.loadbalancer.server.port=${ARCHON_AGENTS_PORT:-8052}"
+
+  # Frontend
+  frontend:
+    build: ./archon-ui-main
+    container_name: Archon-UI
+    ports:
+      - "${ARCHON_UI_PORT:-3737}:5173"
+    environment:
+      - VITE_API_URL=http://${HOST:-localhost}:${ARCHON_SERVER_PORT:-8181}
+      - ARCHON_SERVER_PORT=${ARCHON_SERVER_PORT:-8181}
+      - HOST=${HOST:-localhost}
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    volumes:
+      - ./archon-ui-main/src:/app/src
+      - ./archon-ui-main/public:/app/public
+    depends_on:
+      - archon-server
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.archon-ui.rule=Host(`archon.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.archon-ui.entrypoints=web"
+      - "traefik.http.services.archon-ui.loadbalancer.server.port=5173"
+
+networks:
+  app-network:
+    driver: bridge
+  zoi-llm_ai:
+    external: true

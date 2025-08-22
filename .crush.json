@@ -1,28 +1,83 @@
 {
   "$schema": "https://charm.land/crush.json",
   "providers": {
-    "ollama": {
-      "name": "Ollama Local (Docker)",
-      "base_url": "http://localhost:7040/v1/",
+    "litellm": {
+      "name": "LiteLLM Router (Zoi Stack)",
+      "base_url": "http://localhost:4005/v1/",
       "type": "openai",
+      "api_key": "sk-6df5295f77391ff7611a0fab11b989287012f48e46f58ae0",
       "models": [
         {
-          "name": "Qwen 2.5 7B (General)",
-          "id": "qwen2.5:7b",
-          "context_window": 32768,
-          "default_max_tokens": 4096,
-          "cost_per_1m_in": 0,
-          "cost_per_1m_out": 0,
-          "description": "General purpose model for conversations and analysis"
+          "name": "Zoi Coder (vLLM - High Performance)",
+          "id": "zoi-coder-vllm",
+          "context_window": 8192,
+          "default_max_tokens": 6144,
+          "cost_per_1m_in": 1.0,
+          "cost_per_1m_out": 2.0,
+          "description": "High-performance development-focused model via vLLM"
         },
         {
-          "name": "Qwen 2.5 Coder 7B (Coding)",
-          "id": "qwen2.5-coder:7b-instruct",
+          "name": "Zoi Helper (Coding Assistant)",
+          "id": "zoi-helper",
+          "context_window": 32768,
+          "default_max_tokens": 3072,
+          "cost_per_1m_in": 2.0,
+          "cost_per_1m_out": 3.0,
+          "description": "Fast development assistant for code fixes and suggestions"
+        },
+        {
+          "name": "Zoi Thinker (Reasoning)",
+          "id": "zoi-thinker",
           "context_window": 32768,
           "default_max_tokens": 4096,
-          "cost_per_1m_in": 0,
-          "cost_per_1m_out": 0,
-          "description": "Specialized coding model for programming tasks"
+          "cost_per_1m_in": 2.0,
+          "cost_per_1m_out": 4.0,
+          "description": "Technical analysis and architecture planning model"
+        },
+        {
+          "name": "Zoi RAG Helper (Knowledge-Enhanced)",
+          "id": "zoi-rag-helper",
+          "context_window": 32768,
+          "default_max_tokens": 5120,
+          "cost_per_1m_in": 2.5,
+          "cost_per_1m_out": 4.0,
+          "description": "RAG-enhanced development model with vector store integration"
+        },
+        {
+          "name": "Zoi RAG Thinker (Knowledge + Reasoning)",
+          "id": "zoi-rag-thinker",
+          "context_window": 32768,
+          "default_max_tokens": 4096,
+          "cost_per_1m_in": 3.0,
+          "cost_per_1m_out": 5.0,
+          "description": "RAG-enhanced reasoning model for complex analysis"
+        },
+        {
+          "name": "Zoi Embed (Embeddings)",
+          "id": "zoi-embed",
+          "context_window": 8192,
+          "default_max_tokens": 0,
+          "cost_per_1m_in": 0.5,
+          "cost_per_1m_out": 0.0,
+          "description": "Embedding model for vector operations and RAG"
+        },
+        {
+          "name": "GPT-3.5 Turbo (External)",
+          "id": "gpt-3.5-turbo",
+          "context_window": 16384,
+          "default_max_tokens": 4096,
+          "cost_per_1m_in": 500.0,
+          "cost_per_1m_out": 1500.0,
+          "description": "OpenAI GPT-3.5 Turbo for external API access"
+        },
+        {
+          "name": "GPT-4 (External)",
+          "id": "gpt-4",
+          "context_window": 8192,
+          "default_max_tokens": 4096,
+          "cost_per_1m_in": 30000.0,
+          "cost_per_1m_out": 60000.0,
+          "description": "OpenAI GPT-4 for high-quality external API access"
         }
       ]
     }
@@ -48,6 +103,6 @@
       "agent"
     ]
   },
-  "default_provider": "ollama",
-  "default_model": "qwen2.5-coder:7b-instruct"
+  "default_provider": "litellm",
+  "default_model": "zoi-helper"
 }

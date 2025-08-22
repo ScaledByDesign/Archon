@@ -65,7 +65,7 @@ scrape_configs:
   # Qdrant Vector Database Metrics
   - job_name: 'qdrant'
     static_configs:
-      - targets: ['host.docker.internal:7050']
+      - targets: ['host.docker.internal:7060']
     scrape_interval: 30s
     metrics_path: /metrics
     scrape_timeout: 10s

@@ -1,4 +1,4 @@
-name: sff-llm-standalone
+name: zoi-llm
 
 networks:
   ai:
@@ -9,7 +9,6 @@ volumes:
   neo4j-data:
   postgres-data:
   redis-data:
-  text-gen-data:
 
 services:
   # 🧠 Ollama (RTX 5070 Ti GPU Enabled)
@@ -42,6 +41,11 @@ services:
       interval: 60s  # Increased interval
       timeout: 30s   # Increased timeout
       retries: 5     # Reduced retries
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ollama.rule=Host(`ollama.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.ollama.entrypoints=web"
+      - "traefik.http.services.ollama.loadbalancer.server.port=11434"
 
   # 🤖 vLLM (RTX 5070 Ti GPU Enabled)
   vllm:
@@ -73,6 +77,11 @@ services:
       interval: 30s
       timeout: 10s
       retries: 10
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vllm.rule=Host(`vllm.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.vllm.entrypoints=web"
+      - "traefik.http.services.vllm.loadbalancer.server.port=8000"
 
   # 🚪 LiteLLM Router
   litellm:
@@ -82,6 +91,7 @@ services:
       - "${LITELLM_PORT:-7010}:4000"
     volumes:
       - ./litellm-config.yaml:/app/config.yaml:ro
+      - ./auto_router_config.json:/app/auto_router_config.json:ro
     environment:
       - LITELLM_CONFIG=/app/config.yaml
       - DATABASE_URL=postgresql://litellm:litellm_password123@postgres:5432/litellm
@@ -105,32 +115,26 @@ services:
       interval: 20s
       timeout: 5s
       retries: 10
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.litellm.rule=Host(`litellm.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.litellm.entrypoints=web"
+      - "traefik.http.services.litellm.loadbalancer.server.port=4000"
 
-  # 🔀 AutoRouter (Zoi meta router)
-  autorouter:
-    image: node:20-slim
-    container_name: zoi-autorouter
-    working_dir: /srv
-    command: bash -lc "npm install && node server.js"
-    volumes:
-      - ./autorouter:/srv
-    ports:
-      - "${AUTOROUTER_PORT:-7020}:7020"
-    environment:
-      - PORT=7020
-      - LITELLM_URL=http://litellm:4000/v1
-    depends_on: [litellm]
-    restart: unless-stopped
-    networks: [ai]
 
   # 🧠 Vector Database (Qdrant for RAG)
   qdrant:
     image: qdrant/qdrant:latest
     container_name: qdrant
     ports:
-      - "${QDRANT_PORT:-7050}:6333"
+      - "${QDRANT_PORT:-7060}:6333"
     restart: unless-stopped
     networks: [ai]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qdrant.rule=Host(`qdrant.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.qdrant.entrypoints=web"
+      - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
 
   # 🌊 LangFlow - Visual AI Workflow Builder
   langflow:
@@ -144,7 +148,7 @@ services:
       - LANGFLOW_HOST=0.0.0.0
       - LANGFLOW_PORT=7860
       - LANGFLOW_BACKEND_ONLY=false
-      - LANGFLOW_DATABASE_URL=postgresql://langflow:litellm_password123@postgres:5432/langflow
+      - LANGFLOW_DATABASE_URL=postgresql://postgres:litellm_password123@postgres:5432/langflow
       - LANGFLOW_REDIS_URL=redis://redis:6379
       - LANGFLOW_CACHE_TYPE=redis
       - LANGFLOW_LOG_LEVEL=INFO
@@ -158,6 +162,11 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.langflow.rule=Host(`langflow.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.langflow.entrypoints=web"
+      - "traefik.http.services.langflow.loadbalancer.server.port=7860"
 
 
 
@@ -174,6 +183,11 @@ services:
       - neo4j-data:/data
     restart: unless-stopped
     networks: [ai]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.neo4j.rule=Host(`neo4j.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.neo4j.entrypoints=web"
+      - "traefik.http.services.neo4j.loadbalancer.server.port=7474"
 
   # 🐘 PostgreSQL - Local Database for LiteLLM and LangFlow persistence
   postgres:
@@ -214,28 +228,3 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # 📚 Text Generation WebUI - GGUF Model Server
-  text-generation-webui:
-    image: atinoda/text-generation-webui:default
-    container_name: text-gen-webui
-    ports:
-      - "${TEXT_GEN_PORT:-7080}:7860"
-      - "${TEXT_GEN_API_PORT:-7081}:5000"
-    volumes:
-      - "${GGUF_MODELS:-D:/models/gguf}:/app/models"
-      - text-gen-data:/app/characters
-      - text-gen-data:/app/presets
-    environment:
-      - CLI_ARGS=--api --listen --listen-port 7860 --api-port 5000 --loader llama.cpp
-    restart: unless-stopped
-    networks: [ai]
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
-
-

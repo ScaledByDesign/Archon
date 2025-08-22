@@ -1,0 +1,137 @@
+name: zoi-tools
+
+services:
+
+  # n8n Workflow Automation
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "7300:5678"
+    env_file:
+      - ./config/n8n/n8n.env
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./config/n8n/workflows:/workflows:ro
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      traefik:
+        condition: service_healthy
+      authentik-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:5678/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      
+      # Webhook/API routes - higher priority, no authentication (direct access)
+      - "traefik.http.routers.n8n-webhooks.rule=Host(`n8n.${DOMAIN:-zoi.local}`) && (PathPrefix(`/webhook`) || PathPrefix(`/api`))"
+      - "traefik.http.routers.n8n-webhooks.entrypoints=web"
+      - "traefik.http.routers.n8n-webhooks.priority=100"
+      - "traefik.http.routers.n8n-webhooks.service=n8n"
+      
+      # Frontend/UI routes - lower priority, with authentication
+      - "traefik.http.routers.n8n-frontend.rule=Host(`n8n.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.n8n-frontend.entrypoints=web"
+      - "traefik.http.routers.n8n-frontend.priority=50"
+      - "traefik.http.routers.n8n-frontend.middlewares=n8n-frontend-auth@file"
+      - "traefik.http.routers.n8n-frontend.service=n8n"
+      
+      # Service definition
+      - "traefik.http.services.n8n.loadbalancer.server.port=5678"
+      
+      # Separate router for outpost callbacks without forward auth to prevent infinite loops  
+      - "traefik.http.routers.n8n-outpost.rule=Host(`n8n.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.n8n-outpost.entrypoints=web"
+      - "traefik.http.routers.n8n-outpost.service=authentik"
+      - "traefik.http.routers.n8n-outpost.priority=200"
+    networks:
+      - backend_network
+      - frontend_network
+      - database_network
+      - auth_network
+
+  # OpenWebUI AI Chat Interface
+  openwebui:
+    image: ghcr.io/open-webui/open-webui:v0.6.15
+    container_name: openwebui
+    restart: unless-stopped
+    ports:
+      - "7301:8088"
+    env_file:
+      - ./config/openwebui/openwebui.env
+    volumes:
+      - openwebui_data:/app/data
+      - /etc/localtime:/etc/localtime:ro
+    depends_on:
+      traefik:
+        condition: service_healthy
+      litellm:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8088/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+      
+      # API/Webhook routes - higher priority, no authentication
+      - "traefik.http.routers.openwebui-api.rule=Host(`openwebui.${DOMAIN:-zoi.local}`) && (PathPrefix(`/api`) || PathPrefix(`/webhook`))"
+      - "traefik.http.routers.openwebui-api.entrypoints=web"
+      - "traefik.http.routers.openwebui-api.priority=100"
+      - "traefik.http.routers.openwebui-api.service=openwebui"
+      
+      # Frontend/UI routes - lower priority, with authentication
+      - "traefik.http.routers.openwebui-frontend.rule=Host(`openwebui.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.openwebui-frontend.entrypoints=web"
+      - "traefik.http.routers.openwebui-frontend.priority=50"
+      - "traefik.http.routers.openwebui-frontend.middlewares=openwebui-frontend-auth@file"
+      - "traefik.http.routers.openwebui-frontend.service=openwebui"
+      
+      # Service definition
+      - "traefik.http.services.openwebui.loadbalancer.server.port=8088"
+      
+      # Authentik outpost callbacks - highest priority
+      - "traefik.http.routers.openwebui-outpost.rule=Host(`openwebui.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.openwebui-outpost.entrypoints=web"
+      - "traefik.http.routers.openwebui-outpost.service=authentik"
+      - "traefik.http.routers.openwebui-outpost.priority=200"
+    networks:
+      - backend_network         # Always include
+      - frontend_network        # Always include
+      - auth_network           # If using authentication
+
+volumes:
+  postgres_data:
+  redis_data:
+  mongo_data:
+  qdrant_data:
+  dashy_data:
+  portal_data:
+  authentik_media:
+  authentik_templates:
+  n8n_data:
+  openwebui_data:
+
+networks:
+  frontend_network:
+    driver: bridge
+  backend_network:
+    driver: bridge
+  database_network:
+    driver: bridge
+  infrastructure_network:
+    driver: bridge
+  monitoring_network:
+    driver: bridge
+  auth_network:
+    driver: bridge

@@ -1,0 +1,104 @@
+version: 1
+metadata:
+  name: 09-langflow-oauth-integration
+  labels:
+    blueprints.goauthentik.io/instantiate: "true"
+context:
+  langflow_client_id: langflow-oauth-client
+  langflow_client_secret: change-me-langflow-oauth-secret
+entries:
+  # OAuth2 Provider for LangFlow
+  - identifiers:
+      pk: langflow-oauth-provider
+    model: authentik_providers_oauth2.oauth2provider
+    attrs:
+      name: LangFlow OAuth2 Provider
+      client_type: confidential
+      client_id: !Context langflow_client_id
+      client_secret: !Context langflow_client_secret
+      authorization_grant_type: authorization-code
+      redirect_uris: |
+        http://langflow.zoi.local/api/v1/oauth/callback
+        http://langflow.zoi.local/oauth/callback
+      signing_key: !KeyOf authentik_crypto.certificatekeypair "authentik Self-signed Certificate"
+      access_token_validity: hours=24
+      refresh_token_validity: days=30
+      include_claims_in_id_token: true
+      issuer_mode: per_provider
+      sub_mode: hashed_user_id
+
+  # Forward Auth Provider for LangFlow
+  - identifiers:
+      pk: langflow-forward-auth-provider
+    model: authentik_providers_proxy.proxyprovider
+    attrs:
+      name: LangFlow Forward Auth Provider
+      authorization_flow: !Find [authentik_flows.flow, [slug, default-provider-authorization-implicit-consent]]
+      mode: forward_single
+      external_host: http://langflow.zoi.local
+      cookie_domain: .zoi.local
+      token_validity: hours=24
+      skip_path_regex: ^/(api|webhook)/.*$
+
+  # LangFlow OAuth2 Application
+  - identifiers:
+      pk: langflow-oauth-app
+    model: authentik_core.application
+    attrs:
+      name: LangFlow OAuth2
+      slug: langflow-oauth
+      provider: !KeyOf authentik_providers_oauth2.oauth2provider langflow-oauth-provider
+      policy_engine_mode: any
+      meta_launch_url: http://langflow.zoi.local
+      meta_description: LangFlow AI Workflow Builder - OAuth2 Integration
+      meta_publisher: Zoi Infrastructure
+      meta_icon: https://raw.githubusercontent.com/langflow-ai/langflow/main/src/frontend/public/favicon.ico
+
+  # LangFlow Forward Auth Application
+  - identifiers:
+      pk: langflow-forward-auth-app
+    model: authentik_core.application
+    attrs:
+      name: LangFlow Forward Auth
+      slug: langflow-forward-auth
+      provider: !KeyOf authentik_providers_proxy.proxyprovider langflow-forward-auth-provider
+      policy_engine_mode: any
+      meta_launch_url: http://langflow.zoi.local
+      meta_description: LangFlow AI Workflow Builder - Forward Auth
+      meta_publisher: Zoi Infrastructure
+      meta_icon: https://raw.githubusercontent.com/langflow-ai/langflow/main/src/frontend/public/favicon.ico
+
+  # Policy Binding for Flowise OAuth2
+  - identifiers:
+      pk: flowise-oauth-policy-binding
+    model: authentik_policies.policybinding
+    attrs:
+      target: !KeyOf authentik_core.application flowise-oauth-app
+      group: !Find [authentik_core.group, [name, zoi-users]]
+      order: 0
+      enabled: true
+
+  # Policy Binding for Flowise Forward Auth
+  - identifiers:
+      pk: flowise-forward-auth-policy-binding
+    model: authentik_policies.policybinding
+    attrs:
+      target: !KeyOf authentik_core.application flowise-forward-auth-app
+      group: !Find [authentik_core.group, [name, zoi-users]]
+      order: 0
+      enabled: true
+
+  # Add Flowise Forward Auth Provider to Embedded Outpost
+  - identifiers:
+      pk: embedded-outpost-flowise-provider
+    model: authentik_outposts.outpost
+    state: present
+    attrs:
+      name: authentik Embedded Outpost
+      type: proxy
+      providers:
+        - !KeyOf authentik_providers_proxy.proxyprovider dashy-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider n8n-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider openwebui-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider litellm-forward-auth-provider
+        - !KeyOf authentik_providers_proxy.proxyprovider flowise-forward-auth-provider

@@ -21,7 +21,7 @@ import sys
 from typing import List, Dict, Any
 
 # Configuration
-QDRANT_URL = "http://localhost:7050"
+QDRANT_URL = "http://localhost:7060"
 LITELLM_URL = "http://localhost:7010"
 LITELLM_API_KEY = "sk-wqn0xwq_vha4MVM2yzw"
 COLLECTION_NAME = "zoi_knowledge_base"
