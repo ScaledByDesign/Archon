@@ -30,14 +30,14 @@ scrape_configs:
   # System metrics via Node Exporter
   - job_name: 'node-exporter'
     static_configs:
-      - targets: ['host.docker.internal:9100']
+      - targets: ['node-exporter:9100']
     scrape_interval: 15s
     metrics_path: /metrics
 
   # Container metrics via cAdvisor
   - job_name: 'cadvisor'
     static_configs:
-      - targets: ['host.docker.internal:8080']
+      - targets: ['cadvisor:8080']
     scrape_interval: 15s
     metrics_path: /metrics
 
@@ -53,13 +53,13 @@ scrape_configs:
   # Redis Metrics (via exporter)
   - job_name: 'redis'
     static_configs:
-      - targets: ['host.docker.internal:9121']
+      - targets: ['redis-exporter:9121']
     scrape_interval: 15s
 
   # PostgreSQL Metrics (via exporter)
   - job_name: 'postgres'
     static_configs:
-      - targets: ['host.docker.internal:9187']
+      - targets: ['postgres-exporter:9187']
     scrape_interval: 15s
 
   # Qdrant Vector Database Metrics
@@ -89,7 +89,7 @@ scrape_configs:
   # NVIDIA GPU Metrics
   - job_name: 'nvidia-gpu'
     static_configs:
-      - targets: ['host.docker.internal:9445']
+      - targets: ['nvidia-dcgm-exporter:9400']
     scrape_interval: 15s
     metrics_path: /metrics
     scrape_timeout: 10s

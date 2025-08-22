@@ -1,14 +1,16 @@
 name: zoi-llm
 
 networks:
-  ai:
-    driver: bridge
+  zoi-network:
+    name: zoi-network
+    external: true
 
 volumes:
   langflow-data:
   neo4j-data:
   postgres-data:
   redis-data:
+  qdrant-data:
 
 services:
   # 🧠 Ollama (RTX 5070 Ti GPU Enabled)
@@ -35,7 +37,7 @@ services:
               count: 1
               capabilities: [gpu]
     restart: unless-stopped
-    networks: [ai]
+    networks: [zoi-network]
     healthcheck:
       test: ["CMD-SHELL", "curl -fsSL http://localhost:11434/api/tags || exit 1"]
       interval: 60s  # Increased interval
@@ -71,7 +73,7 @@ services:
               count: 1
               capabilities: [gpu]
     restart: unless-stopped
-    networks: [ai]
+    networks: [zoi-network]
     healthcheck:
       test: ["CMD", "bash", "-lc", "curl -fsSL http://localhost:8000/v1/models || exit 1"]
       interval: 30s
@@ -94,8 +96,8 @@ services:
       - ./auto_router_config.json:/app/auto_router_config.json:ro
     environment:
       - LITELLM_CONFIG=/app/config.yaml
-      - DATABASE_URL=postgresql://litellm:litellm_password123@postgres:5432/litellm
-      - POSTGRES_PRISMA_URL=postgresql://litellm:litellm_password123@postgres:5432/litellm
+      - DATABASE_URL=postgresql://postgres:litellm_password123@postgres:5432/litellm
+      - POSTGRES_PRISMA_URL=postgresql://postgres:litellm_password123@postgres:5432/litellm
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
@@ -109,7 +111,7 @@ services:
       - postgres
       - redis
     restart: unless-stopped
-    networks: [ai]
+    networks: [zoi-network]
     healthcheck:
       test: ["CMD-SHELL", "curl -fsSL http://localhost:4000/health || exit 1"]
       interval: 20s
@@ -128,13 +130,35 @@ services:
     container_name: qdrant
     ports:
       - "${QDRANT_PORT:-7060}:6333"
+    volumes:
+      - qdrant-data:/qdrant/storage
     restart: unless-stopped
-    networks: [ai]
+    networks: [zoi-network]
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.qdrant.rule=Host(`qdrant.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.qdrant.entrypoints=web"
       - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
+
+  # Qdrant Bootstrap - Initialize collections
+  qdrant-bootstrap:
+    image: python:3.11-slim
+    container_name: qdrant-bootstrap
+    depends_on:
+      - qdrant
+    volumes:
+      - ../../config/qdrant/01-init-collections.py:/app/bootstrap.py:ro
+    working_dir: /app
+    command: >
+      sh -c "
+        pip install qdrant-client &&
+        python bootstrap.py
+      "
+    environment:
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+    networks: [zoi-network]
+    restart: "no"
 
   # 🌊 LangFlow - Visual AI Workflow Builder
   langflow:
@@ -153,7 +177,7 @@ services:
       - LANGFLOW_CACHE_TYPE=redis
       - LANGFLOW_LOG_LEVEL=INFO
     restart: unless-stopped
-    networks: [ai]
+    networks: [zoi-network]
     depends_on:
       - postgres
       - redis
@@ -179,10 +203,13 @@ services:
       - "${NEO4J_BOLT_PORT:-7062}:7687"   # Bolt protocol (drivers, APIs)
     environment:
       NEO4J_AUTH: neo4j/password123    # ⚠️ You should change this in production
+      NEO4J_PLUGINS: '["apoc", "graph-data-science"]'
+      NEO4J_dbms_security_procedures_unrestricted: "gds.*,apoc.*"
+      NEO4J_dbms_security_procedures_allowlist: "gds.*,apoc.*"
     volumes:
       - neo4j-data:/data
     restart: unless-stopped
-    networks: [ai]
+    networks: [zoi-network]
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.neo4j.rule=Host(`neo4j.${DOMAIN:-zoi.local}`)"
@@ -191,21 +218,24 @@ services:
 
   # 🐘 PostgreSQL - Local Database for LiteLLM and LangFlow persistence
   postgres:
-    image: postgres:16-alpine
-    container_name: litellm-postgres
+    image: pgvector/pgvector:pg16
+    container_name: postgres
     ports:
       - "${POSTGRES_PORT:-7063}:5432"
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: litellm_password123
-      POSTGRES_MULTIPLE_DATABASES: litellm,langflow
+      POSTGRES_MULTIPLE_DATABASES: litellm,langflow,lobechat,n8n,openwebui,authentik
       PGDATA: /var/lib/postgresql/data/pgdata
+      # Performance tuning for AI/ML workloads
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=trust"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ../../config/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
+      - ../../config/postgres/01-init-databases.sh:/docker-entrypoint-initdb.d/01-init-databases.sh:ro
+      - ../../config/postgres/02-bootstrap.sql:/docker-entrypoint-initdb.d/02-bootstrap.sql:ro
     restart: unless-stopped
-    networks: [ai]
+    networks: [zoi-network]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -215,14 +245,15 @@ services:
   # 🔴 Redis - Cache for LiteLLM performance optimization
   redis:
     image: redis:7-alpine
-    container_name: litellm-redis
+    container_name: redis
     ports:
       - "${REDIS_PORT:-7064}:6379"
-    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    command: redis-server /usr/local/etc/redis/redis.conf
     volumes:
       - redis-data:/data
+      - ../../config/redis/01-init-redis.conf:/usr/local/etc/redis/redis.conf:ro
     restart: unless-stopped
-    networks: [ai]
+    networks: [zoi-network]
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s

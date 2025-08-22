@@ -113,7 +113,7 @@ All requests through Langflow are automatically tracked in your PostgreSQL datab
 ### View Usage Statistics
 ```sql
 -- Connect to database
-docker exec -it litellm-postgres psql -U postgres -d litellm
+docker exec -it postgres psql -U postgres -d litellm
 
 -- View recent requests
 SELECT model, user_id, total_tokens, cost, created_at 

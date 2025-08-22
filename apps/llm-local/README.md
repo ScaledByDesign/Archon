@@ -307,7 +307,7 @@ curl http://localhost:7082/mcp
 
 **Archon not connecting to PostgreSQL**:
 - Ensure PostgreSQL is running: `docker ps --filter name=postgres`
-- Check database exists: `docker exec -i litellm-postgres psql -U postgres -c "\l"`
+- Check database exists: `docker exec -i postgres psql -U postgres -c "\l"`
 
 **MCP tools not available**:
 - Verify Archon MCP is healthy: `docker logs Archon-MCP --tail 10`

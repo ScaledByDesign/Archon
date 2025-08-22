@@ -2,52 +2,11 @@ name: zoi-platform
 
 services:
   # Core Infrastructure
-  postgres:
-    image: postgres:15-alpine
-    container_name: postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_PASSWORD: ${PG_PASS:-secretpass}
-      POSTGRES_USER: ${PG_USER:-postgres}
-      POSTGRES_DB: ${PG_DB:-postgres}
-      TZ: America/Chicago
-      POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_MULTIPLE_DATABASES:-fastapi,healthchecks,authentik,litellm,n8n,langflow,langfuse}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./config/postgres/init-multiple-databases.sh:/docker-entrypoint-initdb.d/init-multiple-databases.sh:ro
-      - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - backend_network
-      - database_network
-    ports:
-      - "7200:5432"
+  # PostgreSQL Database - Using external service from llm-local stack
+  # postgres service is provided by llm-local stack
 
-  redis:
-    image: redis:7-alpine
-    container_name: redis
-    restart: unless-stopped
-    command: redis-server /usr/local/etc/redis/redis.conf
-    environment:
-      TZ: America/Chicago
-    volumes:
-      - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-      - redis_data:/data
-      - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-change-me-redis-pass}", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - backend_network
-      - database_network
-    ports:
-      - "7201:6379"
+  # Redis Cache - Using external service from llm-local stack
+  # redis service is provided by llm-local stack
 
   mongo:
     image: mongo:7
@@ -59,7 +18,7 @@ services:
       TZ: America/Chicago
     volumes:
       - mongo_data:/data/db
-      - ./config/mongodb/init-multiple-databases.js:/docker-entrypoint-initdb.d/init-multiple-databases.js:ro
+      - ../../config/mongodb/init-multiple-databases.js:/docker-entrypoint-initdb.d/init-multiple-databases.js:ro
       - /etc/localtime:/etc/localtime:ro
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
@@ -67,7 +26,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - database_network
+      - zoi-network
     ports:
       - "7202:27017"
 
@@ -88,8 +47,8 @@ services:
       - "8081:8081"  # Insecure API port
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
-      - ./config/traefik/dynamic:/configuration/dynamic:ro
+      - ../../config/traefik/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ../../config/traefik/dynamic:/configuration/dynamic:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
       - DOMAIN=zoi.local
@@ -105,10 +64,7 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - frontend_network
-      - backend_network
-      - infrastructure_network
-      - auth_network
+      - zoi-network
 
   # Optional Services
   dashy:
@@ -118,7 +74,7 @@ services:
     ports:
       - "7207:8080"
     volumes:
-      - ./config/dashy/conf.yml:/app/user-data/conf.yml:ro
+      - ../../config/dashy/conf.yml:/app/user-data/conf.yml:ro
       - dashy_data:/app/user-data/icons
     environment:
       - NODE_ENV=production
@@ -132,9 +88,7 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - frontend_network
-      - monitoring_network
-      - auth_network
+      - zoi-network
     depends_on:
       traefik:
         condition: service_healthy
@@ -163,21 +117,17 @@ services:
     volumes:
       - authentik_media:/media
       - authentik_templates:/templates
-      - ./config/authentik/blueprints:/blueprints/custom
-      - ./config/authentik/startup-scripts:/blueprints/startup-scripts:ro
+      - ../../config/authentik/blueprints:/blueprints/custom
+      - ../../config/authentik/startup-scripts:/blueprints/startup-scripts:ro
       - /etc/localtime:/etc/localtime:ro
     env_file:
-      - ./config/authentik/authentik.env
+      - ../../config/authentik/authentik.env
     environment:
       - AUTHENTIK_HOST_BROWSER=http://auth.zoi.local
     ports:
       - "7208:9000"
       - "7209:9443"
     depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
       traefik:
         condition: service_healthy
       authentik-worker:
@@ -201,10 +151,7 @@ services:
       interval: 30s
       timeout: 30s
     networks:
-      - auth_network
-      - frontend_network
-      - backend_network
-      - database_network
+      - zoi-network
 
   authentik-worker:
     image: ghcr.io/goauthentik/server:latest
@@ -214,25 +161,19 @@ services:
     volumes:
       - authentik_media:/media
       - authentik_templates:/templates
-      - ./config/authentik/blueprints:/blueprints/custom
+      - ../../config/authentik/blueprints:/blueprints/custom
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
-      - ./config/authentik/authentik.env
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      - ../../config/authentik/authentik.env
+    depends_on: []
     healthcheck:
       test: ["CMD-SHELL", "ak healthcheck"]
       start_period: 30s
       interval: 30s
       timeout: 30s
     networks:
-      - auth_network
-      - backend_network
-      - database_network
+      - zoi-network
 
   authentik-post-deploy:
     image: postgres:16-alpine
@@ -260,29 +201,16 @@ services:
     depends_on:
       authentik-server:
         condition: service_healthy
-      postgres:
-        condition: service_healthy
     networks:
-      - database_network
+      - zoi-network
 
 volumes:
-  postgres_data:
-  redis_data:
   mongo_data:
   dashy_data:
   authentik_media:
   authentik_templates:
 
 networks:
-  frontend_network:
-    driver: bridge
-  backend_network:
-    driver: bridge
-  database_network:
-    driver: bridge
-  infrastructure_network:
-    driver: bridge
-  monitoring_network:
-    driver: bridge
-  auth_network:
-    driver: bridge
+  zoi-network:
+    name: zoi-network
+    external: true

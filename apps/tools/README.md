@@ -7,6 +7,7 @@ Productivity and automation tools for the Zoi ecosystem, including workflow auto
 ### Productivity Tools
 - **n8n** → Visual workflow automation and integration platform
 - **OpenWebUI** → Modern AI chat interface with multi-model support
+- **LobeChat** → Advanced AI chat interface with plugin ecosystem
 
 ### Integration Features
 - **Traefik Integration** → Clean domain routing and SSL termination
@@ -19,6 +20,7 @@ Productivity and automation tools for the Zoi ecosystem, including workflow auto
 |---------|-----|------|---------|
 | **n8n** | http://localhost:7300 | 7300 | Workflow automation |
 | **OpenWebUI** | http://localhost:7301 | 7301 | AI chat interface |
+| **LobeChat** | http://localhost:7302 | 7302 | Advanced AI chat interface |
 
 ### Traefik Domain Routing
 
@@ -28,12 +30,13 @@ When using with the platform Traefik proxy, services are also available via doma
 |---------|------------|---------|
 | **n8n** | http://n8n.zoi.local | Workflow automation |
 | **OpenWebUI** | http://openwebui.zoi.local | AI chat interface |
+| **LobeChat** | http://lobechat.zoi.local | Advanced AI chat interface |
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - Platform stack running (PostgreSQL, Redis, Traefik, Authentik)
-- LLM stack running (for OpenWebUI AI integration)
+- LLM stack running (for AI integration and LobeChat database)
 
 ### 1. Start Tools Stack
 ```powershell
@@ -52,9 +55,13 @@ start http://localhost:7300
 # Open OpenWebUI chat interface
 start http://localhost:7301
 
+# Open LobeChat interface
+start http://localhost:7302
+
 # Or via domains (if using Traefik)
 start http://n8n.zoi.local
 start http://openwebui.zoi.local
+start http://lobechat.zoi.local
 ```
 
 ### 3. Initial Configuration
@@ -62,14 +69,20 @@ start http://openwebui.zoi.local
 **n8n Setup:**
 1. Access http://localhost:7300
 2. Create admin account on first visit
-3. Configure database connection (uses platform PostgreSQL)
+3. Database automatically configured (uses llm-local PostgreSQL)
 4. Import workflows from `./config/n8n/workflows/`
 
 **OpenWebUI Setup:**
 1. Access http://localhost:7301
 2. Create admin account on first visit
-3. Configure LiteLLM connection (automatic via environment)
+3. LiteLLM and database automatically configured
 4. Start chatting with your local AI models
+
+**LobeChat Setup:**
+1. Access http://localhost:7302
+2. Configure API settings (automatic via environment)
+3. Explore plugin marketplace and extensions
+4. Customize interface themes and layouts
 
 ## 🔧 Configuration
 
@@ -84,13 +97,13 @@ start http://openwebui.zoi.local
 
 **Environment Configuration:**
 ```bash
-# Database (uses platform PostgreSQL)
+# Database (PostgreSQL from llm-local stack)
 DB_TYPE=postgresdb
-DB_POSTGRESDB_HOST=postgres
-DB_POSTGRESDB_PORT=5432
+DB_POSTGRESDB_HOST=host.docker.internal
+DB_POSTGRESDB_PORT=7063
 DB_POSTGRESDB_DATABASE=n8n
-DB_POSTGRESDB_USER=n8n
-DB_POSTGRESDB_PASSWORD=n8n_password123
+DB_POSTGRESDB_USER=postgres
+DB_POSTGRESDB_PASSWORD=litellm_password123
 
 # Security
 N8N_BASIC_AUTH_ACTIVE=false  # Using Authentik instead
@@ -120,8 +133,11 @@ N8N_PAYLOAD_SIZE_MAX=16
 
 **Environment Configuration:**
 ```bash
+# Database (PostgreSQL from llm-local stack)
+DATABASE_URL=postgresql://postgres:litellm_password123@host.docker.internal:7063/openwebui
+
 # LiteLLM Integration
-OPENAI_API_BASE_URL=http://litellm:4000/v1
+OPENAI_API_BASE_URL=http://host.docker.internal:7010/v1
 OPENAI_API_KEY=sk-wqn0xwq_vha4MVM2yzw
 
 # Interface Settings
@@ -139,6 +155,45 @@ ENABLE_IMAGE_GENERATION=false
 - **zoi-auto** - Intelligent routing to best model
 - **Qwen2.5-Coder** - Code-focused conversations
 - **All LiteLLM Models** - Access to your entire model fleet
+
+### LobeChat Advanced AI Interface
+
+**Features:**
+- **Modern UI/UX** with customizable themes and layouts
+- **Plugin Ecosystem** with extensible functionality
+- **Multi-Model Support** via LiteLLM integration
+- **Conversation Management** with advanced organization
+- **Custom Agents** and persona creation
+- **File Upload** and document analysis
+- **Real-time Streaming** responses
+- **Export/Import** conversations and settings
+- **Database Persistence** via PostgreSQL integration
+
+**Environment Configuration:**
+```bash
+# LiteLLM Integration
+OPENAI_API_KEY=sk-wqn0xwq_vha4MVM2yzw
+OPENAI_PROXY_URL=http://litellm:4000/v1
+
+# Authentication & Security
+ACCESS_CODE=                    # Optional access code
+NEXTAUTH_SECRET=lobechat-secret-key
+NEXTAUTH_URL=http://lobechat.zoi.local
+
+# Database (PostgreSQL from llm-local stack)
+DATABASE_URL=postgresql://postgres:litellm_password123@host.docker.internal:7063/lobechat
+
+# Interface Customization
+NEXT_PUBLIC_BASE_PATH=          # Custom base path if needed
+```
+
+**Advanced Features:**
+- **Plugin System** - Extend functionality with custom plugins
+- **Agent Marketplace** - Pre-built AI agents for specific tasks
+- **Conversation Templates** - Reusable conversation starters
+- **Theme Customization** - Dark/light modes and custom themes
+- **Multi-language Support** - International interface
+- **PWA Support** - Install as desktop/mobile app
 
 ## 🔐 Authentication & Security
 
@@ -172,10 +227,12 @@ docker compose ps
 # View service logs
 docker compose logs n8n
 docker compose logs openwebui
+docker compose logs lobechat
 
 # Test service endpoints
 curl http://localhost:7300/healthz  # n8n
 curl http://localhost:7301/health   # OpenWebUI
+curl http://localhost:7302/api/health # LobeChat
 ```
 
 ### Common Issues
@@ -189,19 +246,22 @@ docker exec -it n8n n8n info
 docker exec -it postgres psql -U postgres -c "\l" | findstr n8n
 
 # Check network connectivity
-docker network inspect zoi-tools_database_network
+docker exec -it n8n ping host.docker.internal
 ```
 
-**OpenWebUI LiteLLM Connection Issues:**
+**OpenWebUI Connection Issues:**
 ```powershell
 # Test LiteLLM connection
-curl http://litellm:4000/v1/models
+curl http://host.docker.internal:7010/v1/models
 
 # Check OpenWebUI logs
 docker compose logs openwebui
 
 # Verify environment variables
 docker exec openwebui printenv | findstr OPENAI
+
+# Check database connectivity
+docker exec -it postgres psql -U postgres -c "\l" | findstr openwebui
 ```
 
 **Authentik Authentication Issues:**
@@ -214,6 +274,24 @@ curl -I http://n8n.zoi.local
 
 # Check Traefik routing
 curl http://traefik:8080/api/rawdata
+
+**LobeChat Connection Issues:**
+```powershell
+# Test LiteLLM connection
+curl http://litellm:4000/v1/models
+
+# Check LobeChat logs
+docker compose logs lobechat
+
+# Verify environment variables
+docker exec lobechat printenv | findstr OPENAI
+
+# Test API endpoint
+curl http://localhost:7302/api/health
+
+# Check database connectivity
+docker exec -it postgres psql -U postgres -c "\l" | findstr lobechat
+```
 ```
 
 ## 📈 Performance & Resource Usage
@@ -224,6 +302,7 @@ curl http://traefik:8080/api/rawdata
 |---------|-----|-----|---------|-------|
 | n8n | 1 core | 1GB | 2GB | Scales with workflows |
 | OpenWebUI | 0.5 core | 512MB | 1GB | Lightweight interface |
+| LobeChat | 0.5 core | 512MB | 1GB | Modern React interface |
 
 ### Optimization Tips
 

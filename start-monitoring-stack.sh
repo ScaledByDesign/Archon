@@ -1,12 +1,12 @@
 #!/bin/bash
-# Start Monitoring Stack - WSL Ubuntu
+# Start Monitoring Stack - Zoi Ecosystem
 
-echo "🚀 STARTING MONITORING STACK - WSL UBUNTU"
-echo "========================================="
+echo "🚀 STARTING ZOI MONITORING STACK"
+echo "================================="
 
 # Create required network
-echo "📡 Creating 'ai' network..."
-docker network create ai 2>/dev/null || echo "Network 'ai' already exists"
+echo "📡 Creating 'zoi-network'..."
+docker network create zoi-network 2>/dev/null || echo "Network 'zoi-network' already exists"
 
 # Check if alertmanager config exists
 echo ""
@@ -54,7 +54,7 @@ docker rm prometheus-test grafana-test 2>/dev/null || true
 # Start the monitoring stack
 echo ""
 echo "🚀 Starting monitoring stack..."
-docker-compose -f docker-compose.monitoring.yml up -d
+cd apps/monitor && docker compose up -d
 
 # Wait for services to start
 echo ""
@@ -88,6 +88,9 @@ echo ""
 echo "🎯 Monitoring stack startup complete!"
 echo ""
 echo "🌐 Access URLs:"
-echo "   Prometheus: http://localhost:9090"
-echo "   Grafana: http://localhost:3000 (admin/admin123)"
-echo "   Alertmanager: http://localhost:9093"
+echo "   Prometheus: http://prometheus.zoi.local (or http://localhost:7100)"
+echo "   Grafana: http://grafana.zoi.local (or http://localhost:7101)"
+echo "   Alertmanager: http://alertmanager.zoi.local (or http://localhost:7106)"
+echo ""
+echo "📊 Use 'make logs-monitor' to view monitoring stack logs"
+echo "🔍 Use 'make health' to check all service health"

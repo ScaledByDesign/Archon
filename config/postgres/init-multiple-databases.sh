@@ -1,49 +1,31 @@
 #!/bin/bash
 set -e
-set -u
 
-function create_user_and_database() {
-	local database=$1
-	local user=$2
-	echo "  Creating user '$user' and database '$database'..."
-	psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-	    CREATE USER $user WITH PASSWORD '$POSTGRES_PASSWORD';
-	    CREATE DATABASE $database OWNER $user;
-	    GRANT ALL PRIVILEGES ON DATABASE $database TO $user;
-EOSQL
-	
-	# Grant schema permissions for the newly created database
-	echo "  Granting schema permissions for database '$database'..."
-	psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$database" <<-EOSQL
-	    GRANT ALL ON SCHEMA public TO $user;
-	    GRANT CREATE ON SCHEMA public TO $user;
-	    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO $user;
-	    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO $user;
-EOSQL
-}
+echo "🚀 PostgreSQL Multiple Database Initialization"
+echo "POSTGRES_USER: ${POSTGRES_USER}"
+echo "POSTGRES_DB: ${POSTGRES_DB}"
+echo "POSTGRES_MULTIPLE_DATABASES: ${POSTGRES_MULTIPLE_DATABASES:-}"
 
-if [ -n "$POSTGRES_MULTIPLE_DATABASES" ]; then
-	echo "Multiple database creation requested: $POSTGRES_MULTIPLE_DATABASES"
+if [ -n "${POSTGRES_MULTIPLE_DATABASES:-}" ]; then
+	echo "Creating multiple databases: $POSTGRES_MULTIPLE_DATABASES"
+
+	# Split the database list by comma
 	IFS=',' read -ra DATABASES <<< "$POSTGRES_MULTIPLE_DATABASES"
+
 	for db in "${DATABASES[@]}"; do
-		# Create database with same name as user for each database
-		case $db in
-			"authentik")
-				create_user_and_database "$db" "authentik"
-				;;
-			"fastapi")
-				create_user_and_database "$db" "fastapi"
-				;;
-			"healthchecks")
-				create_user_and_database "$db" "healthchecks"
-				;;
-			"langfuse")
-				create_user_and_database "$db" "langfuse"
-				;;
-			*)
-				create_user_and_database "$db" "$db"
-				;;
-		esac
+		# Trim whitespace
+		db=$(echo "$db" | tr -d '[:space:]')
+
+		if [ -n "$db" ]; then
+			echo "Creating database: $db"
+			psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
+				CREATE DATABASE "$db";
+			EOSQL
+			echo "✅ Database '$db' created successfully"
+		fi
 	done
-	echo "Multiple databases created"
+
+	echo "✅ All databases created!"
+else
+	echo "No multiple databases specified"
 fi

@@ -9,19 +9,29 @@ services:
     restart: unless-stopped
     ports:
       - "7300:5678"
-    env_file:
-      - ./config/n8n/n8n.env
+    environment:
+      # Database Configuration (PostgreSQL from llm-local stack)
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=postgres
+      - DB_POSTGRESDB_PASSWORD=litellm_password123
+      # Security
+      - N8N_BASIC_AUTH_ACTIVE=false
+      - N8N_DISABLE_PRODUCTION_MAIN_PROCESS=false
+      # Webhooks
+      - WEBHOOK_URL=http://n8n.zoi.local
+      - N8N_PAYLOAD_SIZE_MAX=16
+      # Additional settings
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
     volumes:
       - n8n_data:/home/node/.n8n
       - ./config/n8n/workflows:/workflows:ro
       - /etc/localtime:/etc/localtime:ro
-    depends_on:
-      postgres:
-        condition: service_healthy
-      traefik:
-        condition: service_healthy
-      authentik-server:
-        condition: service_healthy
+    # Note: External dependencies on traefik and authentik-server from platform stack
     healthcheck:
       test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:5678/ || exit 1"]
       interval: 30s
@@ -53,10 +63,7 @@ services:
       - "traefik.http.routers.n8n-outpost.service=authentik"
       - "traefik.http.routers.n8n-outpost.priority=200"
     networks:
-      - backend_network
-      - frontend_network
-      - database_network
-      - auth_network
+      - zoi-network
 
   # OpenWebUI AI Chat Interface
   openwebui:
@@ -65,16 +72,26 @@ services:
     restart: unless-stopped
     ports:
       - "7301:8088"
-    env_file:
-      - ./config/openwebui/openwebui.env
+    environment:
+      # Database Configuration (PostgreSQL from llm-local stack)
+      - DATABASE_URL=postgresql://postgres:litellm_password123@postgres:5432/openwebui
+      # LiteLLM Integration
+      - OPENAI_API_BASE_URL=http://litellm:4000/v1
+      - OPENAI_API_KEY=sk-wqn0xwq_vha4MVM2yzw
+      # Interface Settings
+      - WEBUI_NAME=Zoi AI Chat
+      - WEBUI_URL=http://openwebui.zoi.local
+      - DEFAULT_MODELS=zoi-auto,qwen2.5-coder:7b-instruct
+      # Features
+      - ENABLE_RAG=true
+      - ENABLE_WEB_SEARCH=false
+      - ENABLE_IMAGE_GENERATION=false
+      # Security
+      - WEBUI_SECRET_KEY=openwebui-secret-key-change-in-production
     volumes:
       - openwebui_data:/app/data
       - /etc/localtime:/etc/localtime:ro
-    depends_on:
-      traefik:
-        condition: service_healthy
-      litellm:
-        condition: service_healthy
+    # Note: External dependency on traefik from platform stack
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8088/ || exit 1"]
       interval: 30s
@@ -106,9 +123,59 @@ services:
       - "traefik.http.routers.openwebui-outpost.service=authentik"
       - "traefik.http.routers.openwebui-outpost.priority=200"
     networks:
-      - backend_network         # Always include
-      - frontend_network        # Always include
-      - auth_network           # If using authentication
+      - zoi-network
+
+  # LobeChat AI Chat Interface
+  lobechat:
+    image: lobehub/lobe-chat:latest
+    container_name: lobechat
+    restart: unless-stopped
+    ports:
+      - "7302:3210"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-wqn0xwq_vha4MVM2yzw}
+      - OPENAI_PROXY_URL=${OPENAI_PROXY_URL:-http://litellm:7010/v1}
+      - ACCESS_CODE=${LOBECHAT_ACCESS_CODE:-}
+      - NEXT_PUBLIC_BASE_PATH=${LOBECHAT_BASE_PATH:-}
+      - DATABASE_URL=${LOBECHAT_DATABASE_URL:-postgresql://postgres:litellm_password123@postgres:5432/lobechat}
+      - NEXTAUTH_SECRET=${LOBECHAT_NEXTAUTH_SECRET:-lobechat-secret-key}
+      - NEXTAUTH_URL=${LOBECHAT_NEXTAUTH_URL:-http://lobechat.zoi.local}
+    volumes:
+      - lobechat_data:/app/.next
+      - /etc/localtime:/etc/localtime:ro
+    # Note: External dependency on traefik from platform stack
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3210/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+
+      # API/Webhook routes - higher priority, no authentication
+      - "traefik.http.routers.lobechat-api.rule=Host(`lobechat.${DOMAIN:-zoi.local}`) && (PathPrefix(`/api`) || PathPrefix(`/webhook`))"
+      - "traefik.http.routers.lobechat-api.entrypoints=web"
+      - "traefik.http.routers.lobechat-api.priority=100"
+      - "traefik.http.routers.lobechat-api.service=lobechat"
+
+      # Frontend/UI routes - lower priority, with authentication
+      - "traefik.http.routers.lobechat-frontend.rule=Host(`lobechat.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.lobechat-frontend.entrypoints=web"
+      - "traefik.http.routers.lobechat-frontend.priority=50"
+      - "traefik.http.routers.lobechat-frontend.middlewares=lobechat-frontend-auth@file"
+      - "traefik.http.routers.lobechat-frontend.service=lobechat"
+
+      # Service definition
+      - "traefik.http.services.lobechat.loadbalancer.server.port=3210"
+
+      # Authentik outpost callbacks - highest priority
+      - "traefik.http.routers.lobechat-outpost.rule=Host(`lobechat.${DOMAIN:-zoi.local}`) && PathPrefix(`/outpost.goauthentik.io/`)"
+      - "traefik.http.routers.lobechat-outpost.entrypoints=web"
+      - "traefik.http.routers.lobechat-outpost.service=authentik"
+      - "traefik.http.routers.lobechat-outpost.priority=200"
+    networks:
+      - zoi-network
 
 volumes:
   postgres_data:
@@ -121,17 +188,9 @@ volumes:
   authentik_templates:
   n8n_data:
   openwebui_data:
+  lobechat_data:
 
 networks:
-  frontend_network:
-    driver: bridge
-  backend_network:
-    driver: bridge
-  database_network:
-    driver: bridge
-  infrastructure_network:
-    driver: bridge
-  monitoring_network:
-    driver: bridge
-  auth_network:
-    driver: bridge
+  zoi-network:
+    name: zoi-network
+    external: true

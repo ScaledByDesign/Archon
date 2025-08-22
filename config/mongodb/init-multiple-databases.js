@@ -103,14 +103,93 @@ const databases = [
         indexes: [
           { key: { 'model': 1 }, name: 'model_idx' },
           { key: { 'timestamp': -1 }, name: 'timestamp_idx' },
-          { key: { 'user_id': 1 }, name: 'user_id_idx' }
+          { key: { 'user_id': 1 }, name: 'user_id_idx' },
+          { key: { 'cost': 1 }, name: 'cost_idx' },
+          { key: { 'status': 1 }, name: 'status_idx' }
         ]
       },
       {
         name: 'models',
         indexes: [
           { key: { 'model_name': 1 }, name: 'model_name_idx', unique: true },
-          { key: { 'provider': 1 }, name: 'provider_idx' }
+          { key: { 'provider': 1 }, name: 'provider_idx' },
+          { key: { 'active': 1 }, name: 'active_idx' }
+        ]
+      },
+      {
+        name: 'cost_tracking',
+        indexes: [
+          { key: { 'date': -1 }, name: 'date_idx' },
+          { key: { 'model': 1, 'date': -1 }, name: 'model_date_idx' },
+          { key: { 'user_id': 1, 'date': -1 }, name: 'user_date_idx' }
+        ]
+      }
+    ]
+  },
+  {
+    name: 'openwebui',
+    description: 'OpenWebUI chat interface database',
+    collections: [
+      {
+        name: 'chats',
+        indexes: [
+          { key: { 'user_id': 1 }, name: 'user_id_idx' },
+          { key: { 'created_at': -1 }, name: 'created_at_idx' },
+          { key: { 'title': 'text' }, name: 'title_text_idx' }
+        ]
+      },
+      {
+        name: 'messages',
+        indexes: [
+          { key: { 'chat_id': 1 }, name: 'chat_id_idx' },
+          { key: { 'timestamp': -1 }, name: 'timestamp_idx' },
+          { key: { 'role': 1 }, name: 'role_idx' }
+        ]
+      }
+    ]
+  },
+  {
+    name: 'lobechat',
+    description: 'LobeChat interface database',
+    collections: [
+      {
+        name: 'sessions',
+        indexes: [
+          { key: { 'user_id': 1 }, name: 'user_id_idx' },
+          { key: { 'updated_at': -1 }, name: 'updated_at_idx' },
+          { key: { 'agent_id': 1 }, name: 'agent_id_idx' }
+        ]
+      },
+      {
+        name: 'agents',
+        indexes: [
+          { key: { 'name': 1 }, name: 'name_idx' },
+          { key: { 'created_by': 1 }, name: 'created_by_idx' },
+          { key: { 'public': 1 }, name: 'public_idx' }
+        ]
+      }
+    ]
+  },
+  {
+    name: 'archon_mcp',
+    description: 'Archon MCP knowledge management database',
+    collections: [
+      {
+        name: 'knowledge_items',
+        indexes: [
+          { key: { 'type': 1 }, name: 'type_idx' },
+          { key: { 'created_at': -1 }, name: 'created_at_idx' },
+          { key: { 'tags': 1 }, name: 'tags_idx' },
+          { key: { 'title': 'text', 'content': 'text' }, name: 'text_search_idx' }
+        ]
+      },
+      {
+        name: 'tasks',
+        indexes: [
+          { key: { 'status': 1 }, name: 'status_idx' },
+          { key: { 'priority': 1 }, name: 'priority_idx' },
+          { key: { 'due_date': 1 }, name: 'due_date_idx' },
+          { key: { 'assigned_to': 1 }, name: 'assigned_to_idx' }
         ]
       }
     ]

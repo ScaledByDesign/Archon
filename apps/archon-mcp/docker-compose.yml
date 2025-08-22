@@ -37,8 +37,7 @@ services:
       - ARCHON_MCP_PORT=${ARCHON_MCP_PORT:-8051}
       - ARCHON_AGENTS_PORT=${ARCHON_AGENTS_PORT:-8052}
     networks:
-      - app-network
-      - zoi-llm_ai
+      - zoi-network
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # Docker socket for MCP container control
       - ./python/src:/app/src # Mount source code for hot reload
@@ -114,8 +113,7 @@ services:
       - ARCHON_SERVER_PORT=${ARCHON_SERVER_PORT:-8181}
       - ARCHON_AGENTS_PORT=${ARCHON_AGENTS_PORT:-8052}
     networks:
-      - app-network
-      - zoi-llm_ai
+      - zoi-network
     depends_on:
       - archon-server
       - archon-agents
@@ -173,8 +171,7 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - ARCHON_AGENTS_PORT=${ARCHON_AGENTS_PORT:-8052}
     networks:
-      - app-network
-      - zoi-llm_ai
+      - zoi-network
     healthcheck:
       test:
         [
@@ -204,7 +201,7 @@ services:
       - ARCHON_SERVER_PORT=${ARCHON_SERVER_PORT:-8181}
       - HOST=${HOST:-localhost}
     networks:
-      - app-network
+      - zoi-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5173"]
       interval: 30s
@@ -222,7 +219,6 @@ services:
       - "traefik.http.services.archon-ui.loadbalancer.server.port=5173"
 
 networks:
-  app-network:
-    driver: bridge
-  zoi-llm_ai:
+  zoi-network:
+    name: zoi-network
     external: true

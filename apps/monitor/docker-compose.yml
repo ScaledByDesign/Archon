@@ -12,8 +12,8 @@ services:
     ports:
       - "7100:9090"
     volumes:
-      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./config/prometheus/rules:/etc/prometheus/rules:ro
+      - ../../config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../../config/prometheus/rules:/etc/prometheus/rules:ro
       - prometheus_data:/prometheus
       - /etc/localtime:/etc/localtime:ro
     command:
@@ -51,8 +51,8 @@ services:
       - "7101:3000"
     volumes:
       - grafana_data:/var/lib/grafana
-      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ../../config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ../../config/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
@@ -72,7 +72,7 @@ services:
       start_period: 30s
     networks:
       - monitoring_network
-      - frontend_network
+      - zoi-network
     depends_on:
       - prometheus
     labels:
@@ -136,7 +136,7 @@ services:
     ports:
       - "7104:9121"
     environment:
-      - REDIS_ADDR=redis://host.docker.internal:7201
+      - REDIS_ADDR=redis://redis:6379
     networks:
       - monitoring_network
     extra_hosts:
@@ -150,19 +150,19 @@ services:
     ports:
       - "7105:9187"
     environment:
-      - DATA_SOURCE_NAME=postgresql://litellm:litellm_password123@host.docker.internal:7200/litellm?sslmode=disable
+      - DATA_SOURCE_NAME=postgresql://postgres:litellm_password123@postgres:5432/litellm?sslmode=disable
     networks:
       - monitoring_network
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  # NVIDIA GPU Exporter - GPU metrics (requires NVIDIA Docker runtime)
-  nvidia-gpu-exporter:
-    image: utkuozdemir/nvidia_gpu_exporter:latest
-    container_name: nvidia-gpu-exporter
+  # NVIDIA DCGM Exporter - Official NVIDIA GPU metrics exporter
+  nvidia-dcgm-exporter:
+    image: nvcr.io/nvidia/k8s/dcgm-exporter:3.3.5-3.4.0-ubuntu22.04
+    container_name: nvidia-dcgm-exporter
     restart: unless-stopped
     ports:
-      - "7107:9835"
+      - "7107:9400"
     volumes:
       - /etc/localtime:/etc/localtime:ro
     networks:
@@ -176,13 +176,15 @@ services:
               capabilities: [gpu]
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+      - DCGM_EXPORTER_LISTEN=0.0.0.0:9400
+      - DCGM_EXPORTER_KUBERNETES=false
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.nvidia-exporter.rule=Host(`nvidia.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.nvidia-exporter.entrypoints=web"
-      - "traefik.http.services.nvidia-exporter.loadbalancer.server.port=9835"
+      - "traefik.http.services.nvidia-exporter.loadbalancer.server.port=9400"
 
-  # Alert Manager (Optional) - For alerting
+  # Alert Manager - For alerting
   alertmanager:
     image: prom/alertmanager:latest
     container_name: alertmanager
@@ -190,7 +192,7 @@ services:
     ports:
       - "7106:9093"
     volumes:
-      - ./config/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ../../config/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager_data:/alertmanager
       - /etc/localtime:/etc/localtime:ro
     command:
@@ -217,9 +219,9 @@ volumes:
 networks:
   monitoring_network:
     driver: bridge
-  backend_network:
+  zoi-network:
+    name: zoi-network
     external: true
-    name: ai
   database_network:
     external: true
     name: ai
