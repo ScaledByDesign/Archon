@@ -1,301 +1,416 @@
-# LiteLLM Proxy Configuration for Production RAG System
-# This configuration supports multiple LLM providers with load balancing and fallbacks
+# ============================================
+# Zoi — LiteLLM front door (container port 4000, host 7010)
+# Internal backends:
+#   - vLLM (3090):   http://vllm:8000/v1
+#   - Ollama (5070): http://ollama:11434/v1
+# ============================================
 
+general_settings:
+  telemetry: false
+  timeout: 300  # Increased timeout for local models
+  prometheus_metrics: true
+  set_verbose: true
+  json_logs: true
+  # Optional global rate limits (uncomment to enable)
+  # rpm: 6000
+  # tpm: 2000000
+
+  # Master key for API access
+  master_key: sk-wqn0xwq_vha4MVM2yzw
+
+  # Database settings for persistence
+  store_model_in_db: true
+
+  # Health check settings
+  health_check: true
+  health_check_interval: 120  # Check every 2 minutes
+  health_check_timeout: 60    # 60 second timeout for health checks
+
+  # Cost tracking settings
+  track_cost_per_model: true
+  track_cost_per_api_key: true
+  track_cost_per_user: true
+  budget_manager: true
+
+  # Callback settings for monitoring
+  success_callback: ["prometheus"]
+  failure_callback: ["prometheus"]
+
+# ------------------------------
+# LiteLLM Settings
+# ------------------------------
+litellm_settings:
+  set_verbose: true
+  cache: true
+  cache_params:
+    type: "redis"
+    host: "redis"
+    port: 6379
+    ttl: 600
+    namespace: "litellm"
+    supported_call_types: ["acompletion", "atext_completion", "aembedding", "atranscription"]
+
+  # Cost tracking settings
+  track_cost_per_model: true
+  track_cost_per_api_key: true
+  track_cost_per_user: true
+  enable_cost_tracking: true
+
+  # MCP Aliases - Map aliases to server names for easier tool access
+  mcp_aliases:
+    "archon": "archon_mcp_server"
+    "knowledge": "archon_mcp_server"
+    "tasks": "archon_mcp_server"
+    "docs": "archon_mcp_server"
+
+  # Development-focused default parameters
+  default_params:
+    temperature: 0.1        # Default to precise, deterministic responses
+    max_tokens: 4096        # Generous token limit for code explanations
+    top_p: 0.9             # Focused sampling for technical accuracy
+    frequency_penalty: 0.05 # Slight penalty to reduce repetitive code patterns
+    presence_penalty: 0.02  # Encourage diverse technical approaches
+
+  # Development-specific prompt enhancements
+  system_message_prefix: "You are a senior software engineer and technical architect. Focus on providing accurate, well-structured, and production-ready solutions. Include relevant code examples, best practices, and consider security, performance, and maintainability."
+
+  # Vector Store Configuration for RAG
+  vector_store:
+    type: "qdrant"
+    host: "qdrant"
+    port: 6333
+    collection_name: "zoi_knowledge_base"
+    vector_size: 1024  # mxbai-embed-large dimension
+    distance: "cosine"
+    enable_rag: true
+    similarity_threshold: 0.7
+    max_results: 5
+    embedding_model: "zoi-embed"
+
+# ------------------------------
+# Vector Store Registry (for UI Management)
+# ------------------------------
+vector_store_registry:
+  - vector_store_name: "Zoi Knowledge Base"
+    litellm_params:
+      vector_store_id: "zoi_main_knowledge"
+      custom_llm_provider: "qdrant"
+      vector_store_description: "Main knowledge repository for Zoi AI system"
+      vector_store_metadata:
+        host: "qdrant"
+        port: 6333
+        collection_name: "zoi_knowledge_base"
+        vector_size: 1024
+        distance: "cosine"
+        embedding_model: "zoi-embed"
+
+  - vector_store_name: "Archon MCP Knowledge"
+    litellm_params:
+      vector_store_id: "archon_knowledge"
+      custom_llm_provider: "qdrant"
+      vector_store_description: "Knowledge base for Archon MCP system"
+      vector_store_metadata:
+        host: "qdrant"
+        port: 6333
+        collection_name: "archon_knowledge"
+        vector_size: 1024
+        distance: "cosine"
+        embedding_model: "zoi-embed"
+
+  - vector_store_name: "Code Embeddings"
+    litellm_params:
+      vector_store_id: "code_embeddings"
+      custom_llm_provider: "qdrant"
+      vector_store_description: "Code snippets and documentation embeddings"
+      vector_store_metadata:
+        host: "qdrant"
+        port: 6333
+        collection_name: "code_embeddings"
+        vector_size: 1024
+        distance: "cosine"
+        embedding_model: "zoi-embed"
+
+  - vector_store_name: "N8N Workflows"
+    litellm_params:
+      vector_store_id: "n8n_workflows"
+      custom_llm_provider: "qdrant"
+      vector_store_description: "N8N workflow documentation and examples"
+      vector_store_metadata:
+        host: "qdrant"
+        port: 6333
+        collection_name: "n8n_workflows"
+        vector_size: 1024
+        distance: "cosine"
+        embedding_model: "zoi-embed"
+
+  - vector_store_name: "OpenWebUI Conversations"
+    litellm_params:
+      vector_store_id: "openwebui_conversations"
+      custom_llm_provider: "qdrant"
+      vector_store_description: "Chat history and conversation embeddings"
+      vector_store_metadata:
+        host: "qdrant"
+        port: 6333
+        collection_name: "openwebui_conversations"
+        vector_size: 1024
+        distance: "cosine"
+        embedding_model: "zoi-embed"
+
+# ------------------------------
+# Model registry (aliases)
+# ------------------------------
 model_list:
-  # OpenAI Models
-  - model_name: gpt-4
+  # === High-performance development-focused model on RTX 5070 Ti via vLLM ===
+  # vLLM is currently running Qwen/Qwen3-0.6B (optimized for development tasks)
+  - model_name: zoi-coder-vllm
     litellm_params:
-      model: gpt-4
-      api_key: ${OPENAI_API_KEY}
-      api_base: https://api.openai.com/v1
-      max_tokens: 4096
-      temperature: 0.7
+      model: openai/Qwen/Qwen3-0.6B  # This matches what vLLM actually loaded
+      api_base: http://vllm:8000/v1
+      api_key: dummy
+      # Development-optimized parameters
+      temperature: 0.05  # Very low for precise, deterministic code
+      max_tokens: 6144   # Increased for longer code explanations
+      top_p: 0.9        # Slightly more focused for technical accuracy
+      frequency_penalty: 0.1  # Reduce repetition in code examples
+      presence_penalty: 0.05  # Encourage diverse technical solutions
     model_info:
       mode: chat
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-      supports_vision: false
-      input_cost_per_token: 0.00003
-      output_cost_per_token: 0.00006
+      input_cost_per_token: 0.000001   # $1.00 per 1M input tokens (local cost estimate)
+      output_cost_per_token: 0.000002  # $2.00 per 1M output tokens (local cost estimate)
+      max_input_tokens: 8192
+      max_output_tokens: 6144
 
-  - model_name: gpt-4-turbo
+  # === Development-focused reasoning on 5070 Ti via Ollama ===
+  - model_name: zoi-thinker
     litellm_params:
-      model: gpt-4-turbo-preview
-      api_key: ${OPENAI_API_KEY}
-      api_base: https://api.openai.com/v1
-      max_tokens: 4096
-      temperature: 0.7
+      model: ollama/qwen2.5:7b
+      api_base: http://ollama:11434
+      api_key: dummy
+      # Parameters optimized for technical analysis and architecture planning
+      temperature: 0.2   # Low for logical, structured thinking
+      max_tokens: 4096   # Sufficient for detailed technical explanations
+      top_p: 0.9        # Focused responses for technical accuracy
     model_info:
       mode: chat
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-      supports_vision: true
-      input_cost_per_token: 0.00001
-      output_cost_per_token: 0.00003
+      input_cost_per_token: 0.000002   # $2.00 per 1M input tokens (7B model cost)
+      output_cost_per_token: 0.000004  # $4.00 per 1M output tokens (7B model cost)
+      max_input_tokens: 32768
+      max_output_tokens: 4096
 
-  - model_name: gpt-4-vision
+  # === Fast development assistant on 5070 Ti via Ollama ===
+  - model_name: zoi-helper
     litellm_params:
-      model: gpt-4-vision-preview
-      api_key: ${OPENAI_API_KEY}
-      api_base: https://api.openai.com/v1
-      max_tokens: 4096
-      temperature: 0.7
+      model: ollama/qwen2.5-coder:7b-instruct
+      api_base: http://ollama:11434
+      api_key: dummy
+      timeout: 180  # 3 minute timeout for local models
+      # Parameters optimized for quick code fixes and suggestions
+      temperature: 0.1   # Very precise for code accuracy
+      max_tokens: 3072   # Good balance for code snippets and explanations
+      top_p: 0.85       # Slightly more focused for coding tasks
     model_info:
       mode: chat
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-      supports_vision: true
-      input_cost_per_token: 0.00001
-      output_cost_per_token: 0.00003
+      input_cost_per_token: 0.000002   # $2.00 per 1M input tokens (7B coder model)
+      output_cost_per_token: 0.000003  # $3.00 per 1M output tokens (7B coder model)
+      max_input_tokens: 32768
+      max_output_tokens: 3072
 
-  - model_name: gpt-3.5-turbo
+  # === Embeddings (for RAG) on 5070 Ti via Ollama ===
+  - model_name: zoi-embed
     litellm_params:
-      model: gpt-3.5-turbo
-      api_key: ${OPENAI_API_KEY}
-      api_base: https://api.openai.com/v1
-      max_tokens: 4096
-      temperature: 0.7
+      model: ollama/mxbai-embed-large
+      api_base: http://ollama:11434
+      api_key: dummy
+      timeout: 60  # 1 minute timeout for embeddings
     model_info:
-      mode: chat
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-      supports_vision: false
-      input_cost_per_token: 0.0000005
-      output_cost_per_token: 0.0000015
-
-  # OpenAI Embeddings
-  - model_name: text-embedding-3-large
-    litellm_params:
-      model: text-embedding-3-large
-      api_key: ${OPENAI_API_KEY}
-      api_base: https://api.openai.com/v1
-    model_info:
-      mode: embedding
-      input_cost_per_token: 0.00000013
-      max_input_tokens: 8191
-      output_vector_size: 3072
-
-  - model_name: text-embedding-3-small
-    litellm_params:
-      model: text-embedding-3-small
-      api_key: ${OPENAI_API_KEY}
-      api_base: https://api.openai.com/v1
-    model_info:
-      mode: embedding
-      input_cost_per_token: 0.00000002
-      max_input_tokens: 8191
-      output_vector_size: 1536
-
-  # Azure OpenAI Models (if available)
-  - model_name: azure-gpt-4
-    litellm_params:
-      model: azure/gpt-4
-      api_key: ${AZURE_OPENAI_API_KEY}
-      api_base: ${AZURE_OPENAI_ENDPOINT}
-      api_version: "2024-02-15-preview"
-      max_tokens: 4096
-      temperature: 0.7
-    model_info:
-      mode: chat
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-      supports_vision: false
-
-  # Anthropic Models
-  - model_name: claude-3-opus
-    litellm_params:
-      model: claude-3-opus-20240229
-      api_key: ${ANTHROPIC_API_KEY}
-      api_base: https://api.anthropic.com
-      max_tokens: 4096
-      temperature: 0.7
-    model_info:
-      mode: chat
-      supports_function_calling: true
-      supports_parallel_function_calling: false
-      supports_vision: true
-      input_cost_per_token: 0.000015
-      output_cost_per_token: 0.000075
-
-  - model_name: claude-3-sonnet
-    litellm_params:
-      model: claude-3-sonnet-20240229
-      api_key: ${ANTHROPIC_API_KEY}
-      api_base: https://api.anthropic.com
-      max_tokens: 4096
-      temperature: 0.7
-    model_info:
-      mode: chat
-      supports_function_calling: true
-      supports_parallel_function_calling: false
-      supports_vision: true
-      input_cost_per_token: 0.000003
-      output_cost_per_token: 0.000015
-
-  - model_name: claude-3-haiku
-    litellm_params:
-      model: claude-3-haiku-20240307
-      api_key: ${ANTHROPIC_API_KEY}
-      api_base: https://api.anthropic.com
-      max_tokens: 4096
-      temperature: 0.7
-    model_info:
-      mode: chat
-      supports_function_calling: true
-      supports_parallel_function_calling: false
-      supports_vision: true
-      input_cost_per_token: 0.00000025
-      output_cost_per_token: 0.00000125
-
-  # Google Models
-  - model_name: gemini-pro
-    litellm_params:
-      model: gemini/gemini-pro
-      api_key: ${GOOGLE_API_KEY}
-      max_tokens: 4096
-      temperature: 0.7
-    model_info:
-      mode: chat
-      supports_function_calling: true
-      supports_parallel_function_calling: false
-      supports_vision: false
-      input_cost_per_token: 0.0000005
-      output_cost_per_token: 0.0000015
-
-  - model_name: gemini-pro-vision
-    litellm_params:
-      model: gemini/gemini-pro-vision
-      api_key: ${GOOGLE_API_KEY}
-      max_tokens: 4096
-      temperature: 0.7
-    model_info:
-      mode: chat
-      supports_function_calling: true
-      supports_parallel_function_calling: false
-      supports_vision: true
-      input_cost_per_token: 0.0000005
-      output_cost_per_token: 0.0000015
-
-  # Cohere Models
-  - model_name: command-r-plus
-    litellm_params:
-      model: cohere/command-r-plus
-      api_key: ${COHERE_API_KEY}
-      max_tokens: 4096
-      temperature: 0.7
-    model_info:
-      mode: chat
-      supports_function_calling: true
-      supports_parallel_function_calling: false
-      supports_vision: false
-      input_cost_per_token: 0.000003
-      output_cost_per_token: 0.000015
-
-  - model_name: command-r
-    litellm_params:
-      model: cohere/command-r
-      api_key: ${COHERE_API_KEY}
-      max_tokens: 4096
-      temperature: 0.7
-    model_info:
-      mode: chat
-      supports_function_calling: true
-      supports_parallel_function_calling: false
-      supports_vision: false
-      input_cost_per_token: 0.0000005
-      output_cost_per_token: 0.0000015
-
-  # Cohere Embeddings
-  - model_name: embed-english-v3
-    litellm_params:
-      model: cohere/embed-english-v3.0
-      api_key: ${COHERE_API_KEY}
-    model_info:
-      mode: embedding
-      input_cost_per_token: 0.0000001
-      max_input_tokens: 512
+      mode: embedding  # lets LiteLLM know this is an embedding model
+      input_cost_per_token: 0.0000005  # $0.50 per 1M input tokens (embedding model)
+      output_cost_per_token: 0.0       # No output tokens for embeddings
+      max_input_tokens: 8192
       output_vector_size: 1024
 
-  # Local Ollama Models
-  # Commented out - models not installed in Ollama
-  # - model_name: mistral-7b
-  #   litellm_params:
-  #     model: ollama/mistral:7b
-  #     api_base: http://ollama:11434
-  #     temperature: 0.7
-  #   model_info:
-  #     mode: chat
-  #     supports_function_calling: false
-  #     supports_parallel_function_calling: false
-  #     supports_vision: false
-  #     input_cost_per_token: 0
-  #     output_cost_per_token: 0
-
-  # - model_name: llama2-7b
-  #   litellm_params:
-  #     model: ollama/llama2:7b
-  #     api_base: http://ollama:11434
-  #     temperature: 0.7
-  #   model_info:
-  #     mode: chat
-  #     supports_function_calling: false
-  #     supports_parallel_function_calling: false
-  #     supports_vision: false
-  #     input_cost_per_token: 0
-  #     output_cost_per_token: 0
-
-  # - model_name: codellama-7b
-  #   litellm_params:
-  #     model: ollama/codellama:7b
-  #     api_base: http://ollama:11434
-  #     temperature: 0.1
-  #   model_info:
-  #     mode: chat
-  #     supports_function_calling: false
-  #     supports_parallel_function_calling: false
-  #     supports_vision: false
-  #     input_cost_per_token: 0
-  #     output_cost_per_token: 0
-
-  # - model_name: llama3-8b
-  #   litellm_params:
-  #     model: ollama/llama3:8b
-  #     api_base: http://ollama:11434
-  #     temperature: 0.7
-  #   model_info:
-  #     mode: chat
-  #     supports_function_calling: false
-  #     supports_parallel_function_calling: false
-  #     supports_vision: false
-  #     input_cost_per_token: 0
-  #     output_cost_per_token: 0
-
-  # Small local model for testing - ONLY INSTALLED MODEL
-  - model_name: llama3.2-1b
+  # === RAG-Enhanced Development Models (with Vector Store Integration) ===
+  - model_name: zoi-rag-helper
     litellm_params:
-      model: ollama/llama3.2:1b
+      model: ollama/qwen2.5-coder:7b-instruct
       api_base: http://ollama:11434
-      temperature: 0.7
+      api_key: dummy
+      timeout: 240  # 4 minute timeout for RAG models
+      # Development-focused parameters with RAG context
+      temperature: 0.15  # Slightly higher for creative solutions with context
+      max_tokens: 5120   # Larger for context-aware explanations
+      top_p: 0.9        # Balanced for incorporating retrieved knowledge
     model_info:
       mode: chat
-      supports_function_calling: false
-      supports_parallel_function_calling: false
-      supports_vision: false
-      input_cost_per_token: 0
-      output_cost_per_token: 0
+      input_cost_per_token: 0.000003   # $3.00 per 1M input tokens (RAG-enhanced cost)
+      output_cost_per_token: 0.000004  # $4.00 per 1M output tokens (RAG-enhanced cost)
+      max_input_tokens: 32768
+      max_output_tokens: 5120
+      enable_rag: true
+      vector_store: "qdrant"
+      embedding_model: "zoi-embed"
+      rag_context_window: 4000
 
-  # Commented out - embedding model not installed
-  # - model_name: nomic-embed
-  #   litellm_params:
-  #     model: ollama/nomic-embed-text
-  #     api_base: http://ollama:11434
-  #   model_info:
-  #     mode: embedding
-  #     input_cost_per_token: 0
-  #     max_input_tokens: 8192
-  #     output_vector_size: 768
+  - model_name: zoi-rag-thinker
+    litellm_params:
+      model: ollama/qwen2.5:7b
+      api_base: http://ollama:11434
+      api_key: dummy
+      timeout: 240  # 4 minute timeout for RAG models
+      # Strategic development planning with RAG context
+      temperature: 0.25  # Moderate for architectural decisions with context
+      max_tokens: 6144   # Large for comprehensive technical analysis
+      top_p: 0.92       # Slightly broader for innovative solutions
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000003   # $3.00 per 1M input tokens (RAG-enhanced cost)
+      output_cost_per_token: 0.000005  # $5.00 per 1M output tokens (RAG-enhanced cost)
+      max_input_tokens: 32768
+      max_output_tokens: 6144
+      enable_rag: true
+      vector_store: "qdrant"
+      embedding_model: "zoi-embed"
+      rag_context_window: 4000
 
-  # === OpenAI GPT OSS Models ===
+  # === Development-Optimized Compatibility Aliases ===
+  # Common model names that route to our local models with dev-focused parameters
+  - model_name: gpt-3.5-turbo
+    litellm_params:
+      model: openai/Qwen/Qwen3-0.6B
+      api_base: http://vllm:8000/v1
+      api_key: dummy
+      # Development-focused parameters for GPT-3.5 compatibility
+      temperature: 0.1   # Low for precise code generation
+      max_tokens: 4096   # Increased for longer code examples
+      top_p: 0.9        # Focused for technical accuracy
+      frequency_penalty: 0.1  # Reduce code repetition
+
+  - model_name: gpt-4
+    litellm_params:
+      model: ollama/qwen2.5:7b
+      api_base: http://ollama:11434
+      api_key: dummy
+      # Development-focused parameters for GPT-4 compatibility
+      temperature: 0.15  # Low-moderate for balanced creativity and precision
+      max_tokens: 6144   # Large for comprehensive solutions
+      top_p: 0.92       # Slightly broader for innovative approaches
+
+  # === GPT OSS as GPT-4 Alternative ===
+  # Route GPT-4 requests to the new OpenAI GPT OSS model for better performance
+  - model_name: gpt-4-oss
+    litellm_params:
+      model: ollama/gpt-oss  # Use the new OpenAI open-source model
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.15  # Match GPT-4 parameters
+      max_tokens: 8192   # Larger context than regular GPT-4
+      top_p: 0.92
+      timeout: 300
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000008
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+
+  - model_name: gpt-4o-mini-oss
+    litellm_params:
+      model: ollama/gpt-oss  # Use GPT OSS for mini requests too
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.1   # Lower for mini-style quick responses
+      max_tokens: 4096   # Smaller for mini compatibility
+      top_p: 0.9
+      timeout: 300
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000001  # Lower cost for "mini" variant
+      output_cost_per_token: 0.000004
+      max_input_tokens: 16384
+      max_output_tokens: 4096
+
+  # === Claude API Hijacking - Route to Local Models ===
+  # These will intercept Claude API calls and route them to your local models
+  - model_name: claude-3-5-sonnet-20241022
+    litellm_params:
+      model: ollama/qwen2.5:7b  # Route to your best reasoning model
+      api_base: http://ollama:11434
+      api_key: dummy
+      # Claude-like parameters for high-quality responses
+      temperature: 0.2   # Moderate for balanced creativity
+      max_tokens: 8192   # Large context for detailed responses
+      top_p: 0.9        # Focused sampling
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000003   # Track as if it were Claude pricing
+      output_cost_per_token: 0.000015  # Track as if it were Claude pricing
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+
+  - model_name: claude-3-sonnet-20240229
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b-instruct  # Route to coding model
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.15  # Lower for more precise responses
+      max_tokens: 6144
+      top_p: 0.9
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000003
+      output_cost_per_token: 0.000015
+      max_input_tokens: 32768
+      max_output_tokens: 6144
+
+  - model_name: claude-3-opus-20240229
+    litellm_params:
+      model: openai/Qwen/Qwen3-0.6B  # Route to your fastest model for "opus" requests
+      api_base: http://vllm:8000/v1
+      api_key: dummy
+      temperature: 0.25  # Higher for more creative responses
+      max_tokens: 8192
+      top_p: 0.92
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000015  # Track as if it were real Opus pricing
+      output_cost_per_token: 0.000075
+      max_input_tokens: 8192
+      max_output_tokens: 8192
+
+  - model_name: claude-3-haiku-20240307
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b-instruct  # Fast model for quick responses
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.1   # Low for quick, precise responses
+      max_tokens: 4096
+      top_p: 0.85
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.00000025  # Track as if it were real Haiku pricing
+      output_cost_per_token: 0.00000125
+      max_input_tokens: 32768
+      max_output_tokens: 4096
+
+  # === ZOI AUTO ROUTER (Smart Load Balancing) ===
+  # Uses cost-based routing to automatically select the best model
+  - model_name: zoi-auto
+    litellm_params:
+      model: ollama/qwen2.5-coder:7b-instruct  # Default to helper model
+      api_base: http://ollama:11434
+      api_key: dummy
+      timeout: 300  # 5 minute timeout
+      temperature: 0.1   # Precise responses
+      max_tokens: 4096   # Balanced token limit
+      top_p: 0.9        # Focused sampling
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002   # Average cost across routed models
+      output_cost_per_token: 0.000004  # Average cost across routed models
+      max_input_tokens: 32768
+      max_output_tokens: 4096
+
+  # === OpenAI GPT OSS Model ===
   # OpenAI's new open-source GPT model - routed to local Ollama
   - model_name: gpt-oss
     litellm_params:
@@ -309,9 +424,6 @@ model_list:
       timeout: 300      # 5 minute timeout for larger model
     model_info:
       mode: chat
-      supports_function_calling: false
-      supports_parallel_function_calling: false
-      supports_vision: false
       input_cost_per_token: 0.000002   # Simulated pricing for tracking
       output_cost_per_token: 0.000008  # Simulated pricing for tracking
       max_input_tokens: 32768
@@ -329,9 +441,6 @@ model_list:
       timeout: 300
     model_info:
       mode: chat
-      supports_function_calling: false
-      supports_parallel_function_calling: false
-      supports_vision: false
       input_cost_per_token: 0.000002
       output_cost_per_token: 0.000008
       max_input_tokens: 32768
@@ -348,197 +457,100 @@ model_list:
       timeout: 300
     model_info:
       mode: chat
-      supports_function_calling: false
-      supports_parallel_function_calling: false
-      supports_vision: false
       input_cost_per_token: 0.000002
       output_cost_per_token: 0.000008
       max_input_tokens: 32768
       max_output_tokens: 6144
 
-  # === GPT OSS as GPT-4 Alternative ===
-  # Route GPT-4 requests to the new OpenAI GPT OSS model for better performance
-  - model_name: gpt-4-oss
-    litellm_params:
-      model: ollama/gpt-oss  # Use the new OpenAI open-source model
-      api_base: http://ollama:11434
-      api_key: dummy
-      temperature: 0.15  # Match GPT-4 parameters
-      max_tokens: 8192   # Larger context than regular GPT-4
-      top_p: 0.92
-      timeout: 300
-    model_info:
-      mode: chat
-      supports_function_calling: false
-      supports_parallel_function_calling: false
-      supports_vision: false
-      input_cost_per_token: 0.000002
-      output_cost_per_token: 0.000008
-      max_input_tokens: 32768
-      max_output_tokens: 8192
+# ------------------------------
+# MCP Servers Configuration
+# ------------------------------
+mcp_servers:
+  # Archon Knowledge Base and Task Management
+  archon_mcp_server:
+    url: "http://archon-mcp:7082"
+    transport: "http"
+    description: "Archon knowledge base, document search, and task management"
+    auth_type: "none"
+    spec_version: "2025-03-26"
+    access_groups: ["dev_group", "knowledge_group"]
+    mcp_info:
+      mcp_server_cost_info:
+        # Default cost for Archon MCP operations
+        default_cost_per_query: 0.001
+        # Custom costs for specific tools
+        tool_name_to_cost_per_query:
+          search_documents: 0.002
+          create_task: 0.001
+          update_task: 0.001
+          get_task_context: 0.001
+          crawl_website: 0.005
 
-  - model_name: gpt-4o-mini-oss
-    litellm_params:
-      model: ollama/gpt-oss  # Use GPT OSS for mini requests too
-      api_base: http://ollama:11434
-      api_key: dummy
-      temperature: 0.1   # Lower for mini-style quick responses
-      max_tokens: 4096   # Smaller for mini compatibility
-      top_p: 0.9
-      timeout: 300
-    model_info:
-      mode: chat
-      supports_function_calling: false
-      supports_parallel_function_calling: false
-      supports_vision: false
-      input_cost_per_token: 0.000001  # Lower cost for "mini" variant
-      output_cost_per_token: 0.000004
-      max_input_tokens: 16384
-      max_output_tokens: 4096
-
-# Router Configuration for Load Balancing and Optimization
+# ------------------------------
+# Router settings for intelligent routing
+# ------------------------------
 router_settings:
-  routing_strategy: "usage-based-routing"  # Options: simple-shuffle, least-busy, usage-based-routing
-  routing_strategy_args:
-    # Redis configuration for usage tracking (optional, falls back to simple-shuffle)
-    redis_host: "redis"
-    redis_port: 6379
-    redis_password: ${REDIS_PASSWORD}
-    ttl: 30  # seconds to cache usage data
-  
-  # Retry configuration for failed requests
-  retry_after: 5  # seconds to wait before retry
-  
+  # Use cost-based routing to automatically select the best model
+  routing_strategy: "cost-based-routing"
+
+  # Enable pre-call checks for better routing decisions
+  enable_pre_call_checks: true
+
+  # Model group aliases for compatibility
   model_group_alias:
-    # High-performance models for complex tasks (optimized for quality)
-    "premium": ["gpt-4", "claude-3-opus", "azure-gpt-4"]
-    # Balanced performance models (optimized for speed + quality)
-    "standard": ["gpt-4-turbo", "claude-3-sonnet", "gpt-3.5-turbo", "command-r-plus"]
-    # Fast and efficient models (optimized for speed)
-    "fast": ["claude-3-haiku", "gpt-3.5-turbo", "command-r", "gemini-pro"]
-    # Vision-capable models (optimized for multimodal tasks)
-    "vision": ["gpt-4-vision", "gpt-4-turbo", "claude-3-opus", "claude-3-sonnet", "claude-3-haiku", "gemini-pro-vision"]
-    # Local models for privacy-sensitive tasks (optimized for privacy)
-    "local": ["llama3.2-1b"]
-    # Code-specific models (optimized for programming tasks)
-    "code": ["gpt-4", "claude-3-opus"]
-    # Embedding models (optimized for semantic search)
-    "embeddings": ["text-embedding-3-large", "text-embedding-3-small", "embed-english-v3"]
-    # Cost-effective models (optimized for budget)
-    "budget": ["gpt-3.5-turbo", "claude-3-haiku", "command-r", "gemini-pro"]
+    "zoi:auto": "zoi-auto"  # Map old autorouter calls to new model
 
-# Enhanced Fallback Configuration
-litellm_settings:
-  # Intelligent fallback chains based on capability and cost
-  fallbacks: [
-    # Premium model fallbacks
-    {"gpt-4": ["gpt-4-turbo", "claude-3-opus", "azure-gpt-4"]},
-    {"claude-3-opus": ["gpt-4", "claude-3-sonnet", "gpt-4-turbo"]},
-    {"azure-gpt-4": ["gpt-4", "gpt-4-turbo", "claude-3-opus"]},
-    
-    # Standard model fallbacks
-    {"gpt-4-turbo": ["gpt-4", "claude-3-sonnet", "claude-3-opus"]},
-    {"claude-3-sonnet": ["claude-3-haiku", "gpt-3.5-turbo", "gpt-4-turbo"]},
-    {"command-r-plus": ["command-r", "claude-3-sonnet", "gpt-3.5-turbo"]},
-    
-    # Fast model fallbacks
-    {"claude-3-haiku": ["gpt-3.5-turbo", "command-r", "gemini-pro"]},
-    {"gpt-3.5-turbo": ["claude-3-haiku", "command-r", "gemini-pro"]},
-    {"command-r": ["gpt-3.5-turbo", "claude-3-haiku", "gemini-pro"]},
-    {"gemini-pro": ["gpt-3.5-turbo", "claude-3-haiku", "command-r"]},
-    
-    # Vision model fallbacks
-    {"gpt-4-vision": ["gpt-4-turbo", "claude-3-opus", "claude-3-sonnet"]},
-    {"gemini-pro-vision": ["gpt-4-vision", "gpt-4-turbo", "claude-3-opus"]},
-    
-    # Embedding model fallbacks
-    {"text-embedding-3-large": ["text-embedding-3-small", "embed-english-v3"]},
-    {"text-embedding-3-small": ["embed-english-v3", "text-embedding-3-large"]},
-    {"embed-english-v3": ["text-embedding-3-small", "text-embedding-3-large"]},
-    
-    # Local model fallbacks (to external when local fails)
-    {"llama3.2-1b": ["gpt-3.5-turbo", "claude-3-haiku"]}
-  ]
-  
-  # Enhanced timeout settings for M4 Mac Mini
-  request_timeout: 900  # 15 minutes for local models
-  
-  # Retry configuration with exponential backoff
-  num_retries: 3
-  retry_delay: 2  # seconds
-  max_retry_delay: 30  # seconds
-  
-  # Rate limiting per model (production-ready)
-  rpm: 1000  # requests per minute
-  tpm: 150000  # tokens per minute
-  
-  # Enhanced logging for production monitoring
-  set_verbose: "true"
-  log_level: "INFO"
-  
-  # Health check settings optimized for M4 Mac Mini
-  health_check_interval: 180  # 3 minutes (faster for local models)
-  
-  # Cost optimization
-  track_cost_per_model: true
-  track_cost_per_api_key: true
-  track_cost_per_user: true
-  budget_manager: true
-  
-  # Performance optimization
-  enable_caching: true
-  cache_ttl: 3600  # 1 hour
-  
-  # Security settings
-  disable_spend_logs: false  # Keep for monitoring
-  
-  # Model-specific optimizations
-  model_fallback_timeout: 60  # seconds before trying fallback
-  
-  # Load balancing settings
-  load_balancing_strategy: "weighted_round_robin"
-  
-  # Error handling
-  drop_params: "true"  # Drop unsupported parameters instead of failing
+  # Retry and timeout settings
+  num_retries: 2
+  timeout: 300
 
-# Enhanced General Settings
-general_settings:
-  master_key: sk-6df5295f77391ff7611a0fab11b989287012f48e46f58ae0
-  database_url: null  # Use in-memory mode to avoid Prisma config issues
-  
-  # CORS settings for web integration
-  allowed_origins: ["*"]
-  allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
-  allowed_headers: ["*"]
-  
-  # UI settings
-  ui_access_mode: "all"
-  # ui_username: "admin"
-  # ui_password: ${LITELLM_UI_PASSWORD}
-  
-  # Custom headers for identification
-  headers:
-    "X-LiteLLM-Version": "1.0.0"
-    "X-RAG-System": "Production"
-    "X-Provider-Routing": "enabled"
-    "X-Platform": "M4-Mac-Mini"
-    "X-Environment": "Docker"
-  
-  # API settings
-  port: 4000
-  host: "0.0.0.0"
-  
-  # SSL/TLS settings (for production)
-  ssl_verify: true
-  
-  # Prometheus metrics (for monitoring)
-  enable_prometheus_metrics: true
-  prometheus_port: 4001
+  # Route definitions for different use cases
+  routes:
+    # Complex coding, multi-file, long-context → prefer vLLM for performance
+    - name: code_heavy_route
+      models: [zoi-coder-vllm, zoi-helper]
+      retry_policy: { max_retries: 2, backoff: exponential }
 
-# Environment-specific overrides
-environment_variables:
-  LITELLM_LOG: "INFO"
-  LITELLM_DROP_PARAMS: "true"
-  LITELLM_SET_VERBOSE: "true"
-  LITELLM_SUCCESS_CALLBACK: "prometheus"
-  LITELLM_FAILURE_CALLBACK: "prometheus"
+    # General reasoning / plans / critiques
+    - name: reason_route
+      models: [zoi-thinker, zoi-coder-vllm]
+      retry_policy: { max_retries: 2, backoff: exponential }
+
+    # Quick code edits and general assistance
+    - name: code_light_route
+      models: [zoi-helper, zoi-thinker]
+      retry_policy: { max_retries: 2, backoff: exponential }
+
+    # Embeddings API
+    - name: embed_route
+      models: [zoi-embed]
+
+# ------------------------------
+# Fallbacks (per alias)
+# ------------------------------
+fallbacks:
+  # If auto router fails, fall back to helper
+  zoi-auto: [zoi-helper, zoi-thinker]
+  # If heavy coder is busy or fails, try helper
+  zoi-coder-30b: [zoi-helper]
+  # If thinker fails, bounce to helper or heavy coder
+  zoi-thinker: [zoi-helper, zoi-coder-30b]
+  # If helper fails, try thinker
+  zoi-helper: [zoi-thinker]
+
+# ------------------------------
+# (Optional) Cost hints to bias routing toward cheaper models
+# ------------------------------
+litellm_model_cost_map:
+  zoi-coder-30b:
+    input_cost_per_token: 0.0000009
+    output_cost_per_token: 0.0000012
+  zoi-thinker:
+    input_cost_per_token: 0.0000004
+    output_cost_per_token: 0.0000006
+  zoi-helper:
+    input_cost_per_token: 0.0000003
+    output_cost_per_token: 0.0000004
+  zoi-embed:
+    input_cost_per_token: 0.0000002
+    output_cost_per_token: 0.0000002

@@ -3,24 +3,19 @@
 
 include:
   # Core Infrastructure & AI Services
-  - path: ./apps/llm-local/docker-compose.yml
-    project_directory: ./apps/llm-local
+  - apps/core/docker-compose.yml
 
   # Platform Services (Traefik, Authentik, Databases)
-  - path: ./apps/platform/docker-compose.yml
-    project_directory: ./apps/platform
+  - apps/platform/docker-compose.yml
 
   # Productivity Tools (n8n, OpenWebUI, LobeChat)
-  - path: ./apps/tools/docker-compose.yml
-    project_directory: ./apps/tools
+  - apps/tools/docker-compose.yml
 
   # Knowledge Management (Archon MCP)
-  - path: ./apps/archon-mcp/docker-compose.yml
-    project_directory: ./apps/archon-mcp
+  - apps/archon-mcp/docker-compose.yml
 
   # Monitoring & Observability
-  - path: ./apps/monitor/docker-compose.yml
-    project_directory: ./apps/monitor
+  - apps/monitor/docker-compose.yml
 
 
 # Unified network architecture

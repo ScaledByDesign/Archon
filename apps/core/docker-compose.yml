@@ -92,8 +92,8 @@ services:
     ports:
       - "${LITELLM_PORT:-7010}:4000"
     volumes:
-      - ./litellm-config.yaml:/app/config.yaml:ro
-      - ./auto_router_config.json:/app/auto_router_config.json:ro
+      - ../../config/litellm/config.yaml:/app/config.yaml:ro
+      - ../../config/litellm/auto_router_config.json:/app/auto_router_config.json:ro
     environment:
       - LITELLM_CONFIG=/app/config.yaml
       - DATABASE_URL=postgresql://postgres:litellm_password123@postgres:5432/litellm
