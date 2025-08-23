@@ -35,9 +35,10 @@
 Zoi is a production-ready, self-hosted AI ecosystem that provides:
 
 - **🤖 Multi-Model AI Gateway** - Unified API for 18+ AI models with intelligent routing
-- **🧠 Vector Knowledge Base** - RAG-enabled semantic search and document understanding  
+- **🧠 Vector Knowledge Base** - RAG-enabled semantic search and document understanding
 - **🔄 Visual Workflows** - No-code AI automation with LangFlow and n8n
 - **💬 Modern Chat Interfaces** - OpenWebUI and LobeChat with multi-model support
+- **👨‍💻 AI Code Assistant** - Refact for intelligent code completion and generation
 - **📊 Knowledge Management** - Archon MCP for structured knowledge and task management
 - **🔐 Enterprise Security** - Authentik SSO, Traefik reverse proxy, and network isolation
 
@@ -51,7 +52,7 @@ Zoi is a production-ready, self-hosted AI ecosystem that provides:
 │ • LiteLLM       │ • Traefik       │ • n8n           │ • Archon MCP    │
 │ • vLLM          │ • Authentik     │ • OpenWebUI     │ • Neo4j         │
 │ • Ollama        │ • PostgreSQL    │ • LobeChat      │ • Vector Store  │
-│ • Qdrant        │ • Redis         │                 │                 │
+│ • Qdrant        │ • Redis         │ • Refact Coder  │                 │
 │ • LangFlow      │ • MongoDB       │                 │                 │
 └─────────────────┴─────────────────┴─────────────────┴─────────────────┘
 ```
@@ -94,9 +95,12 @@ open http://localhost:7010  # LiteLLM API Gateway
 open http://localhost:7070  # LangFlow Workflows
 open http://localhost:7060  # Qdrant Vector DB
 
-# Chat Interfaces  
+# Chat Interfaces
 open http://localhost:7301  # OpenWebUI
 open http://localhost:7302  # LobeChat
+
+# Code Assistant
+open http://localhost:7011  # Refact AI Coder
 
 # Knowledge Management
 open http://localhost:7080  # Archon MCP
@@ -129,6 +133,7 @@ open http://localhost:7080  # Archon MCP
 | **n8n Workflows** | 7300 | http://localhost:7300 | Automation & integrations |
 | **OpenWebUI** | 7301 | http://localhost:7301 | Modern AI chat interface |
 | **LobeChat** | 7302 | http://localhost:7302 | Advanced AI chat with plugins |
+| **Refact Coder** | 7011 | http://localhost:7011 | AI code completion & generation |
 
 ### 📚 Knowledge Management
 | Service | Port | URL | Purpose |
@@ -163,14 +168,48 @@ API Compatible:
 - **📊 Usage Tracking** - Comprehensive analytics and cost monitoring
 - **🔄 Load Balancing** - Automatic failover and scaling
 
-## 📁 Project Structure
+## �‍💻 AI Code Assistant (Refact)
+
+### Features
+- **🧠 Intelligent Code Completion** - Context-aware suggestions across 40+ languages
+- **🔄 Code Refactoring** - AI-powered code improvements and optimization
+- **💬 Chat Interface** - Ask questions about your codebase
+- **🔍 Code Analysis** - Understand complex codebases with AI assistance
+- **🌐 IDE Integration** - Works with VS Code, JetBrains, Vim, and more
+
+### Setup & Usage
+```bash
+# Refact is automatically configured to use your local LiteLLM
+# Access the web interface at:
+open http://localhost:7011
+
+# Configure your IDE plugin:
+# 1. Install Refact plugin for your IDE
+# 2. Set inference URL to: http://localhost:7011
+# 3. Start coding with AI assistance!
+```
+
+### IDE Plugin Installation
+- **VS Code**: Search "Refact.ai" in extensions marketplace
+- **JetBrains**: Install from plugins marketplace
+- **Vim/Neovim**: Use the official Refact plugin
+- **Other IDEs**: Check [Refact documentation](https://refact.ai/docs)
+
+### Model Configuration
+Refact is pre-configured to use your local models through LiteLLM:
+- **Code Completion**: Uses `gpt-4o-mini-oss` via LiteLLM
+- **Chat Interface**: Full model selection available
+- **Custom Models**: Add more models in `~/.refact/perm-storage/cfg/third_party_models.cfg`
+
+## �📁 Project Structure
 
 ```
 zoi/
 ├── 📁 apps/                    # Service stacks
 │   ├── 🌀 core/               # AI infrastructure
-│   ├── 🏢 platform/           # Base services  
+│   ├── 🏢 platform/           # Base services
 │   ├── 🛠️ tools/              # Productivity apps
+│   ├── 👨‍💻 coder/              # AI code assistant (Refact)
 │   ├── 📚 archon-mcp/         # Knowledge management
 │   └── 📊 monitor/            # Observability
 ├── 📁 config/                 # Centralized configuration
@@ -258,6 +297,7 @@ make logs
 - **Multi-Model Testing** - Compare responses across different AI models
 - **RAG Applications** - Build context-aware AI applications
 - **Workflow Automation** - Create complex AI pipelines with LangFlow
+- **Code Generation** - AI-powered code completion and refactoring with Refact
 - **API Integration** - OpenAI-compatible API for existing applications
 
 ### 📚 Knowledge Management
