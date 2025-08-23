@@ -1,0 +1,149 @@
+# Zoi Project - Root .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Docker
+.dockerignore
+
+# Node modules
+node_modules/
+
+# Environment files
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache directories
+.cache/
+cache/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Build artifacts
+build/
+dist/
+*.tar.gz
+*.zip
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Model files (these are large and should be downloaded/mounted)
+# Global model directory - these should be mounted from host
+models/
+*.pth
+*.bin
+*.safetensors
+*.onnx
+*.tflite
+*.pb
+
+# Audio files (except specific reference files)
+*.wav
+*.mp3
+*.flac
+*.ogg
+
+# Test outputs
+test_output/
+test_results/
+
+# Local development
+.local/
+local/
+
+# Profiling data
+*.prof
+
+# Memory dumps
+*.hprof
+*.dump
+
+# Core dumps
+core.*
+
+# Application-specific ignores
+# Each app should have its own .gitignore for specific needs
+
+# Docker volumes and data
+data/
+volumes/
+
+# Secrets and keys
+*.key
+*.pem
+*.crt
+secrets/
+
+# Monitoring data
+grafana/data/
+prometheus/data/
+
+# LiteLLM cache
+litellm_cache/
+
+# MCP logs
+mcp_logs/

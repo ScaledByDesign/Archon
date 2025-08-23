@@ -1,0 +1,6 @@
+# Core dependencies that change less frequently
+fastapi
+uvicorn
+python-dotenv
+aiohttp
+mcp

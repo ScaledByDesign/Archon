@@ -1,0 +1,4 @@
+# ML dependencies that change more frequently
+realtimestt==0.3.104
+realtimetts[kokoro,coqui,orpheus]==0.5.7
+openai>=1.0.0
