@@ -13,17 +13,19 @@
   };
 })();
 
-const statusDiv = document.getElementById("status");
+// statusDiv removed - using statusText instead
 const messagesDiv = document.getElementById("messages");
 const speedSlider = document.getElementById("speedSlider");
 const statusDot = document.getElementById("statusDot");
 const statusText = document.getElementById("statusText");
 const wakeWordHint = document.getElementById("wakeWordHint");
+const textInput = document.getElementById("textInput");
+const sendBtn = document.getElementById("sendBtn");
 speedSlider.disabled = true;  // start disabled
 
 // Status management
 function updateStatus(status, message) {
-  if (statusDiv) statusDiv.textContent = message;
+  // statusDiv removed - using statusText for main status
   if (statusText) statusText.textContent = status;
 
   if (statusDot) {
@@ -46,17 +48,85 @@ function updateStatus(status, message) {
   }
 }
 
-// Wake word detection
+// Fuzzy string matching for wake words
+function fuzzyMatch(text, target, threshold = 0.7) {
+  // Simple Levenshtein distance-based similarity
+  const distance = levenshteinDistance(text, target);
+  const maxLength = Math.max(text.length, target.length);
+  const similarity = 1 - (distance / maxLength);
+  return similarity >= threshold;
+}
+
+function levenshteinDistance(str1, str2) {
+  const matrix = [];
+
+  for (let i = 0; i <= str2.length; i++) {
+    matrix[i] = [i];
+  }
+
+  for (let j = 0; j <= str1.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= str2.length; i++) {
+    for (let j = 1; j <= str1.length; j++) {
+      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          matrix[i][j - 1] + 1,     // insertion
+          matrix[i - 1][j] + 1      // deletion
+        );
+      }
+    }
+  }
+
+  return matrix[str2.length][str1.length];
+}
+
+// Enhanced wake word detection with fuzzy matching
 function detectWakeWord(text) {
   const lowerText = text.toLowerCase().trim();
   console.log("Checking for wake word in:", lowerText);
 
+  // Convert sensitivity percentage to threshold (0-100% → 0.3-0.9)
+  const sensitivity = (wakeWordSensitivityValue || 70) / 100;
+  const fuzzyThreshold = 0.3 + (sensitivity * 0.6); // Range: 0.3 to 0.9
+  const singleWordThreshold = Math.max(0.4, fuzzyThreshold - 0.2); // Slightly lower for single words
+
+  console.log("Using fuzzy threshold:", fuzzyThreshold, "sensitivity:", sensitivity);
+
+  // First try exact matching (fastest)
   for (const wakeWord of WAKE_WORDS) {
     if (lowerText.includes(wakeWord)) {
-      console.log("Wake word detected:", wakeWord);
+      console.log("Exact wake word detected:", wakeWord);
       return true;
     }
   }
+
+  // Then try fuzzy matching for partial/mispronounced words
+  const words = lowerText.split(/\s+/);
+  for (const word of words) {
+    // Check single words against "zoi", "zoey", "zoe" variants
+    const singleWordTargets = ['zoi', 'zoey', 'zoe', 'joey', 'joy', 'soy'];
+    for (const target of singleWordTargets) {
+      if (fuzzyMatch(word, target, singleWordThreshold)) {
+        console.log("Fuzzy wake word detected:", word, "→", target, "threshold:", singleWordThreshold);
+        return true;
+      }
+    }
+  }
+
+  // Check for phrase-level fuzzy matching
+  const phraseTargets = ['hey zoi', 'hey zoey', 'hi zoi', 'hi zoey', 'hello zoi', 'hello zoey'];
+  for (const target of phraseTargets) {
+    if (fuzzyMatch(lowerText, target, fuzzyThreshold)) {
+      console.log("Fuzzy phrase wake word detected:", lowerText, "→", target, "threshold:", fuzzyThreshold);
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -123,11 +193,24 @@ let isInActiveConversation = false;
 let wakeWordBuffer = [];
 let conversationTimeout = null;
 let WAKE_WORD_TIMEOUT = 30000; // 30 seconds of silence to return to wake word mode (modifiable)
-const WAKE_WORDS = ['hey zoi', 'hi zoi', 'hello zoi', 'zoi'];
+
+// Enhanced wake words with phonetic variations
+const WAKE_WORDS = [
+  // Primary wake words
+  'hey zoi', 'hi zoi', 'hello zoi', 'zoi',
+  // Phonetic variations of "Zoi"
+  'hey zoey', 'hi zoey', 'hello zoey', 'zoey',
+  'hey zoe', 'hi zoe', 'hello zoe', 'zoe',
+  'hey joey', 'hi joey', 'hello joey', 'joey', // Common misheard
+  // Alternative pronunciations
+  'hey soy', 'hi soy', 'hello soy', 'soy', // Sometimes misheard
+  'hey joy', 'hi joy', 'hello joy', 'joy',   // Another common mishearing
+];
 
 let chatHistory = [];
 let typingUser = "";
 let typingAssistant = "";
+let isThinking = false;
 
 // --- batching + fixed 8‑byte header setup ---
 const BATCH_SAMPLES = 2048;
@@ -230,7 +313,7 @@ async function startRawPcmCapture() {
 
     const source = audioContext.createMediaStreamSource(stream);
     source.connect(micWorkletNode);
-    statusDiv.textContent = "Recording...";
+    updateStatus("Listening", "Recording...");
   } catch (err) {
     statusDiv.textContent = "Mic access denied.";
     console.error(err);
@@ -288,6 +371,16 @@ function cleanupAudio() {
   }
 }
 
+function showThinking() {
+  isThinking = true;
+  renderMessages();
+}
+
+function hideThinking() {
+  isThinking = false;
+  renderMessages();
+}
+
 function renderMessages() {
   messagesDiv.innerHTML = "";
   chatHistory.forEach(msg => {
@@ -302,6 +395,19 @@ function renderMessages() {
     typing.innerHTML = typingUser + '<span style="opacity:.6;">✏️</span>';
     messagesDiv.appendChild(typing);
   }
+  if (isThinking) {
+    const thinking = document.createElement("div");
+    thinking.className = "thinking-indicator";
+    thinking.innerHTML = `
+      <span class="thinking-text">Zoi is thinking</span>
+      <div class="thinking-dots">
+        <div class="thinking-dot"></div>
+        <div class="thinking-dot"></div>
+        <div class="thinking-dot"></div>
+      </div>
+    `;
+    messagesDiv.appendChild(thinking);
+  }
   if (typingAssistant) {
     const typing = document.createElement("div");
     typing.className = "bubble assistant typing";
@@ -312,6 +418,8 @@ function renderMessages() {
 }
 
 function handleJSONMessage({ type, content }) {
+  console.log("Received message:", { type, content });
+
   if (type === "partial_user_request") {
     const trimmedContent = content?.trim() || "";
 
@@ -360,11 +468,16 @@ function handleJSONMessage({ type, content }) {
     return;
   }
   if (type === "partial_assistant_answer") {
+    console.log("Partial assistant answer received:", content);
+    hideThinking(); // Hide thinking indicator when response starts
     typingAssistant = content?.trim() ? escapeHtml(content) : "";
     renderMessages();
     return;
   }
+
   if (type === "final_assistant_answer") {
+    console.log("Final assistant answer received:", content);
+    hideThinking(); // Hide thinking indicator
     if (content?.trim()) {
       chatHistory.push({ role: "assistant", content, type: "final" });
     }
@@ -465,13 +578,17 @@ async function initializeZoi() {
   };
 
   socket.onmessage = (evt) => {
+    console.log("WebSocket message received:", evt.data);
     if (typeof evt.data === "string") {
       try {
         const msg = JSON.parse(evt.data);
+        console.log("Parsed WebSocket message:", msg);
         handleJSONMessage(msg);
       } catch (e) {
-        console.error("Error parsing message:", e);
+        console.error("Error parsing message:", e, "Raw data:", evt.data);
       }
+    } else {
+      console.log("Non-string WebSocket message received:", typeof evt.data);
     }
   };
 
@@ -526,8 +643,12 @@ settingsOverlay.onclick = (e) => {
 };
 
 // Settings controls
+let wakeWordSensitivityValue = 70; // Default sensitivity
+
 wakeWordSensitivity.oninput = () => {
-  wakeWordValue.textContent = wakeWordSensitivity.value + "%";
+  wakeWordSensitivityValue = parseInt(wakeWordSensitivity.value);
+  wakeWordValue.textContent = wakeWordSensitivityValue + "%";
+  console.log("Wake word sensitivity updated to:", wakeWordSensitivityValue);
 };
 
 conversationTimeoutSlider.oninput = () => {
@@ -553,6 +674,69 @@ continuousListening.onclick = () => {
 debugMode.onclick = () => {
   debugMode.classList.toggle("active");
 };
+
+// Text input functionality
+function sendTextMessage() {
+  console.log("sendTextMessage called");
+  const textInputElement = document.getElementById("textInput");
+  if (!textInputElement) {
+    console.error("Text input element not found!");
+    return;
+  }
+
+  const message = textInputElement.value.trim();
+  console.log("Message to send:", message);
+  if (!message) {
+    console.log("Empty message, returning");
+    return;
+  }
+
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    console.log("WebSocket is open, sending message");
+    // Add message to chat history immediately
+    chatHistory.push({ role: "user", content: message, type: "final" });
+    renderMessages();
+
+    // Show thinking indicator
+    showThinking();
+
+    // Send to Zoi
+    const textMessage = {
+      type: "text_input",
+      text: message
+    };
+    socket.send(JSON.stringify(textMessage));
+    console.log("Text message sent to server:", textMessage);
+
+    // Clear input
+    textInputElement.value = "";
+    updateSendButton();
+
+    // Activate conversation mode if in wake word mode
+    if (isListeningForWakeWord) {
+      console.log("Activating conversation mode from wake word mode");
+      activateConversationMode();
+    } else {
+      console.log("Resetting conversation timeout");
+      resetConversationTimeout();
+    }
+  } else {
+    console.log("WebSocket not connected. State:", socket ? socket.readyState : "null");
+    initializeZoi();
+  }
+}
+
+function updateSendButton() {
+  const textInputElement = document.getElementById("textInput");
+  const sendBtnElement = document.getElementById("sendBtn");
+
+  if (textInputElement && sendBtnElement) {
+    const hasText = textInputElement.value.trim().length > 0;
+    sendBtnElement.disabled = !hasText;
+  }
+}
+
+// Text input setup is now handled in DOMContentLoaded
 
 document.getElementById("stopBtn").onclick = () => {
   if (socket && socket.readyState === WebSocket.OPEN) {
@@ -606,11 +790,50 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log("Zoi interface loaded - auto-initializing...");
   updateStatus("Initializing", "Starting Zoi...");
 
+  // Setup text input functionality
+  setupTextInput();
+
   // Small delay to ensure DOM is fully ready
   setTimeout(() => {
     initializeZoi();
   }, 500);
 });
+
+// Setup text input functionality
+function setupTextInput() {
+  console.log("Setting up text input functionality");
+  const textInputElement = document.getElementById("textInput");
+  const sendBtnElement = document.getElementById("sendBtn");
+
+  console.log("textInput element:", textInputElement);
+  console.log("sendBtn element:", sendBtnElement);
+
+  if (sendBtnElement) {
+    sendBtnElement.onclick = sendTextMessage;
+    console.log("Send button click handler attached");
+  } else {
+    console.error("Send button not found!");
+  }
+
+  if (textInputElement) {
+    textInputElement.addEventListener('input', updateSendButton);
+
+    textInputElement.addEventListener('keypress', (e) => {
+      console.log("Key pressed:", e.key);
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        console.log("Enter pressed, sending message");
+        sendTextMessage();
+      }
+    });
+    console.log("Text input event handlers attached");
+  } else {
+    console.error("Text input not found!");
+  }
+
+  // Initialize send button state
+  updateSendButton();
+}
 
 // First render
 renderMessages();
