@@ -1,0 +1,253 @@
+# Grafana Alerting Rules Configuration
+# Comprehensive alerting for the Zoi AI Platform
+# Monitors critical system conditions and AI service health
+
+groups:
+  - name: zoi_critical_alerts
+    orgId: 1
+    folder: Critical Alerts
+    interval: 30s
+    rules:
+      - uid: cpu_high_usage
+        title: 🔥 Critical CPU Usage Alert
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasource:
+              type: prometheus
+              uid: prometheus
+            model:
+              expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+              interval: ''
+              refId: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          description: 'CPU usage is above 90% for more than 2 minutes. Current value: {{ $value }}%'
+          summary: 'Critical CPU usage detected on Zoi AI platform'
+        labels:
+          severity: critical
+          component: system
+          
+      - uid: memory_high_usage
+        title: 💾 Critical Memory Usage Alert
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasource:
+              type: prometheus
+              uid: prometheus
+            model:
+              expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 95
+              interval: ''
+              refId: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          description: 'Memory usage is above 95% for more than 1 minute. Current value: {{ $value }}%'
+          summary: 'Critical memory usage detected on Zoi AI platform'
+        labels:
+          severity: critical
+          component: system
+          
+      - uid: disk_high_usage
+        title: 💿 Critical Disk Usage Alert
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasource:
+              type: prometheus
+              uid: prometheus
+            model:
+              expr: (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100 > 95
+              interval: ''
+              refId: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Disk usage is above 95% for more than 5 minutes. Current value: {{ $value }}%'
+          summary: 'Critical disk space shortage detected on Zoi AI platform'
+        labels:
+          severity: critical
+          component: system
+          
+      - uid: gpu_overheating
+        title: 🌡️ GPU Overheating Alert
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasource:
+              type: prometheus
+              uid: prometheus
+            model:
+              expr: DCGM_FI_DEV_GPU_TEMP > 85
+              interval: ''
+              refId: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          description: 'GPU temperature is above 85°C for more than 2 minutes. Current value: {{ $value }}°C'
+          summary: 'GPU overheating detected - thermal throttling risk'
+        labels:
+          severity: critical
+          component: gpu
+          
+  - name: zoi_service_alerts
+    orgId: 1
+    folder: Service Alerts
+    interval: 30s
+    rules:
+      - uid: service_down
+        title: 🔴 Service Down Alert
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasource:
+              type: prometheus
+              uid: prometheus
+            model:
+              expr: up == 0
+              interval: ''
+              refId: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 1m
+        annotations:
+          description: 'Service {{ $labels.job }} ({{ $labels.instance }}) is down for more than 1 minute'
+          summary: 'Critical service outage detected'
+        labels:
+          severity: critical
+          component: service
+          
+      - uid: litellm_high_error_rate
+        title: ⚠️ LiteLLM High Error Rate
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasource:
+              type: prometheus
+              uid: prometheus
+            model:
+              expr: avg(litellm_error_rates_error_rate_percent{model!=""}) > 10
+              interval: ''
+              refId: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'LiteLLM error rate is above 10% for more than 5 minutes. Current value: {{ $value }}%'
+          summary: 'High error rate detected in AI services'
+        labels:
+          severity: warning
+          component: ai_service
+          
+      - uid: litellm_slow_response
+        title: ⚡ LiteLLM Slow Response Time
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 600
+              to: 0
+            datasource:
+              type: prometheus
+              uid: prometheus
+            model:
+              expr: avg(litellm_hourly_usage_avg_response_time_ms) > 10000
+              interval: ''
+              refId: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'LiteLLM response time is above 10 seconds for more than 5 minutes. Current value: {{ $value }}ms'
+          summary: 'Slow AI service response time detected'
+        labels:
+          severity: warning
+          component: ai_service
+          
+  - name: zoi_database_alerts
+    orgId: 1
+    folder: Database Alerts
+    interval: 30s
+    rules:
+      - uid: redis_high_connections
+        title: 🔗 Redis High Connection Count
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasource:
+              type: prometheus
+              uid: prometheus
+            model:
+              expr: redis_connected_clients > 100
+              interval: ''
+              refId: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Redis has more than 100 connected clients for more than 5 minutes. Current value: {{ $value }}'
+          summary: 'High Redis connection count detected'
+        labels:
+          severity: warning
+          component: database
+          
+      - uid: redis_high_memory
+        title: 💾 Redis High Memory Usage
+        condition: A
+        data:
+          - refId: A
+            queryType: ''
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasource:
+              type: prometheus
+              uid: prometheus
+            model:
+              expr: redis_memory_used_bytes > 2147483648
+              interval: ''
+              refId: A
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          description: 'Redis memory usage is above 2GB for more than 5 minutes. Current value: {{ $value | humanize1024 }}'
+          summary: 'High Redis memory usage detected'
+        labels:
+          severity: warning
+          component: database

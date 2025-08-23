@@ -2,9 +2,9 @@
 # Stack-based management for the complete Zoi ecosystem
 
 .PHONY: help bootstrap start stop restart logs clean status health
-.PHONY: start-llm start-platform start-tools start-archon start-monitor
-.PHONY: stop-llm stop-platform stop-tools stop-archon stop-monitor
-.PHONY: logs-llm logs-platform logs-tools logs-archon logs-monitor
+.PHONY: start-core start-platform start-tools start-archon start-monitor
+.PHONY: stop-core stop-platform stop-tools stop-archon stop-monitor
+.PHONY: logs-core logs-platform logs-tools logs-archon logs-monitor
 
 # Default target
 help:
@@ -21,7 +21,7 @@ help:
 	@echo "  make clean         - Clean up all containers and volumes"
 	@echo ""
 	@echo "🏗️ Individual Stacks:"
-	@echo "  make start-llm     - Start LLM stack (foundation)"
+	@echo "  make start-core    - Start core stack (AI services foundation)"
 	@echo "  make start-platform - Start platform stack (infrastructure)"
 	@echo "  make start-tools   - Start tools stack (applications)"
 	@echo "  make start-archon  - Start Archon MCP stack (knowledge)"
@@ -46,8 +46,8 @@ bootstrap:
 # Start all stacks in correct order
 start:
 	@echo "🌐 Starting Zoi ecosystem in correct order..."
-	@make start-llm
-	@echo "⏳ Waiting for LLM stack to stabilize..."
+	@make start-core
+	@echo "⏳ Waiting for core stack to stabilize..."
 	@sleep 30
 	@make start-platform
 	@echo "⏳ Waiting for platform stack to stabilize..."
@@ -64,7 +64,7 @@ stop:
 	@make stop-archon
 	@make stop-tools
 	@make stop-platform
-	@make stop-llm
+	@make stop-core
 	@echo "✅ All stacks stopped"
 
 # Restart all stacks
@@ -79,8 +79,8 @@ status:
 	@echo "📊 Zoi Ecosystem Status"
 	@echo "======================="
 	@echo ""
-	@echo "🧠 LLM Stack:"
-	@cd apps/llm-local && docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || echo "Stack not running"
+	@echo "🧠 Core Stack:"
+	@cd apps/core && docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || echo "Stack not running"
 	@echo ""
 	@echo "🏛️ Platform Stack:"
 	@cd apps/platform && docker compose ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}" 2>/dev/null || echo "Stack not running"
@@ -98,8 +98,8 @@ status:
 logs:
 	@echo "📋 Showing logs from all stacks (last 20 lines each)..."
 	@echo ""
-	@echo "🧠 LLM Stack Logs:"
-	@cd apps/llm-local && docker compose logs --tail=20 2>/dev/null || echo "No logs available"
+	@echo "🧠 Core Stack Logs:"
+	@cd apps/core && docker compose logs --tail=20 2>/dev/null || echo "No logs available"
 	@echo ""
 	@echo "🏛️ Platform Stack Logs:"
 	@cd apps/platform && docker compose logs --tail=20 2>/dev/null || echo "No logs available"
@@ -108,9 +108,9 @@ logs:
 	@cd apps/tools && docker compose logs --tail=20 2>/dev/null || echo "No logs available"
 
 # Individual stack management
-start-llm:
-	@echo "🧠 Starting LLM stack..."
-	@cd apps/llm-local && docker compose up -d
+start-core:
+	@echo "🧠 Starting core stack..."
+	@cd apps/core && docker compose up -d
 
 start-platform:
 	@echo "🏛️ Starting platform stack..."
@@ -129,9 +129,9 @@ start-monitor:
 	@cd apps/monitor && docker compose up -d
 
 # Stop individual stacks
-stop-llm:
-	@echo "⏹️ Stopping LLM stack..."
-	@cd apps/llm-local && docker compose down
+stop-core:
+	@echo "⏹️ Stopping core stack..."
+	@cd apps/core && docker compose down
 
 stop-platform:
 	@echo "⏹️ Stopping platform stack..."
@@ -150,9 +150,9 @@ stop-monitor:
 	@cd apps/monitor && docker compose down
 
 # Individual stack logs
-logs-llm:
-	@echo "🧠 LLM Stack Logs:"
-	@cd apps/llm-local && docker compose logs -f --tail=50
+logs-core:
+	@echo "🧠 Core Stack Logs:"
+	@cd apps/core && docker compose logs -f --tail=50
 
 logs-platform:
 	@echo "🏛️ Platform Stack Logs:"

@@ -41,14 +41,14 @@ scrape_configs:
     scrape_interval: 15s
     metrics_path: /metrics
 
-  # LiteLLM Metrics (Cost tracking via database - no direct metrics endpoint)
-  # Note: LiteLLM cost data is tracked via database and API headers
-  # - job_name: 'litellm'
-  #   static_configs:
-  #     - targets: ['host.docker.internal:7010']
-  #   scrape_interval: 10s
-  #   metrics_path: /metrics
-  #   scrape_timeout: 10s
+  # LiteLLM Service - Basic connectivity check (will show up=0 since /metrics doesn't exist, but service is healthy)
+  - job_name: 'litellm'
+    static_configs:
+      - targets: ['host.docker.internal:7010']
+    scrape_interval: 15s
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    honor_labels: true
 
   # Redis Metrics (via exporter)
   - job_name: 'redis'

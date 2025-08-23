@@ -1,10 +1,12 @@
 # Grafana Dashboard Provisioning Configuration
 # Automatically loads dashboards from the dashboards directory
+# Enhanced configuration to properly organize all available dashboards
 
 apiVersion: 1
 
 providers:
-  - name: 'Zoi System Dashboards'
+  # Main Zoi Dashboards - Root level dashboards only
+  - name: 'Zoi Main Dashboards'
     orgId: 1
     folder: 'Zoi'
     type: file
@@ -13,8 +15,11 @@ providers:
     allowUiUpdates: true
     options:
       path: /var/lib/grafana/dashboards
+      # Only load JSON files, ignore subdirectories
+      foldersFromFilesStructure: false
 
-  - name: 'LiteLLM Dashboards'
+  # LiteLLM AI Services Dashboards
+  - name: 'LiteLLM AI Services'
     orgId: 1
     folder: 'LiteLLM'
     type: file
@@ -23,7 +28,9 @@ providers:
     allowUiUpdates: true
     options:
       path: /var/lib/grafana/dashboards/litellm
+      foldersFromFilesStructure: false
 
+  # System Monitoring Dashboards
   - name: 'System Monitoring'
     orgId: 1
     folder: 'System'
@@ -33,3 +40,4 @@ providers:
     allowUiUpdates: true
     options:
       path: /var/lib/grafana/dashboards/system
+      foldersFromFilesStructure: false

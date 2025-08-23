@@ -1,0 +1,74 @@
+# Grafana Notification Policies Configuration
+# Defines how alerts are routed to different contact points
+
+apiVersion: 1
+
+policies:
+  - orgId: 1
+    receiver: console-notifications
+    group_by: ['alertname', 'severity']
+    group_wait: 10s
+    group_interval: 5m
+    repeat_interval: 12h
+    routes:
+      # Critical alerts - immediate notification
+      - receiver: console-notifications
+        matchers:
+          - severity = critical
+        group_wait: 0s
+        group_interval: 1m
+        repeat_interval: 30m
+        continue: true
+        
+      # System component alerts
+      - receiver: console-notifications
+        matchers:
+          - component = system
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 1h
+        continue: true
+        
+      # GPU alerts
+      - receiver: console-notifications
+        matchers:
+          - component = gpu
+        group_wait: 30s
+        group_interval: 5m
+        repeat_interval: 1h
+        continue: true
+        
+      # Service alerts
+      - receiver: console-notifications
+        matchers:
+          - component = service
+        group_wait: 10s
+        group_interval: 2m
+        repeat_interval: 30m
+        continue: true
+        
+      # AI service alerts
+      - receiver: console-notifications
+        matchers:
+          - component = ai_service
+        group_wait: 1m
+        group_interval: 5m
+        repeat_interval: 2h
+        continue: true
+        
+      # Database alerts
+      - receiver: console-notifications
+        matchers:
+          - component = database
+        group_wait: 1m
+        group_interval: 5m
+        repeat_interval: 2h
+        continue: true
+        
+      # Warning level alerts - less frequent
+      - receiver: console-notifications
+        matchers:
+          - severity = warning
+        group_wait: 2m
+        group_interval: 10m
+        repeat_interval: 4h

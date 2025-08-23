@@ -1,194 +1,227 @@
 {
-  "dashboard": {
-    "id": null,
-    "title": "LiteLLM Cost Tracking & Performance",
-    "tags": ["litellm", "cost", "ai", "monitoring"],
-    "style": "dark",
-    "timezone": "browser",
-    "editable": true,
-    "graphTooltip": 1,
-    "time": {
-      "from": "now-6h",
-      "to": "now"
+  "id": null,
+  "title": "💰 LiteLLM Cost Analysis & Usage Tracking",
+  "description": "Detailed cost analysis and usage tracking for LiteLLM AI services. Data extracted directly from PostgreSQL database.",
+  "tags": ["litellm", "cost", "ai", "monitoring", "database", "analysis"],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "💰 Total Daily Cost",
+      "description": "Total cost in USD for all AI model requests in the last 24 hours. Includes all API calls across all models.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(litellm_requests_total_total_cost)",
+          "legendFormat": "Daily Cost",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 6,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 0.01},
+              {"color": "red", "value": 0.1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
     },
-    "refresh": "30s",
-    "panels": [
-      {
-        "id": 1,
-        "title": "💰 Total Daily Cost",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "0.007119",
-            "legendFormat": "Daily Cost",
-            "refId": "A"
+    {
+      "id": 2,
+      "title": "Total Requests (24h)",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(litellm_requests_total_requests_total)",
+          "legendFormat": "Requests",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1000},
+              {"color": "red", "value": 10000}
+            ]
           }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "currencyUSD",
-            "decimals": 6,
-            "thresholds": {
-              "steps": [
-                {"color": "green", "value": null},
-                {"color": "yellow", "value": 5},
-                {"color": "red", "value": 20}
-              ]
-            }
-          }
-        },
-        "gridPos": {
-          "h": 4,
-          "w": 6,
-          "x": 0,
-          "y": 0
         }
       },
-      {
-        "id": 2,
-        "title": "📊 Total Requests Today",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "27",
-            "legendFormat": "Requests",
-            "refId": "A"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "thresholds": {
-              "steps": [
-                {"color": "green", "value": null},
-                {"color": "yellow", "value": 1000},
-                {"color": "red", "value": 10000}
-              ]
-            }
-          }
-        },
-        "gridPos": {
-          "h": 4,
-          "w": 6,
-          "x": 6,
-          "y": 0
-        }
-      },
-      {
-        "id": 3,
-        "title": "🎯 Average Cost per Request",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "0.000263",
-            "legendFormat": "Avg Cost/Request",
-            "refId": "A"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "currencyUSD",
-            "decimals": 6,
-            "thresholds": {
-              "steps": [
-                {"color": "green", "value": null},
-                {"color": "yellow", "value": 0.001},
-                {"color": "red", "value": 0.01}
-              ]
-            }
-          }
-        },
-        "gridPos": {
-          "h": 4,
-          "w": 6,
-          "x": 12,
-          "y": 0
-        }
-      },
-      {
-        "id": 4,
-        "title": "⚡ Active Models",
-        "type": "stat",
-        "targets": [
-          {
-            "expr": "6",
-            "legendFormat": "Models",
-            "refId": "A"
-          }
-        ],
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "thresholds": {
-              "steps": [
-                {"color": "green", "value": null}
-              ]
-            }
-          }
-        },
-        "gridPos": {
-          "h": 4,
-          "w": 6,
-          "x": 18,
-          "y": 0
-        }
-      },
-      {
-        "id": 4,
-        "title": "Response Time by Model",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.95, rate(litellm_request_duration_seconds_bucket[5m]))",
-            "legendFormat": "95th percentile - {{model}}"
-          },
-          {
-            "expr": "histogram_quantile(0.50, rate(litellm_request_duration_seconds_bucket[5m]))",
-            "legendFormat": "50th percentile - {{model}}"
-          }
-        ],
-        "yAxes": [
-          {
-            "label": "Response Time (seconds)",
-            "min": 0
-          }
-        ],
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 0,
-          "y": 16
-        }
-      },
-      {
-        "id": 5,
-        "title": "Error Rate by Model",
-        "type": "graph",
-        "targets": [
-          {
-            "expr": "rate(litellm_request_total{status!~\"2..\"}[5m]) / rate(litellm_request_total[5m]) * 100",
-            "legendFormat": "Error Rate % - {{model}}"
-          }
-        ],
-        "yAxes": [
-          {
-            "label": "Error Rate (%)",
-            "min": 0,
-            "max": 100
-          }
-        ],
-        "gridPos": {
-          "h": 8,
-          "w": 12,
-          "x": 12,
-          "y": 16
-        }
-      }
-    ],
-    "time": {
-      "from": "now-1h",
-      "to": "now"
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
     },
-    "refresh": "30s"
-  }
+    {
+      "id": 3,
+      "title": "Average Cost per Request",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(litellm_requests_total_total_cost) / sum(litellm_requests_total_requests_total)",
+          "legendFormat": "Avg Cost/Request",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 6,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 0.001},
+              {"color": "red", "value": 0.01}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}
+    },
+    {
+      "id": 4,
+      "title": "Active Models",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "count(count by (model) (litellm_requests_total_requests_total))",
+          "legendFormat": "Models",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0}
+    },
+    {
+      "id": 5,
+      "title": "Cost by Model (24h)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "litellm_requests_total_total_cost",
+          "legendFormat": "{{model}}",
+          "refId": "A"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Cost (USD)",
+          "min": 0
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+    },
+    {
+      "id": 6,
+      "title": "Requests by Model (24h)",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "litellm_requests_total_requests_total",
+          "legendFormat": "{{model}}",
+          "refId": "A"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Requests",
+          "min": 0
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+    },
+    {
+      "id": 7,
+      "title": "Token Usage",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "litellm_requests_total_total_prompt_tokens",
+          "legendFormat": "{{model}} - Prompt Tokens",
+          "refId": "A"
+        },
+        {
+          "expr": "litellm_requests_total_total_completion_tokens",
+          "legendFormat": "{{model}} - Completion Tokens",
+          "refId": "B"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Tokens",
+          "min": 0
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12}
+    },
+    {
+      "id": 8,
+      "title": "Error Rates by Model",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "litellm_error_rates_error_rate_percent",
+          "legendFormat": "{{model}} Error Rate %",
+          "refId": "A"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Error Rate (%)",
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12}
+    },
+    {
+      "id": 9,
+      "title": "Usage Summary Table",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "litellm_requests_total_requests_total",
+          "legendFormat": "{{model}}",
+          "refId": "A",
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {"Time": true, "__name__": true},
+            "indexByName": {},
+            "renameByName": {
+              "model": "Model",
+              "Value": "Requests"
+            }
+          }
+        }
+      ],
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 20}
+    }
+  ]
 }

@@ -1,0 +1,278 @@
+{
+  "id": null,
+  "title": "🐳 Container & Docker Monitoring",
+  "description": "Comprehensive monitoring of Docker containers, system processes, and resource utilization for the Zoi AI platform",
+  "tags": ["containers", "docker", "services", "monitoring", "processes"],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 100,
+      "title": "🐳 CONTAINER OVERVIEW",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "id": 1,
+      "title": "📊 Total Processes",
+      "description": "Total number of processes currently running on the system. Includes all system and application processes.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "node_processes_pids",
+          "legendFormat": "Total Processes",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 200},
+              {"color": "red", "value": 500}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1}
+    },
+    {
+      "id": 2,
+      "title": "🧵 Total Threads",
+      "description": "Total number of threads allocated in the system. Shows system concurrency and multitasking activity.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "node_processes_threads",
+          "legendFormat": "Total Threads",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 2000},
+              {"color": "red", "value": 5000}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1}
+    },
+    {
+      "id": 3,
+      "title": "🏃 Running Processes",
+      "description": "Number of processes currently in runnable state. Shows active system load and processing activity.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "node_procs_running",
+          "legendFormat": "Running",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 10},
+              {"color": "red", "value": 20}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1}
+    },
+    {
+      "id": 4,
+      "title": "⏸️ Blocked Processes",
+      "description": "Number of processes blocked waiting for I/O operations to complete. High values indicate I/O bottlenecks.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "node_procs_blocked",
+          "legendFormat": "Blocked",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 5},
+              {"color": "red", "value": 15}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1}
+    },
+    {
+      "id": 200,
+      "title": "💾 MEMORY & RESOURCE USAGE",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5}
+    },
+    {
+      "id": 5,
+      "title": "📈 Process States Over Time",
+      "description": "Trend of process states showing system activity patterns. Running processes indicate active workload.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "node_procs_running",
+          "legendFormat": "Running Processes",
+          "refId": "A"
+        },
+        {
+          "expr": "node_procs_blocked",
+          "legendFormat": "Blocked Processes",
+          "refId": "B"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Number of Processes",
+          "min": 0
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6}
+    },
+    {
+      "id": 6,
+      "title": "🧵 Thread States Distribution",
+      "description": "Distribution of thread states showing system concurrency. Most threads should be in Sleep (S) state when idle.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "node_processes_threads_state",
+          "legendFormat": "{{thread_state}} State",
+          "refId": "A"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Number of Threads",
+          "min": 0
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6}
+    },
+    {
+      "id": 300,
+      "title": "🔧 SYSTEM LIMITS & CAPACITY",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 14}
+    },
+    {
+      "id": 7,
+      "title": "📁 File Descriptors",
+      "description": "Current file descriptor usage vs maximum limit. File descriptors are used for files, sockets, and pipes.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "node_filefd_allocated",
+          "legendFormat": "Used FDs",
+          "refId": "A"
+        },
+        {
+          "expr": "node_filefd_maximum",
+          "legendFormat": "Max FDs",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 50000},
+              {"color": "red", "value": 100000}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 15}
+    },
+    {
+      "id": 8,
+      "title": "🔢 Process Limits",
+      "description": "Maximum number of processes and threads the system can handle. Shows system capacity limits.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "node_processes_max_processes",
+          "legendFormat": "Max Processes",
+          "refId": "A"
+        },
+        {
+          "expr": "node_processes_max_threads",
+          "legendFormat": "Max Threads",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 15}
+    },
+    {
+      "id": 9,
+      "title": "🌐 Network Sockets",
+      "description": "Number of network sockets in use by protocol. Shows network connectivity and communication patterns.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "node_sockstat_TCP_inuse",
+          "legendFormat": "TCP Sockets",
+          "refId": "A"
+        },
+        {
+          "expr": "node_sockstat_UDP_inuse",
+          "legendFormat": "UDP Sockets",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 100},
+              {"color": "red", "value": 500}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 15}
+    }
+  ]
+}

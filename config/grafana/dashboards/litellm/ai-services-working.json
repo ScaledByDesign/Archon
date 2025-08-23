@@ -1,0 +1,351 @@
+{
+  "id": null,
+  "title": "🤖 AI Services Overview - Real-Time Monitoring",
+  "description": "Comprehensive monitoring of AI services including LiteLLM usage, costs, and performance metrics extracted from database",
+  "tags": ["ai", "llm", "vector", "services", "monitoring", "overview"],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 100,
+      "title": "📊 AI SERVICES OVERVIEW",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "id": 1,
+      "title": "💰 Total Spend (24h)",
+      "description": "Total cost in USD for all AI model requests in the last 24 hours. Includes all models and API calls.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(litellm_requests_total_total_cost)",
+          "legendFormat": "Total Cost",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 6,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 0.01},
+              {"color": "red", "value": 0.1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1}
+    },
+    {
+      "id": 2,
+      "title": "📈 Total Requests (24h)",
+      "description": "Total number of API requests made to all AI models in the last 24 hours. Includes successful and failed requests.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(litellm_requests_total_requests_total)",
+          "legendFormat": "API Requests",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 100},
+              {"color": "red", "value": 1000}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1}
+    },
+    {
+      "id": 3,
+      "title": "👥 Active Users (1h)",
+      "description": "Number of unique users who made API requests in the last hour. Based on user IDs from request logs.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "litellm_active_keys_active_users",
+          "legendFormat": "Users",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 10},
+              {"color": "red", "value": 50}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1}
+    },
+    {
+      "id": 4,
+      "title": "⚠️ Error Rate (1h)",
+      "description": "Percentage of failed API requests in the last hour. Lower is better. Excludes empty model requests.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "avg(litellm_error_rates_error_rate_percent{model!=\"\"})",
+          "legendFormat": "Error Rate",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 5},
+              {"color": "red", "value": 10}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1}
+    },
+    {
+      "id": 200,
+      "title": "🤖 MODEL USAGE BREAKDOWN",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5}
+    },
+    {
+      "id": 5,
+      "title": "📊 Requests by AI Model (24h)",
+      "description": "Number of API requests per AI model in the last 24 hours. Shows which models are being used most frequently.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "litellm_requests_total_requests_total{model!=\"\"}",
+          "legendFormat": "{{model}}",
+          "refId": "A"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Number of Requests",
+          "min": 0
+        }
+      ],
+      "legend": {
+        "show": true,
+        "values": true,
+        "current": true
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6}
+    },
+    {
+      "id": 6,
+      "title": "💰 Cost by AI Model (24h)",
+      "description": "Total cost in USD per AI model in the last 24 hours. Shows which models are most expensive to run.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "litellm_requests_total_total_cost{model!=\"\"}",
+          "legendFormat": "{{model}}",
+          "refId": "A"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Cost (USD)",
+          "min": 0
+        }
+      ],
+      "legend": {
+        "show": true,
+        "values": true,
+        "current": true
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6}
+    },
+    {
+      "id": 300,
+      "title": "🔧 PERFORMANCE & HEALTH",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 14}
+    },
+    {
+      "id": 7,
+      "title": "🟢 AI Service Status",
+      "description": "Health status of all AI services. Green = UP, Red = DOWN. LiteLLM status is based on recent database activity.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "up{job=~\"qdrant|vllm\"}",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        },
+        {
+          "expr": "litellm_db_health_recent_records > 0",
+          "legendFormat": "litellm",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "options": {
+                "0": {"text": "DOWN", "color": "red"}
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {"text": "UP", "color": "green"}
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 15}
+    },
+    {
+      "id": 8,
+      "title": "⚡ Average Response Time",
+      "description": "Average response time in milliseconds for AI model requests. Lower is better for user experience.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "avg(litellm_hourly_usage_avg_response_time_ms)",
+          "legendFormat": "Response Time",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 0,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 2000},
+              {"color": "red", "value": 5000}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 15}
+    },
+    {
+      "id": 9,
+      "title": "🔑 Active API Keys (1h)",
+      "description": "Number of unique API keys used in the last hour. Indicates system usage diversity.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "litellm_active_keys_active_api_keys",
+          "legendFormat": "API Keys",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 15}
+    },
+    {
+      "id": 400,
+      "title": "📈 TOKEN USAGE ANALYSIS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 19}
+    },
+    {
+      "id": 10,
+      "title": "🔤 Token Usage by Model (24h)",
+      "description": "Total tokens used per model. Prompt tokens = input, Completion tokens = output generated by AI.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "litellm_requests_total_total_prompt_tokens{model!=\"\"}",
+          "legendFormat": "{{model}} - Input Tokens",
+          "refId": "A"
+        },
+        {
+          "expr": "litellm_requests_total_total_completion_tokens{model!=\"\"}",
+          "legendFormat": "{{model}} - Output Tokens",
+          "refId": "B"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Number of Tokens",
+          "min": 0
+        }
+      ],
+      "legend": {
+        "show": true,
+        "values": true,
+        "current": true
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20}
+    },
+    {
+      "id": 11,
+      "title": "💵 Cost per Request by Model",
+      "description": "Average cost per API request for each model. Shows efficiency and pricing differences between models.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "litellm_requests_total_avg_cost_per_request{model!=\"\"}",
+          "legendFormat": "{{model}}",
+          "refId": "A"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Cost per Request (USD)",
+          "min": 0
+        }
+      ],
+      "legend": {
+        "show": true,
+        "values": true,
+        "current": true
+      },
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20}
+    }
+  ]
+}

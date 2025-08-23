@@ -1,0 +1,301 @@
+{
+  "id": null,
+  "title": "🎮 GPU Monitoring - NVIDIA RTX 5070 Ti",
+  "description": "Comprehensive NVIDIA GPU monitoring including utilization, memory, temperature, and performance metrics for AI workloads",
+  "tags": ["gpu", "nvidia", "rtx", "ai", "monitoring", "performance"],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 100,
+      "title": "🎮 GPU PERFORMANCE OVERVIEW",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "id": 1,
+      "title": "🔥 GPU Utilization",
+      "description": "Current GPU utilization percentage. Shows how much of the GPU's processing power is being used for compute tasks.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_GPU_UTIL",
+          "legendFormat": "GPU Usage",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "red", "value": 90}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1}
+    },
+    {
+      "id": 2,
+      "title": "💾 Memory Utilization",
+      "description": "GPU memory copy utilization percentage. Shows how much memory bandwidth is being used for data transfers.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_MEM_COPY_UTIL",
+          "legendFormat": "Memory Usage",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "red", "value": 90}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1}
+    },
+    {
+      "id": 3,
+      "title": "🌡️ GPU Temperature",
+      "description": "Current GPU temperature in Celsius. Normal operating temperature for RTX 5070 Ti is typically 60-80°C under load.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_GPU_TEMP",
+          "legendFormat": "Temperature",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "red", "value": 85}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1}
+    },
+    {
+      "id": 4,
+      "title": "🔌 Power Usage",
+      "description": "Current GPU power consumption in watts. RTX 5070 Ti has a TGP (Total Graphics Power) of around 285W.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_POWER_USAGE",
+          "legendFormat": "Power Draw",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "watt",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 200},
+              {"color": "red", "value": 280}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1}
+    },
+    {
+      "id": 200,
+      "title": "📊 GPU PERFORMANCE TRENDS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5}
+    },
+    {
+      "id": 5,
+      "title": "🔥 GPU Utilization Over Time",
+      "description": "GPU utilization trend showing processing load patterns. Useful for identifying AI workload patterns and peak usage times.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_GPU_UTIL",
+          "legendFormat": "GPU Utilization %",
+          "refId": "A"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "GPU Utilization (%)",
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6}
+    },
+    {
+      "id": 6,
+      "title": "🌡️ Temperature & Power Monitoring",
+      "description": "Combined view of GPU temperature and power consumption. Helps monitor thermal performance and power efficiency.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_GPU_TEMP",
+          "legendFormat": "Temperature (°C)",
+          "refId": "A"
+        },
+        {
+          "expr": "DCGM_FI_DEV_POWER_USAGE",
+          "legendFormat": "Power Usage (W)",
+          "refId": "B"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Temperature (°C) / Power (W)",
+          "min": 0
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6}
+    },
+    {
+      "id": 300,
+      "title": "🔧 GPU SYSTEM INFO",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 14}
+    },
+    {
+      "id": 7,
+      "title": "🎮 GPU Information",
+      "description": "Static information about the GPU including model, driver version, and UUID for identification.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_GPU_UTIL",
+          "legendFormat": "{{modelName}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "options": {
+                "pattern": ".*",
+                "result": {
+                  "text": "RTX 5070 Ti"
+                }
+              },
+              "type": "regex"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 15}
+    },
+    {
+      "id": 8,
+      "title": "🔧 Driver Version",
+      "description": "Current NVIDIA driver version. Important for compatibility with AI frameworks and CUDA applications.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_GPU_UTIL",
+          "legendFormat": "{{DCGM_FI_DRIVER_VERSION}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "options": {
+                "pattern": ".*",
+                "result": {
+                  "text": "Driver 577.00"
+                }
+              },
+              "type": "regex"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 15}
+    },
+    {
+      "id": 9,
+      "title": "🆔 GPU Status",
+      "description": "GPU availability and health status. Shows if the GPU is properly detected and responding to monitoring queries.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "up{job=\"nvidia-gpu\"}",
+          "legendFormat": "GPU Status",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "options": {
+                "0": {"text": "OFFLINE", "color": "red"}
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {"text": "ONLINE", "color": "green"}
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 15}
+    }
+  ]
+}

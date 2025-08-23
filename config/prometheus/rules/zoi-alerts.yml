@@ -151,3 +151,51 @@ groups:
         annotations:
           summary: "Traefik is down"
           description: "Traefik load balancer has been down for more than 1 minute"
+
+  # GPU and AI Hardware Alerts
+  - name: gpu.rules
+    rules:
+      - alert: GPUHighTemperature
+        expr: DCGM_FI_DEV_GPU_TEMP > 85
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "GPU high temperature"
+          description: "GPU {{ $labels.gpu }} temperature is above 85°C ({{ $value }}°C)"
+
+      - alert: GPUHighUtilization
+        expr: DCGM_FI_DEV_GPU_UTIL > 95
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GPU high utilization"
+          description: "GPU {{ $labels.gpu }} utilization is above 95% for more than 10 minutes"
+
+      - alert: GPUHighMemoryUsage
+        expr: DCGM_FI_DEV_FB_USED / DCGM_FI_DEV_FB_TOTAL * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GPU high memory usage"
+          description: "GPU {{ $labels.gpu }} memory usage is above 90%"
+
+      - alert: GPUHighPowerUsage
+        expr: DCGM_FI_DEV_POWER_USAGE > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "GPU high power usage"
+          description: "GPU {{ $labels.gpu }} power usage is above 300W ({{ $value }}W)"
+
+      - alert: GPUNotResponding
+        expr: up{job="nvidia-gpu"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "GPU monitoring not responding"
+          description: "NVIDIA DCGM exporter has been down for more than 1 minute"

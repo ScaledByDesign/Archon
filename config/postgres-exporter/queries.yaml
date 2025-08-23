@@ -1,0 +1,132 @@
+# Custom PostgreSQL queries for LiteLLM usage monitoring
+# These queries extract usage data from LiteLLM database tables
+
+# LiteLLM Request Count and Cost Metrics
+litellm_requests_total:
+  query: |
+    SELECT
+      COALESCE(model, 'unknown') as model,
+      COALESCE(api_base, 'unknown') as api_base,
+      COUNT(*) as requests_total,
+      SUM(COALESCE(spend, 0)) as total_cost,
+      AVG(COALESCE(spend, 0)) as avg_cost_per_request,
+      SUM(COALESCE(prompt_tokens, 0)) as total_prompt_tokens,
+      SUM(COALESCE(completion_tokens, 0)) as total_completion_tokens
+    FROM "LiteLLM_SpendLogs"
+    WHERE "startTime" >= NOW() - INTERVAL '24 hours'
+    GROUP BY model, api_base;
+  metrics:
+    - model:
+        usage: "LABEL"
+        description: "Model name"
+    - api_base:
+        usage: "LABEL"
+        description: "API base URL"
+    - requests_total:
+        usage: "GAUGE"
+        description: "Total number of requests in last 24h"
+    - total_cost:
+        usage: "GAUGE"
+        description: "Total cost in USD for last 24h"
+    - avg_cost_per_request:
+        usage: "GAUGE"
+        description: "Average cost per request in USD"
+    - total_prompt_tokens:
+        usage: "GAUGE"
+        description: "Total prompt tokens used"
+    - total_completion_tokens:
+        usage: "GAUGE"
+        description: "Total completion tokens generated"
+
+# LiteLLM Hourly Usage Trends
+litellm_hourly_usage:
+  query: |
+    SELECT
+      DATE_TRUNC('hour', "startTime") as hour,
+      COUNT(*) as requests_per_hour,
+      SUM(COALESCE(spend, 0)) as cost_per_hour,
+      AVG(EXTRACT(EPOCH FROM ("endTime" - "startTime")) * 1000) as avg_response_time_ms
+    FROM "LiteLLM_SpendLogs"
+    WHERE "startTime" >= NOW() - INTERVAL '24 hours'
+      AND "endTime" IS NOT NULL
+    GROUP BY DATE_TRUNC('hour', "startTime")
+    ORDER BY hour;
+  metrics:
+    - hour:
+        usage: "LABEL"
+        description: "Hour timestamp"
+    - requests_per_hour:
+        usage: "GAUGE"
+        description: "Requests per hour"
+    - cost_per_hour:
+        usage: "GAUGE"
+        description: "Cost per hour in USD"
+    - avg_response_time_ms:
+        usage: "GAUGE"
+        description: "Average response time in milliseconds"
+
+# LiteLLM Error Rates
+litellm_error_rates:
+  query: |
+    SELECT
+      COALESCE(model, 'unknown') as model,
+      COUNT(*) as total_requests,
+      COUNT(CASE WHEN status != 'success' THEN 1 END) as error_requests,
+      ROUND(
+        (COUNT(CASE WHEN status != 'success' THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0)), 2
+      ) as error_rate_percent
+    FROM "LiteLLM_SpendLogs"
+    WHERE "startTime" >= NOW() - INTERVAL '1 hour'
+    GROUP BY model;
+  metrics:
+    - model:
+        usage: "LABEL"
+        description: "Model name"
+    - total_requests:
+        usage: "GAUGE"
+        description: "Total requests in last hour"
+    - error_requests:
+        usage: "GAUGE"
+        description: "Error requests in last hour"
+    - error_rate_percent:
+        usage: "GAUGE"
+        description: "Error rate percentage"
+
+# LiteLLM Active Users/Keys
+litellm_active_keys:
+  query: |
+    SELECT
+      COUNT(DISTINCT "user") as active_users,
+      COUNT(DISTINCT api_key) as active_api_keys,
+      COUNT(DISTINCT end_user) as active_end_users
+    FROM "LiteLLM_SpendLogs"
+    WHERE "startTime" >= NOW() - INTERVAL '1 hour';
+  metrics:
+    - active_users:
+        usage: "GAUGE"
+        description: "Number of active users in last hour"
+    - active_api_keys:
+        usage: "GAUGE"
+        description: "Number of active API keys in last hour"
+    - active_end_users:
+        usage: "GAUGE"
+        description: "Number of active end users in last hour"
+
+# LiteLLM Database Health
+litellm_db_health:
+  query: |
+    SELECT
+      COUNT(*) as total_records,
+      COUNT(CASE WHEN "startTime" >= NOW() - INTERVAL '1 hour' THEN 1 END) as recent_records,
+      EXTRACT(EPOCH FROM MAX("startTime")) as last_request_timestamp
+    FROM "LiteLLM_SpendLogs";
+  metrics:
+    - total_records:
+        usage: "GAUGE"
+        description: "Total records in spend logs"
+    - recent_records:
+        usage: "GAUGE"
+        description: "Records from last hour"
+    - last_request_timestamp:
+        usage: "GAUGE"
+        description: "Unix timestamp of last request"

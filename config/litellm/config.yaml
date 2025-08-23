@@ -33,8 +33,12 @@ general_settings:
   budget_manager: true
 
   # Callback settings for monitoring
+  callbacks: ["prometheus"]
   success_callback: ["prometheus"]
   failure_callback: ["prometheus"]
+
+  # Disable authentication for metrics endpoint (for Prometheus scraping)
+  require_auth_for_metrics_endpoint: false
 
 # ------------------------------
 # LiteLLM Settings

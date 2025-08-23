@@ -1,0 +1,256 @@
+{
+  "id": null,
+  "title": "🖥️ System Overview - Infrastructure Health",
+  "description": "Comprehensive system monitoring including CPU, memory, disk, network, and service health for the Zoi AI platform",
+  "tags": ["zoi", "system", "overview", "infrastructure", "health"],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 100,
+      "title": "🖥️ SYSTEM HEALTH OVERVIEW",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "id": 1,
+      "title": "🔥 CPU Usage",
+      "description": "Current CPU utilization percentage. Shows how much processing power is being used across all cores.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU Usage",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "red", "value": 90}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1}
+    },
+    {
+      "id": 2,
+      "title": "💾 Memory Usage",
+      "description": "Current memory utilization percentage. Shows how much RAM is being used out of total available.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory Usage",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 80},
+              {"color": "red", "value": 95}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1}
+    },
+    {
+      "id": 3,
+      "title": "💿 Disk Usage",
+      "description": "Current disk space utilization percentage. Shows how much storage is being used on the root filesystem.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "(1 - (node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"})) * 100",
+          "legendFormat": "Disk Usage",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 80},
+              {"color": "red", "value": 95}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1}
+    },
+    {
+      "id": 4,
+      "title": "⏱️ System Uptime",
+      "description": "How long the system has been running since last reboot. Higher values indicate system stability.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "node_time_seconds - node_boot_time_seconds",
+          "legendFormat": "Uptime",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1}
+    },
+    {
+      "id": 200,
+      "title": "🔧 SERVICE STATUS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5}
+    },
+    {
+      "id": 5,
+      "title": "🟢 All Services Health",
+      "description": "Health status of all monitored services. Green = UP and responding, Red = DOWN or not responding.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "up",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "options": {
+                "0": {"text": "DOWN", "color": "red"}
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {"text": "UP", "color": "green"}
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 12, "x": 0, "y": 6}
+    },
+    {
+      "id": 6,
+      "title": "📊 Service Count Summary",
+      "description": "Total count of services that are UP vs DOWN. Quick overview of overall system health.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(up)",
+          "legendFormat": "Services UP",
+          "refId": "A"
+        },
+        {
+          "expr": "count(up) - sum(up)",
+          "legendFormat": "Services DOWN",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 12, "x": 12, "y": 6}
+    },
+    {
+      "id": 300,
+      "title": "📈 PERFORMANCE TRENDS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 10}
+    },
+    {
+      "id": 7,
+      "title": "🔥 CPU Usage Over Time",
+      "description": "CPU utilization trend over the selected time period. Shows system load patterns and spikes.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU Usage %",
+          "refId": "A"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "CPU Usage (%)",
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 11}
+    },
+    {
+      "id": 8,
+      "title": "💾 Memory Usage Over Time",
+      "description": "Memory utilization trend over the selected time period. Shows memory consumption patterns.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory Usage %",
+          "refId": "A"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Memory Usage (%)",
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 11}
+    }
+  ]
+}

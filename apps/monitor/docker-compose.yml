@@ -51,8 +51,8 @@ services:
       - "7101:3000"
     volumes:
       - grafana_data:/var/lib/grafana
-      - ../../config/grafana/provisioning:/etc/grafana/provisioning:ro
-      - ../../config/grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - ./config/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./config/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - /etc/localtime:/etc/localtime:ro
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin123}
@@ -64,6 +64,9 @@ services:
       - GF_ANALYTICS_CHECK_FOR_UPDATES=false
       - GF_SECURITY_DISABLE_GRAVATAR=true
       - GF_SNAPSHOTS_EXTERNAL_ENABLED=false
+      - GF_ALERTING_ENABLED=true
+      - GF_UNIFIED_ALERTING_ENABLED=true
+      - GF_FEATURE_TOGGLES_ENABLE=ngalert
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
       interval: 30s
@@ -80,6 +83,7 @@ services:
       - "traefik.http.routers.grafana.rule=Host(`grafana.${DOMAIN:-zoi.local}`)"
       - "traefik.http.routers.grafana.entrypoints=web"
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+
 
   # Node Exporter - System metrics (CPU, Memory, Disk, Network)
   node-exporter:
@@ -128,7 +132,7 @@ services:
       - "traefik.http.routers.cadvisor.entrypoints=web"
       - "traefik.http.services.cadvisor.loadbalancer.server.port=8080"
 
-  # Redis Exporter - Redis metrics (connects to host Redis)
+  # Redis Exporter - Redis metrics (connects to Redis on zoi-network)
   redis-exporter:
     image: oliver006/redis_exporter:latest
     container_name: redis-exporter
@@ -139,10 +143,11 @@ services:
       - REDIS_ADDR=redis://redis:6379
     networks:
       - monitoring_network
+      - zoi-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  # Postgres Exporter - PostgreSQL metrics (connects to host PostgreSQL)
+  # Postgres Exporter - PostgreSQL metrics with LiteLLM usage data
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
     container_name: postgres-exporter
@@ -151,8 +156,12 @@ services:
       - "7105:9187"
     environment:
       - DATA_SOURCE_NAME=postgresql://postgres:litellm_password123@postgres:5432/litellm?sslmode=disable
+      - PG_EXPORTER_EXTEND_QUERY_PATH=/etc/postgres_exporter/queries.yaml
+    volumes:
+      - ../../config/postgres-exporter/queries.yaml:/etc/postgres_exporter/queries.yaml:ro
     networks:
       - monitoring_network
+      - zoi-network
     extra_hosts:
       - "host.docker.internal:host-gateway"
 

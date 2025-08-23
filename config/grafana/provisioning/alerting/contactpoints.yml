@@ -1,0 +1,73 @@
+# Grafana Contact Points Configuration
+# Defines notification channels for alerts
+
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: console-notifications
+    receivers:
+      - uid: console_receiver
+        type: discord
+        settings:
+          url: 'https://discord.com/api/webhooks/PLACEHOLDER/PLACEHOLDER'
+          title: 'Zoi AI Platform Alert'
+          message: |
+            🚨 **{{ .GroupLabels.alertname }}**
+
+            **Status:** {{ .Status }}
+            **Severity:** {{ .GroupLabels.severity }}
+            **Component:** {{ .GroupLabels.component }}
+
+            **Description:** {{ range .Alerts }}{{ .Annotations.description }}{{ end }}
+
+            **Time:** {{ .Alerts.0.StartsAt.Format "2006-01-02 15:04:05" }}
+
+            **Dashboard:** http://localhost:7101/d/zoi-complete/
+        disableResolveMessage: false
+        
+  - orgId: 1
+    name: email-notifications
+    receivers:
+      - uid: email_receiver
+        type: email
+        settings:
+          addresses: 'admin@zoi.local'
+          subject: '[Zoi AI] {{ .GroupLabels.alertname }} - {{ .Status }}'
+          message: |
+            Alert Details:
+            - Alert: {{ .GroupLabels.alertname }}
+            - Status: {{ .Status }}
+            - Severity: {{ .GroupLabels.severity }}
+            - Component: {{ .GroupLabels.component }}
+            
+            {{ range .Alerts }}
+            Description: {{ .Annotations.description }}
+            Started: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+            {{ end }}
+            
+            View Dashboard: http://localhost:7101/d/zoi-complete/
+        disableResolveMessage: false
+        
+  - orgId: 1
+    name: slack-notifications
+    receivers:
+      - uid: slack_receiver
+        type: slack
+        settings:
+          url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+          channel: '#zoi-alerts'
+          username: 'Zoi AI Monitor'
+          title: '{{ .GroupLabels.alertname }}'
+          text: |
+            🚨 **{{ .GroupLabels.alertname }}**
+            
+            **Status:** {{ .Status }}
+            **Severity:** {{ .GroupLabels.severity }}
+            **Component:** {{ .GroupLabels.component }}
+            
+            {{ range .Alerts }}**Description:** {{ .Annotations.description }}{{ end }}
+            
+            <http://localhost:7101/d/zoi-complete/|View Dashboard>
+          iconEmoji: ':warning:'
+        disableResolveMessage: false

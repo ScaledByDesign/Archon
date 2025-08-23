@@ -1,0 +1,290 @@
+{
+  "id": null,
+  "title": "🗄️ Database Monitoring - PostgreSQL & Redis",
+  "description": "Comprehensive monitoring of PostgreSQL and Redis databases including connections, performance, and health metrics for the Zoi AI platform",
+  "tags": ["database", "postgresql", "redis", "monitoring", "performance"],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 100,
+      "title": "🗄️ DATABASE HEALTH STATUS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "id": 1,
+      "title": "🐘 PostgreSQL Status",
+      "description": "PostgreSQL database health status. Shows if the database is up and responding to queries.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "pg_up",
+          "legendFormat": "PostgreSQL",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "options": {
+                "0": {"text": "DOWN", "color": "red"}
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {"text": "UP", "color": "green"}
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1}
+    },
+    {
+      "id": 2,
+      "title": "🔴 Redis Status",
+      "description": "Redis cache database health status. Shows if Redis is up and responding to queries.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "redis_up",
+          "legendFormat": "Redis",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "options": {
+                "0": {"text": "DOWN", "color": "red"}
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {"text": "UP", "color": "green"}
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1}
+    },
+    {
+      "id": 3,
+      "title": "🔗 Redis Connections",
+      "description": "Number of clients currently connected to Redis. Shows active connection usage and load.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "redis_connected_clients",
+          "legendFormat": "Connected Clients",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 50},
+              {"color": "red", "value": 100}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1}
+    },
+    {
+      "id": 4,
+      "title": "💾 Redis Memory Usage",
+      "description": "Current memory usage by Redis in bytes. Shows how much RAM Redis is consuming for caching.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes",
+          "legendFormat": "Memory Used",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1073741824},
+              {"color": "red", "value": 2147483648}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1}
+    },
+    {
+      "id": 200,
+      "title": "📊 DATABASE PERFORMANCE METRICS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5}
+    },
+    {
+      "id": 5,
+      "title": "🔗 Redis Connections Over Time",
+      "description": "Trend of Redis client connections showing usage patterns and peak connection times.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "redis_connected_clients",
+          "legendFormat": "Connected Clients",
+          "refId": "A"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Number of Connections",
+          "min": 0
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6}
+    },
+    {
+      "id": 6,
+      "title": "💾 Redis Memory Usage Over Time",
+      "description": "Redis memory consumption trend showing cache growth and memory usage patterns.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "redis_memory_used_bytes",
+          "legendFormat": "Memory Used (Bytes)",
+          "refId": "A"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Memory Usage (Bytes)",
+          "min": 0
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6}
+    },
+    {
+      "id": 300,
+      "title": "🔥 LITELLM DATABASE METRICS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 14}
+    },
+    {
+      "id": 7,
+      "title": "📈 LiteLLM DB Records",
+      "description": "Number of records in the LiteLLM database showing API usage tracking and data accumulation.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "litellm_db_health_total_records",
+          "legendFormat": "Total Records",
+          "refId": "A"
+        },
+        {
+          "expr": "litellm_db_health_recent_records",
+          "legendFormat": "Recent Records",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1000},
+              {"color": "red", "value": 10000}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 15}
+    },
+    {
+      "id": 8,
+      "title": "⏰ Last Request Time",
+      "description": "Timestamp of the last API request recorded in the LiteLLM database. Shows recent activity.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "litellm_db_health_last_request_timestamp",
+          "legendFormat": "Last Request",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "dateTimeAsIso",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 15}
+    },
+    {
+      "id": 9,
+      "title": "🔄 Redis Commands/sec",
+      "description": "Rate of commands processed by Redis per second. Shows database activity and throughput.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "rate(redis_commands_processed_total[5m])",
+          "legendFormat": "Commands/sec",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "decimals": 2,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 100},
+              {"color": "red", "value": 1000}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 15}
+    }
+  ]
+}

@@ -1,0 +1,289 @@
+{
+  "id": null,
+  "title": "🚨 Alerts & System Health Overview",
+  "description": "Comprehensive monitoring of system health conditions and potential alert triggers for the Zoi AI platform",
+  "tags": ["alerts", "health", "monitoring", "system", "warnings"],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 100,
+      "title": "🚨 CRITICAL SYSTEM ALERTS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "id": 1,
+      "title": "🔥 High CPU Usage Alert",
+      "description": "CPU usage above 90% threshold. Critical alert condition that may impact system performance.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU Usage %",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "red", "value": 90}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1}
+    },
+    {
+      "id": 2,
+      "title": "💾 High Memory Usage Alert",
+      "description": "Memory usage above 95% threshold. Critical alert condition that may cause system instability.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory Usage %",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 80},
+              {"color": "red", "value": 95}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1}
+    },
+    {
+      "id": 3,
+      "title": "💿 High Disk Usage Alert",
+      "description": "Disk usage above 95% threshold. Critical alert condition that may prevent system operations.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "(1 - (node_filesystem_avail_bytes{mountpoint=~\"/|C:\"} / node_filesystem_size_bytes{mountpoint=~\"/|C:\"})) * 100",
+          "legendFormat": "Disk Usage %",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 80},
+              {"color": "red", "value": 95}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1}
+    },
+    {
+      "id": 4,
+      "title": "🌡️ GPU Overheating Alert",
+      "description": "GPU temperature above 85°C threshold. Critical alert condition that may cause thermal throttling.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_GPU_TEMP",
+          "legendFormat": "GPU Temperature °C",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "red", "value": 85}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1}
+    },
+    {
+      "id": 200,
+      "title": "⚠️ SERVICE HEALTH WARNINGS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5}
+    },
+    {
+      "id": 5,
+      "title": "🔴 Services Down Count",
+      "description": "Number of services currently down or not responding. Any value above 0 indicates service issues.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "count(up == 0) OR vector(0)",
+          "legendFormat": "Services Down",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": 0},
+              {"color": "yellow", "value": 1},
+              {"color": "red", "value": 3}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 6}
+    },
+    {
+      "id": 6,
+      "title": "📊 LiteLLM Error Rate Alert",
+      "description": "LiteLLM error rate above 10% threshold. Warning condition indicating AI service issues.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "avg(litellm_error_rates_error_rate_percent{model!=\"\"}) OR vector(0)",
+          "legendFormat": "Error Rate %",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "decimals": 1,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 5},
+              {"color": "red", "value": 10}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 6}
+    },
+    {
+      "id": 7,
+      "title": "🔗 High Redis Connections",
+      "description": "Redis connections above 100 threshold. Warning condition indicating high cache usage.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "redis_connected_clients OR vector(0)",
+          "legendFormat": "Redis Connections",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 50},
+              {"color": "red", "value": 100}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 6}
+    },
+    {
+      "id": 8,
+      "title": "⚡ Slow Response Time Alert",
+      "description": "LiteLLM response time above 10 seconds threshold. Warning condition indicating performance issues.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "avg(litellm_hourly_usage_avg_response_time_ms) OR vector(0)",
+          "legendFormat": "Response Time ms",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "decimals": 0,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 5000},
+              {"color": "red", "value": 10000}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 6}
+    },
+    {
+      "id": 300,
+      "title": "📈 SYSTEM HEALTH TRENDS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 10}
+    },
+    {
+      "id": 9,
+      "title": "🚨 Alert Conditions Over Time",
+      "description": "Timeline of potential alert conditions showing when system thresholds are exceeded.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU Usage %",
+          "refId": "A"
+        },
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory Usage %",
+          "refId": "B"
+        },
+        {
+          "expr": "DCGM_FI_DEV_GPU_TEMP",
+          "legendFormat": "GPU Temperature °C",
+          "refId": "C"
+        },
+        {
+          "expr": "avg(litellm_error_rates_error_rate_percent{model!=\"\"}) OR vector(0)",
+          "legendFormat": "LiteLLM Error Rate %",
+          "refId": "D"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Usage % / Temperature °C / Error Rate %",
+          "min": 0
+        }
+      ],
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 11}
+    }
+  ]
+}

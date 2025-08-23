@@ -1,0 +1,327 @@
+{
+  "id": null,
+  "title": "🚀 Zoi AI Platform - Complete Monitoring Dashboard",
+  "description": "Comprehensive monitoring dashboard combining all aspects of the Zoi AI platform: infrastructure, AI services, databases, GPU, and cost tracking",
+  "tags": ["zoi", "complete", "monitoring", "ai", "infrastructure", "comprehensive"],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 100,
+      "title": "🎯 PLATFORM HEALTH SUMMARY",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "id": 1,
+      "title": "🟢 Services Up",
+      "description": "Number of services currently online and responding",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "count(up == 1)",
+          "legendFormat": "Services Online",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 6},
+              {"color": "green", "value": 8}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 4, "x": 0, "y": 1}
+    },
+    {
+      "id": 2,
+      "title": "💰 AI Cost (24h)",
+      "description": "Total AI service cost in last 24 hours",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(litellm_requests_total_total_cost)",
+          "legendFormat": "Total Cost",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 6,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 0.01},
+              {"color": "red", "value": 0.1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 4, "x": 4, "y": 1}
+    },
+    {
+      "id": 3,
+      "title": "📈 AI Requests",
+      "description": "Total AI API requests in last 24 hours",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(litellm_requests_total_requests_total)",
+          "legendFormat": "Total Requests",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 4, "x": 8, "y": 1}
+    },
+    {
+      "id": 4,
+      "title": "🔥 CPU Usage",
+      "description": "Current system CPU utilization",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU %",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "red", "value": 90}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 4, "x": 12, "y": 1}
+    },
+    {
+      "id": 5,
+      "title": "💾 Memory Usage",
+      "description": "Current system memory utilization",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory %",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 80},
+              {"color": "red", "value": 95}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 4, "x": 16, "y": 1}
+    },
+    {
+      "id": 6,
+      "title": "🎮 GPU Temp",
+      "description": "NVIDIA RTX 5070 Ti temperature",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_GPU_TEMP",
+          "legendFormat": "GPU °C",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "red", "value": 85}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 4, "x": 20, "y": 1}
+    },
+    {
+      "id": 200,
+      "title": "📊 DETAILED PERFORMANCE METRICS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5}
+    },
+    {
+      "id": 7,
+      "title": "🖥️ System Performance",
+      "description": "CPU, Memory, and GPU utilization trends",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU %",
+          "refId": "A"
+        },
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory %",
+          "refId": "B"
+        },
+        {
+          "expr": "DCGM_FI_DEV_GPU_UTIL",
+          "legendFormat": "GPU %",
+          "refId": "C"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Usage (%)",
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 6}
+    },
+    {
+      "id": 8,
+      "title": "🤖 AI Service Performance",
+      "description": "LiteLLM requests, cost, and response time",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "sum(litellm_requests_total_requests_total)",
+          "legendFormat": "Total Requests",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(litellm_requests_total_total_cost) * 1000000",
+          "legendFormat": "Cost (microUSD)",
+          "refId": "B"
+        },
+        {
+          "expr": "avg(litellm_hourly_usage_avg_response_time_ms) / 100",
+          "legendFormat": "Response Time (ms/100)",
+          "refId": "C"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Requests / Cost / Time",
+          "min": 0
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 6}
+    },
+    {
+      "id": 300,
+      "title": "🗄️ DATABASE & SERVICE STATUS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 14}
+    },
+    {
+      "id": 9,
+      "title": "🟢 Service Health Matrix",
+      "description": "Health status of all monitored services",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "up",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "options": {
+                "0": {"text": "DOWN", "color": "red"}
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {"text": "UP", "color": "green"}
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 15}
+    },
+    {
+      "id": 10,
+      "title": "📊 Database Metrics",
+      "description": "PostgreSQL and Redis performance indicators",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "redis_connected_clients",
+          "legendFormat": "Redis Connections",
+          "refId": "A"
+        },
+        {
+          "expr": "redis_memory_used_bytes / 1024 / 1024",
+          "legendFormat": "Redis Memory (MB)",
+          "refId": "B"
+        },
+        {
+          "expr": "litellm_db_health_recent_records",
+          "legendFormat": "LiteLLM DB Records",
+          "refId": "C"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Connections / Memory / Records",
+          "min": 0
+        }
+      ],
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 15}
+    }
+  ]
+}

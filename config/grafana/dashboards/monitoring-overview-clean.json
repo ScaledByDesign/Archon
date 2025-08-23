@@ -1,0 +1,346 @@
+{
+  "id": null,
+  "title": "🚀 Zoi AI Platform - Complete Monitoring Overview",
+  "description": "High-level overview of the entire Zoi AI platform including services, infrastructure, AI workloads, and performance metrics",
+  "tags": ["zoi", "monitoring", "overview", "ai", "platform"],
+  "style": "dark",
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 100,
+      "title": "🚀 ZOI AI PLATFORM STATUS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}
+    },
+    {
+      "id": 1,
+      "title": "🟢 All Services Health",
+      "description": "Health status of all monitored services in the Zoi AI platform. Green = UP, Red = DOWN.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "up",
+          "legendFormat": "{{job}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "mappings": [
+            {
+              "options": {
+                "0": {"text": "DOWN", "color": "red"}
+              },
+              "type": "value"
+            },
+            {
+              "options": {
+                "1": {"text": "UP", "color": "green"}
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "steps": [
+              {"color": "red", "value": 0},
+              {"color": "green", "value": 1}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 6, "w": 12, "x": 0, "y": 1}
+    },
+    {
+      "id": 2,
+      "title": "💰 AI Usage Summary",
+      "description": "Key AI service metrics including cost, requests, and active users for the Zoi platform.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "sum(litellm_requests_total_total_cost)",
+          "legendFormat": "Total Cost (24h)",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(litellm_requests_total_requests_total)",
+          "legendFormat": "Total Requests (24h)",
+          "refId": "B"
+        },
+        {
+          "expr": "litellm_active_keys_active_users",
+          "legendFormat": "Active Users",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Total Cost (24h)"},
+            "properties": [
+              {"id": "unit", "value": "currencyUSD"},
+              {"id": "decimals", "value": 6}
+            ]
+          }
+        ]
+      },
+      "gridPos": {"h": 6, "w": 12, "x": 12, "y": 1}
+    },
+    {
+      "id": 200,
+      "title": "🖥️ INFRASTRUCTURE HEALTH",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 7}
+    },
+    {
+      "id": 3,
+      "title": "🔥 System Resources",
+      "description": "Current utilization of key system resources: CPU, Memory, and Disk usage percentages.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU Usage %",
+          "refId": "A"
+        },
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory Usage %",
+          "refId": "B"
+        },
+        {
+          "expr": "(1 - (node_filesystem_avail_bytes{mountpoint=\"/\"} / node_filesystem_size_bytes{mountpoint=\"/\"})) * 100",
+          "legendFormat": "Disk Usage %",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "red", "value": 90}
+            ]
+          }
+        }
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 0, "y": 8}
+    },
+    {
+      "id": 4,
+      "title": "🎮 GPU Status",
+      "description": "NVIDIA RTX 5070 Ti status including utilization, temperature, and power consumption.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "DCGM_FI_DEV_GPU_UTIL",
+          "legendFormat": "GPU Usage %",
+          "refId": "A"
+        },
+        {
+          "expr": "DCGM_FI_DEV_GPU_TEMP",
+          "legendFormat": "GPU Temp °C",
+          "refId": "B"
+        },
+        {
+          "expr": "DCGM_FI_DEV_POWER_USAGE",
+          "legendFormat": "Power Usage W",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 70},
+              {"color": "red", "value": 90}
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "GPU Usage %"},
+            "properties": [
+              {"id": "unit", "value": "percent"},
+              {"id": "max", "value": 100}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "GPU Temp °C"},
+            "properties": [
+              {"id": "unit", "value": "celsius"},
+              {"id": "thresholds", "value": {
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "yellow", "value": 70},
+                  {"color": "red", "value": 85}
+                ]
+              }}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "Power Usage W"},
+            "properties": [
+              {"id": "unit", "value": "watt"},
+              {"id": "thresholds", "value": {
+                "steps": [
+                  {"color": "green", "value": null},
+                  {"color": "yellow", "value": 200},
+                  {"color": "red", "value": 280}
+                ]
+              }}
+            ]
+          }
+        ]
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 8, "y": 8}
+    },
+    {
+      "id": 5,
+      "title": "🗄️ Database Health",
+      "description": "Status of PostgreSQL and Redis databases with connection and performance metrics.",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "pg_up",
+          "legendFormat": "PostgreSQL",
+          "refId": "A"
+        },
+        {
+          "expr": "redis_up",
+          "legendFormat": "Redis",
+          "refId": "B"
+        },
+        {
+          "expr": "redis_connected_clients",
+          "legendFormat": "Redis Connections",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "steps": [
+              {"color": "green", "value": null}
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byRegexp", "options": "PostgreSQL|Redis"},
+            "properties": [
+              {"id": "mappings", "value": [
+                {
+                  "options": {
+                    "0": {"text": "DOWN", "color": "red"}
+                  },
+                  "type": "value"
+                },
+                {
+                  "options": {
+                    "1": {"text": "UP", "color": "green"}
+                  },
+                  "type": "value"
+                }
+              ]},
+              {"id": "thresholds", "value": {
+                "steps": [
+                  {"color": "red", "value": 0},
+                  {"color": "green", "value": 1}
+                ]
+              }}
+            ]
+          }
+        ]
+      },
+      "gridPos": {"h": 4, "w": 8, "x": 16, "y": 8}
+    },
+    {
+      "id": 300,
+      "title": "📈 PERFORMANCE TRENDS",
+      "type": "row",
+      "collapsed": false,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 12}
+    },
+    {
+      "id": 6,
+      "title": "🔥 System Performance Over Time",
+      "description": "Key system performance metrics showing CPU, Memory, and GPU utilization trends.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)",
+          "legendFormat": "CPU Usage %",
+          "refId": "A"
+        },
+        {
+          "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100",
+          "legendFormat": "Memory Usage %",
+          "refId": "B"
+        },
+        {
+          "expr": "DCGM_FI_DEV_GPU_UTIL",
+          "legendFormat": "GPU Usage %",
+          "refId": "C"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Usage Percentage (%)",
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 13}
+    },
+    {
+      "id": 7,
+      "title": "💰 AI Usage & Cost Trends",
+      "description": "LiteLLM usage patterns showing request volume and cost accumulation over time.",
+      "type": "graph",
+      "targets": [
+        {
+          "expr": "sum(litellm_requests_total_requests_total)",
+          "legendFormat": "Total Requests",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(litellm_requests_total_total_cost) * 1000000",
+          "legendFormat": "Total Cost (microUSD)",
+          "refId": "B"
+        }
+      ],
+      "yAxes": [
+        {
+          "label": "Requests / Cost (microUSD)",
+          "min": 0
+        }
+      ],
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 13}
+    }
+  ]
+}
