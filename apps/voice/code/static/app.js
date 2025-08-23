@@ -16,7 +16,97 @@
 const statusDiv = document.getElementById("status");
 const messagesDiv = document.getElementById("messages");
 const speedSlider = document.getElementById("speedSlider");
+const statusDot = document.getElementById("statusDot");
+const statusText = document.getElementById("statusText");
+const wakeWordHint = document.getElementById("wakeWordHint");
 speedSlider.disabled = true;  // start disabled
+
+// Status management
+function updateStatus(status, message) {
+  if (statusDiv) statusDiv.textContent = message;
+  if (statusText) statusText.textContent = status;
+
+  if (statusDot) {
+    statusDot.className = 'status-dot';
+    switch (status.toLowerCase()) {
+      case 'connected':
+      case 'ready':
+        statusDot.classList.add('active');
+        break;
+      case 'listening':
+        statusDot.classList.add('pulse');
+        break;
+      case 'initializing':
+      case 'connecting':
+        statusDot.classList.add('pulse');
+        break;
+      default:
+        statusDot.classList.add('inactive');
+    }
+  }
+}
+
+// Wake word detection
+function detectWakeWord(text) {
+  const lowerText = text.toLowerCase().trim();
+  console.log("Checking for wake word in:", lowerText);
+
+  for (const wakeWord of WAKE_WORDS) {
+    if (lowerText.includes(wakeWord)) {
+      console.log("Wake word detected:", wakeWord);
+      return true;
+    }
+  }
+  return false;
+}
+
+function activateConversationMode() {
+  console.log("🎤 Activating conversation mode");
+  isListeningForWakeWord = false;
+  isInActiveConversation = true;
+  updateStatus("Listening", "Zoi is listening...");
+
+  // Hide wake word hint
+  if (wakeWordHint) {
+    wakeWordHint.style.display = 'none';
+  }
+
+  // Clear any existing timeout
+  if (conversationTimeout) {
+    clearTimeout(conversationTimeout);
+  }
+
+  // Set timeout to return to wake word mode after silence
+  conversationTimeout = setTimeout(() => {
+    deactivateConversationMode();
+  }, WAKE_WORD_TIMEOUT);
+}
+
+function deactivateConversationMode() {
+  console.log("💤 Returning to wake word mode");
+  isListeningForWakeWord = true;
+  isInActiveConversation = false;
+  updateStatus("Ready", "Say 'Hey Zoi' to start");
+
+  // Show wake word hint
+  if (wakeWordHint) {
+    wakeWordHint.style.display = 'inline';
+  }
+
+  if (conversationTimeout) {
+    clearTimeout(conversationTimeout);
+    conversationTimeout = null;
+  }
+}
+
+function resetConversationTimeout() {
+  if (conversationTimeout) {
+    clearTimeout(conversationTimeout);
+    conversationTimeout = setTimeout(() => {
+      deactivateConversationMode();
+    }, WAKE_WORD_TIMEOUT);
+  }
+}
 
 let socket = null;
 let audioContext = null;
@@ -26,6 +116,14 @@ let ttsWorkletNode = null;
 
 let isTTSPlaying = false;
 let ignoreIncomingTTS = false;
+
+// Wake word detection state
+let isListeningForWakeWord = true;
+let isInActiveConversation = false;
+let wakeWordBuffer = [];
+let conversationTimeout = null;
+let WAKE_WORD_TIMEOUT = 30000; // 30 seconds of silence to return to wake word mode (modifiable)
+const WAKE_WORDS = ['hey zoi', 'hi zoi', 'hello zoi', 'zoi'];
 
 let chatHistory = [];
 let typingUser = "";
@@ -76,6 +174,10 @@ function flushRemainder() {
 function initAudioContext() {
   if (!audioContext) {
     audioContext = new AudioContext();
+  }
+  // Resume audio context if suspended (required by browser policies)
+  if (audioContext.state === 'suspended') {
+    audioContext.resume();
   }
 }
 
@@ -136,6 +238,8 @@ async function startRawPcmCapture() {
 }
 
 async function setupTTSPlayback() {
+  // Ensure audio context is initialized even if mic access failed
+  initAudioContext();
   await audioContext.audioWorklet.addModule('/static/ttsPlaybackProcessor.js');
   ttsWorkletNode = new AudioWorkletNode(
     audioContext,
@@ -209,14 +313,48 @@ function renderMessages() {
 
 function handleJSONMessage({ type, content }) {
   if (type === "partial_user_request") {
-    typingUser = content?.trim() ? escapeHtml(content) : "";
-    renderMessages();
+    const trimmedContent = content?.trim() || "";
+
+    // Wake word detection mode
+    if (isListeningForWakeWord && trimmedContent) {
+      if (detectWakeWord(trimmedContent)) {
+        activateConversationMode();
+        // Don't show the wake word in chat
+        return;
+      }
+      // In wake word mode, don't show partial transcriptions
+      return;
+    }
+
+    // Active conversation mode
+    if (isInActiveConversation && trimmedContent) {
+      resetConversationTimeout();
+      typingUser = escapeHtml(trimmedContent);
+      renderMessages();
+    }
     return;
   }
+
   if (type === "final_user_request") {
-    if (content?.trim()) {
-      chatHistory.push({ role: "user", content, type: "final" });
+    const trimmedContent = content?.trim() || "";
+
+    // Wake word detection mode
+    if (isListeningForWakeWord && trimmedContent) {
+      if (detectWakeWord(trimmedContent)) {
+        activateConversationMode();
+        // Don't add wake word to chat history
+        return;
+      }
+      // Ignore non-wake-word utterances in wake word mode
+      return;
     }
+
+    // Active conversation mode
+    if (isInActiveConversation && trimmedContent) {
+      resetConversationTimeout();
+      chatHistory.push({ role: "user", content: trimmedContent, type: "final" });
+    }
+
     typingUser = "";
     renderMessages();
     return;
@@ -292,21 +430,38 @@ speedSlider.addEventListener("input", (e) => {
   console.log("Speed setting changed to:", speedValue);
 });
 
-document.getElementById("startBtn").onclick = async () => {
+// Auto-start connection function
+async function initializeZoi() {
   if (socket && socket.readyState === WebSocket.OPEN) {
-    statusDiv.textContent = "Already recording.";
+    updateStatus("Ready", "Zoi is ready");
     return;
   }
-  statusDiv.textContent = "Initializing connection...";
+
+  updateStatus("Connecting", "Establishing connection...");
 
   const wsProto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
   socket = new WebSocket(`${wsProto}//${location.host}/ws`);
 
   socket.onopen = async () => {
-    statusDiv.textContent = "Connected. Activating mic and TTS…";
-    await startRawPcmCapture();
-    await setupTTSPlayback();
-    speedSlider.disabled = false; 
+    updateStatus("Initializing", "Activating systems...");
+    try {
+      await startRawPcmCapture();
+      await setupTTSPlayback();
+      // Start in wake word detection mode
+      isListeningForWakeWord = true;
+      isInActiveConversation = false;
+      updateStatus("Ready", "Say 'Hey Zoi' to start");
+
+      // Show wake word hint
+      if (wakeWordHint) {
+        wakeWordHint.style.display = 'inline';
+      }
+
+      speedSlider.disabled = false;
+    } catch (error) {
+      console.error("Failed to initialize audio:", error);
+      updateStatus("Error", "Audio initialization failed");
+    }
   };
 
   socket.onmessage = (evt) => {
@@ -321,18 +476,82 @@ document.getElementById("startBtn").onclick = async () => {
   };
 
   socket.onclose = () => {
-    statusDiv.textContent = "Connection closed.";
+    updateStatus("Disconnected", "Connection lost");
     flushRemainder();
     cleanupAudio();
     speedSlider.disabled = true;
   };
 
   socket.onerror = (err) => {
-    statusDiv.textContent = "Connection error.";
+    updateStatus("Error", "Connection failed");
     cleanupAudio();
     console.error(err);
-    speedSlider.disabled = true; 
+    speedSlider.disabled = true;
   };
+}
+
+// Legacy start button (hidden but functional)
+document.getElementById("startBtn").onclick = initializeZoi;
+
+// Settings panel functionality
+const settingsOverlay = document.getElementById("settingsOverlay");
+const settingsBtn = document.getElementById("settingsBtn");
+const settingsClose = document.getElementById("settingsClose");
+
+// Settings controls
+const wakeWordSensitivity = document.getElementById("wakeWordSensitivity");
+const wakeWordValue = document.getElementById("wakeWordValue");
+const conversationTimeoutSlider = document.getElementById("conversationTimeout");
+const timeoutValue = document.getElementById("timeoutValue");
+const responseSpeed = document.getElementById("responseSpeed");
+const speedValue = document.getElementById("speedValue");
+const voiceVolume = document.getElementById("voiceVolume");
+const volumeValue = document.getElementById("volumeValue");
+const continuousListening = document.getElementById("continuousListening");
+const debugMode = document.getElementById("debugMode");
+
+// Settings panel open/close
+settingsBtn.onclick = () => {
+  settingsOverlay.classList.add("active");
+};
+
+settingsClose.onclick = () => {
+  settingsOverlay.classList.remove("active");
+};
+
+settingsOverlay.onclick = (e) => {
+  if (e.target === settingsOverlay) {
+    settingsOverlay.classList.remove("active");
+  }
+};
+
+// Settings controls
+wakeWordSensitivity.oninput = () => {
+  wakeWordValue.textContent = wakeWordSensitivity.value + "%";
+};
+
+conversationTimeoutSlider.oninput = () => {
+  const value = conversationTimeoutSlider.value;
+  timeoutValue.textContent = value + "s";
+  // Update the actual timeout value
+  WAKE_WORD_TIMEOUT = value * 1000;
+};
+
+responseSpeed.oninput = () => {
+  speedValue.textContent = responseSpeed.value + "%";
+};
+
+voiceVolume.oninput = () => {
+  volumeValue.textContent = voiceVolume.value + "%";
+};
+
+// Toggle controls
+continuousListening.onclick = () => {
+  continuousListening.classList.toggle("active");
+};
+
+debugMode.onclick = () => {
+  debugMode.classList.toggle("active");
 };
 
 document.getElementById("stopBtn").onclick = () => {
@@ -356,17 +575,42 @@ document.getElementById("copyBtn").onclick = () => {
 
 document.getElementById("testVoiceBtn").onclick = () => {
   if (socket && socket.readyState === WebSocket.OPEN) {
+    // Temporarily activate conversation mode for test
+    const wasInWakeWordMode = isListeningForWakeWord;
+    if (wasInWakeWordMode) {
+      activateConversationMode();
+    }
+
     const testMessage = {
       type: "text_input",
-      text: "Hi! This is a test of the AI voice system. Can you hear me speaking?"
+      text: "Hello! I am Zoi, your sovereign intelligence. Let's shape the future together."
     };
     socket.send(JSON.stringify(testMessage));
-    console.log("Test voice message sent");
+    console.log("Zoi voice test initiated");
+    updateStatus("Speaking", "Zoi is speaking...");
+
+    // Return to wake word mode after a delay if we were in that mode
+    if (wasInWakeWordMode) {
+      setTimeout(() => {
+        deactivateConversationMode();
+      }, 10000); // 10 seconds
+    }
   } else {
-    console.log("WebSocket not connected. Please start the voice chat first.");
-    statusDiv.textContent = "Please start voice chat first.";
+    console.log("WebSocket not connected. Initializing...");
+    initializeZoi();
   }
 };
+
+// Auto-start Zoi on page load
+document.addEventListener('DOMContentLoaded', () => {
+  console.log("Zoi interface loaded - auto-initializing...");
+  updateStatus("Initializing", "Starting Zoi...");
+
+  // Small delay to ensure DOM is fully ready
+  setTimeout(() => {
+    initializeZoi();
+  }, 500);
+});
 
 // First render
 renderMessages();

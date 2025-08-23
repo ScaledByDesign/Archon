@@ -6,7 +6,9 @@ services:
     # For enhanced caching during development, use:
     # docker-compose -f docker-compose.yml -f docker-compose.cache.yml up --build
     container_name: realtime-voice-chat-app
-    # Port mapping removed - using Traefik reverse proxy
+    # Port mapping for direct access + Traefik reverse proxy
+    ports:
+      - "8000:8000"
     expose:
       - "8000"
     environment:
