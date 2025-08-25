@@ -15,6 +15,9 @@ python-socketio[asyncio]>=5.11.0
 supabase==2.15.1
 asyncpg>=0.29.0
 
+# Caching
+redis[hiredis]>=5.0.0
+
 # AI/ML libraries (ALL ML models belong here)
 openai==1.71.0
 # sentence-transformers>=4.1.0  # For reranking and advanced embeddings

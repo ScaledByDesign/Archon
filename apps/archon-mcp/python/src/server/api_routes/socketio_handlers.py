@@ -89,7 +89,7 @@ async def broadcast_project_update():
     """Broadcast project list to subscribers."""
     try:
         project_service = ProjectService()
-        success, result = project_service.list_projects()
+        success, result = await project_service.list_projects()
 
         if not success:
             logger.error(f"Failed to get projects for broadcast: {result}")
@@ -97,7 +97,7 @@ async def broadcast_project_update():
 
         # Use SourceLinkingService to format projects with sources
         source_service = SourceLinkingService()
-        formatted_projects = source_service.format_projects_with_sources(result["projects"])
+        formatted_projects = await source_service.format_projects_with_sources(result["projects"])
 
         await sio.emit("projects_update", {"projects": formatted_projects}, room="project_list")
         logger.info(f"Broadcasted project list update with {len(formatted_projects)} projects")
@@ -299,7 +299,7 @@ async def subscribe_projects(sid, data=None):
     # Send current project list using ProjectService
     try:
         project_service = ProjectService()
-        success, result = project_service.list_projects()
+        success, result = await project_service.list_projects()
 
         if not success:
             await sio.emit(
@@ -309,7 +309,7 @@ async def subscribe_projects(sid, data=None):
 
         # Use SourceLinkingService to format projects with sources
         source_service = SourceLinkingService()
-        formatted_projects = source_service.format_projects_with_sources(result["projects"])
+        formatted_projects = await source_service.format_projects_with_sources(result["projects"])
 
         await sio.emit("projects_update", {"projects": formatted_projects}, to=sid)
         logger.info(f"Sent {len(formatted_projects)} projects to client {sid}")

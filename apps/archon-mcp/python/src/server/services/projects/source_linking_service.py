@@ -11,6 +11,7 @@ from typing import Any
 from src.server.utils import get_supabase_client
 
 from ...config.logfire_config import get_logger
+from ..cache_service import get_cache_service
 
 logger = get_logger(__name__)
 
@@ -21,15 +22,32 @@ class SourceLinkingService:
     def __init__(self, supabase_client=None):
         """Initialize with optional supabase client"""
         self.supabase_client = supabase_client or get_supabase_client()
+        self._cache_service = None
 
-    def get_project_sources(self, project_id: str) -> tuple[bool, dict[str, list[str]]]:
+    async def _get_cache_service(self):
+        """Get cache service instance (lazy initialization)"""
+        if self._cache_service is None:
+            self._cache_service = await get_cache_service()
+        return self._cache_service
+
+    async def get_project_sources(self, project_id: str) -> tuple[bool, dict[str, list[str]]]:
         """
-        Get all linked sources for a project, separated by type.
+        Get all linked sources for a project, separated by type with Redis caching.
 
         Returns:
             Tuple of (success, {"technical_sources": [...], "business_sources": [...]})
         """
         try:
+            # Try to get from cache first
+            cache_service = await self._get_cache_service()
+            cached_result = await cache_service.get("project_sources", project_id)
+
+            if cached_result is not None:
+                logger.debug(f"Project sources for {project_id} retrieved from cache")
+                return True, cached_result
+
+            # Cache miss - fetch from database
+            logger.debug(f"Project sources for {project_id} cache miss - fetching from database")
             response = (
                 self.supabase_client.table("archon_project_sources")
                 .select("source_id, notes")
@@ -46,10 +64,16 @@ class SourceLinkingService:
                 elif source_link.get("notes") == "business":
                     business_sources.append(source_link["source_id"])
 
-            return True, {
+            result = {
                 "technical_sources": technical_sources,
                 "business_sources": business_sources,
             }
+
+            # Cache the result
+            await cache_service.set("project_sources", project_id, result)
+            logger.debug(f"Cached project sources for {project_id}")
+
+            return True, result
         except Exception as e:
             logger.error(f"Error getting project sources: {e}")
             return False, {
@@ -127,7 +151,7 @@ class SourceLinkingService:
             logger.error(f"Error updating project sources: {e}")
             return False, {"error": str(e), **result}
 
-    def format_project_with_sources(self, project: dict[str, Any]) -> dict[str, Any]:
+    async def format_project_with_sources(self, project: dict[str, Any]) -> dict[str, Any]:
         """
         Format a project dict with its linked sources included.
         Also handles datetime conversion for Socket.IO compatibility.
@@ -135,10 +159,14 @@ class SourceLinkingService:
         Returns:
             Formatted project dict with technical_sources and business_sources
         """
-        # Get linked sources
-        success, sources = self.get_project_sources(project["id"])
-        if not success:
-            logger.warning(f"Failed to get sources for project {project['id']}")
+        # Get linked sources (now async)
+        try:
+            success, sources = await self.get_project_sources(project["id"])
+            if not success:
+                logger.warning(f"Failed to get sources for project {project['id']}")
+                sources = {"technical_sources": [], "business_sources": []}
+        except Exception as e:
+            logger.warning(f"Error getting sources for project {project['id']}: {e}")
             sources = {"technical_sources": [], "business_sources": []}
 
         # Ensure datetime objects are converted to strings
@@ -164,7 +192,7 @@ class SourceLinkingService:
             "pinned": project.get("pinned", False),
         }
 
-    def format_projects_with_sources(self, projects: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    async def format_projects_with_sources(self, projects: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """
         Format a list of projects with their linked sources.
 
@@ -173,5 +201,28 @@ class SourceLinkingService:
         """
         formatted_projects = []
         for project in projects:
-            formatted_projects.append(self.format_project_with_sources(project))
+            formatted_project = await self.format_project_with_sources(project)
+            formatted_projects.append(formatted_project)
         return formatted_projects
+
+    async def invalidate_project_sources_cache(self, project_id: str = None):
+        """
+        Invalidate project sources cache entries.
+
+        Args:
+            project_id: Specific project ID to invalidate, or None to invalidate all
+        """
+        try:
+            cache_service = await self._get_cache_service()
+
+            if project_id:
+                # Invalidate specific project sources
+                await cache_service.delete("project_sources", project_id)
+                logger.debug(f"Invalidated project sources cache for {project_id}")
+            else:
+                # Invalidate all project sources cache
+                await cache_service.invalidate_category("project_sources")
+                logger.debug("Invalidated all project sources cache")
+
+        except Exception as e:
+            logger.warning(f"Failed to invalidate project sources cache: {e}")

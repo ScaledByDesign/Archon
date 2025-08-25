@@ -13,6 +13,7 @@ from typing import Any
 from src.server.utils import get_supabase_client
 
 from ...config.logfire_config import get_logger
+from ..cache_service import get_cache_service
 
 logger = get_logger(__name__)
 
@@ -23,6 +24,13 @@ class ProjectService:
     def __init__(self, supabase_client=None):
         """Initialize with optional supabase client"""
         self.supabase_client = supabase_client or get_supabase_client()
+        self._cache_service = None
+
+    async def _get_cache_service(self):
+        """Get cache service instance (lazy initialization)"""
+        if self._cache_service is None:
+            self._cache_service = await get_cache_service()
+        return self._cache_service
 
     def create_project(self, title: str, github_repo: str = None) -> tuple[bool, dict[str, Any]]:
         """
@@ -73,14 +81,26 @@ class ProjectService:
             logger.error(f"Error creating project: {e}")
             return False, {"error": f"Database error: {str(e)}"}
 
-    def list_projects(self) -> tuple[bool, dict[str, Any]]:
+    async def list_projects(self) -> tuple[bool, dict[str, Any]]:
         """
-        List all projects.
+        List all projects with Redis caching.
 
         Returns:
             Tuple of (success, result_dict)
         """
+        cache_key = "all_projects"
+
         try:
+            # Try to get from cache first
+            cache_service = await self._get_cache_service()
+            cached_result = await cache_service.get("projects", cache_key)
+
+            if cached_result is not None:
+                logger.debug("Projects list retrieved from cache")
+                return True, cached_result
+
+            # Cache miss - fetch from database
+            logger.debug("Projects list cache miss - fetching from database")
             response = (
                 self.supabase_client.table("archon_projects")
                 .select("*")
@@ -103,20 +123,36 @@ class ProjectService:
                     "data": project.get("data", []),
                 })
 
-            return True, {"projects": projects, "total_count": len(projects)}
+            result = {"projects": projects, "total_count": len(projects)}
+
+            # Cache the result
+            await cache_service.set("projects", cache_key, result)
+            logger.debug(f"Cached projects list with {len(projects)} projects")
+
+            return True, result
 
         except Exception as e:
             logger.error(f"Error listing projects: {e}")
             return False, {"error": f"Error listing projects: {str(e)}"}
 
-    def get_project(self, project_id: str) -> tuple[bool, dict[str, Any]]:
+    async def get_project(self, project_id: str) -> tuple[bool, dict[str, Any]]:
         """
-        Get a specific project by ID.
+        Get a specific project by ID with Redis caching.
 
         Returns:
             Tuple of (success, result_dict)
         """
         try:
+            # Try to get from cache first
+            cache_service = await self._get_cache_service()
+            cached_result = await cache_service.get("projects", f"project_{project_id}")
+
+            if cached_result is not None:
+                logger.debug(f"Project {project_id} retrieved from cache")
+                return True, cached_result
+
+            # Cache miss - fetch from database
+            logger.debug(f"Project {project_id} cache miss - fetching from database")
             response = (
                 self.supabase_client.table("archon_projects")
                 .select("*")
@@ -178,13 +214,41 @@ class ProjectService:
                 project["technical_sources"] = technical_sources
                 project["business_sources"] = business_sources
 
-                return True, {"project": project}
+                result = {"project": project}
+
+                # Cache the result
+                await cache_service.set("projects", f"project_{project_id}", result)
+                logger.debug(f"Cached project {project_id}")
+
+                return True, result
             else:
                 return False, {"error": f"Project with ID {project_id} not found"}
 
         except Exception as e:
             logger.error(f"Error getting project: {e}")
             return False, {"error": f"Error getting project: {str(e)}"}
+
+    async def invalidate_project_cache(self, project_id: str = None):
+        """
+        Invalidate project cache entries.
+
+        Args:
+            project_id: Specific project ID to invalidate, or None to invalidate all
+        """
+        try:
+            cache_service = await self._get_cache_service()
+
+            if project_id:
+                # Invalidate specific project
+                await cache_service.delete("projects", f"project_{project_id}")
+                logger.debug(f"Invalidated cache for project {project_id}")
+            else:
+                # Invalidate all projects cache
+                await cache_service.invalidate_category("projects")
+                logger.debug("Invalidated all projects cache")
+
+        except Exception as e:
+            logger.warning(f"Failed to invalidate project cache: {e}")
 
     def delete_project(self, project_id: str) -> tuple[bool, dict[str, Any]]:
         """

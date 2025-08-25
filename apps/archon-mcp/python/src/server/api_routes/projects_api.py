@@ -79,16 +79,16 @@ async def list_projects():
     try:
         logfire.info("Listing all projects")
 
-        # Use ProjectService to get projects
+        # Use ProjectService to get projects (now async)
         project_service = ProjectService()
-        success, result = project_service.list_projects()
+        success, result = await project_service.list_projects()
 
         if not success:
             raise HTTPException(status_code=500, detail=result)
 
-        # Use SourceLinkingService to format projects with sources
+        # Use SourceLinkingService to format projects with sources (now async)
         source_service = SourceLinkingService()
-        formatted_projects = source_service.format_projects_with_sources(result["projects"])
+        formatted_projects = await source_service.format_projects_with_sources(result["projects"])
 
         logfire.info(f"Projects listed successfully | count={len(formatted_projects)}")
 
@@ -259,9 +259,9 @@ async def get_project(project_id: str):
     try:
         logfire.info(f"Getting project | project_id={project_id}")
 
-        # Use ProjectService to get the project
+        # Use ProjectService to get the project (now async)
         project_service = ProjectService()
-        success, result = project_service.get_project(project_id)
+        success, result = await project_service.get_project(project_id)
 
         if not success:
             if "not found" in result.get("error", "").lower():
