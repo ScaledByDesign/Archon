@@ -104,6 +104,7 @@ services:
       - LITELLM_SALT_KEY=${LITELLM_SALT_KEY}
       - STORE_MODEL_IN_DB=True
       - PORT=4000
+      - LITELLM_LOG=INFO  # Use INFO instead of DEBUG to avoid JSON serialization issues
     command: ["--config", "/app/config.yaml"]
     depends_on:
       - vllm

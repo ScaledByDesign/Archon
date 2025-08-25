@@ -1,0 +1,143 @@
+# MCP Context Forge Gateway Configuration
+# Centralized tool management for Zoi AI system
+
+# Server Configuration
+server:
+  host: "0.0.0.0"
+  port: 4444
+  workers: 4
+  timeout: 30
+  max_request_size: 10485760  # 10MB
+
+# Database Configuration
+database:
+  url: "postgresql://mcp_gateway:mcp-gateway-db-password-2025@mcp-gateway-db:5432/mcp_gateway"
+  pool_size: 20
+  max_overflow: 30
+  pool_timeout: 30
+  pool_recycle: 3600
+
+# Redis Configuration
+redis:
+  url: "redis://:mcp-gateway-redis-password-2025@mcp-gateway-redis:6379/0"
+  max_connections: 50
+  socket_timeout: 5
+  socket_connect_timeout: 5
+
+# Authentication Configuration
+auth:
+  jwt_secret: "zoi-mcp-gateway-secret-key-2025"
+  jwt_algorithm: "HS256"
+  jwt_expiration: 86400  # 24 hours
+  basic_auth:
+    enabled: true
+    username: "admin"
+    password: "zoi-admin-2025"
+
+# Gateway Configuration
+gateway:
+  name: "Zoi MCP Gateway"
+  description: "Centralized MCP tool management for Zoi AI system"
+  version: "1.0.0"
+  tool_name_separator: "-"
+  max_concurrent_requests: 100
+  request_timeout: 30
+  retry_attempts: 3
+  retry_delay: 1
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "json"
+  enable_access_log: true
+  enable_error_log: true
+  log_requests: true
+  log_responses: false  # Don't log response bodies for privacy
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  prometheus:
+    enabled: true
+    path: "/metrics"
+  health_check:
+    enabled: true
+    path: "/health"
+    interval: 30
+
+# UI Configuration
+ui:
+  enabled: true
+  path: "/admin"
+  title: "Zoi MCP Gateway"
+  description: "Centralized tool management for Zoi AI system"
+
+# MCP Server Registry
+# These are the MCP servers that the gateway will federate
+mcp_servers:
+  # Archon MCP Server - Main knowledge and task management
+  archon:
+    name: "Archon MCP Server"
+    url: "http://archon-mcp:7082"
+    transport: "http"
+    description: "Archon knowledge base, document search, and task management"
+    auth_type: "none"
+    enabled: true
+    health_check: true
+    timeout: 30
+    retry_attempts: 3
+    tags: ["knowledge", "tasks", "documents"]
+
+  # Voice MCP Server (if we create one)
+  voice:
+    name: "Voice MCP Server"
+    url: "http://voice-mcp:7083"
+    transport: "http"
+    description: "Voice-specific tools and utilities"
+    auth_type: "none"
+    enabled: false  # Disabled until we create it
+    health_check: true
+    timeout: 30
+    retry_attempts: 3
+    tags: ["voice", "audio", "speech"]
+
+# Tool Categories
+tool_categories:
+  - name: "Knowledge Management"
+    description: "Tools for searching and managing knowledge base"
+    tags: ["knowledge", "search", "documents"]
+    
+  - name: "Task Management"
+    description: "Tools for creating and managing tasks and projects"
+    tags: ["tasks", "projects", "management"]
+    
+  - name: "System Utilities"
+    description: "System-level tools and utilities"
+    tags: ["system", "utilities", "admin"]
+    
+  - name: "Voice & Audio"
+    description: "Voice and audio processing tools"
+    tags: ["voice", "audio", "speech"]
+
+# Security Configuration
+security:
+  cors:
+    enabled: true
+    allow_origins: ["*"]  # Restrict in production
+    allow_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    allow_headers: ["*"]
+  rate_limiting:
+    enabled: true
+    requests_per_minute: 1000
+    burst_size: 100
+  input_validation:
+    enabled: true
+    max_payload_size: 10485760  # 10MB
+    sanitize_inputs: true
+
+# Cache Configuration
+cache:
+  enabled: true
+  default_ttl: 300  # 5 minutes
+  tool_discovery_ttl: 600  # 10 minutes
+  health_check_ttl: 60  # 1 minute

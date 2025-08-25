@@ -127,21 +127,37 @@ services:
 
   # LobeChat AI Chat Interface
   lobechat:
-    image: lobehub/lobe-chat:latest
+    image: lobehub/lobe-chat-database:latest
     container_name: lobechat
     restart: unless-stopped
     ports:
       - "7302:3210"
     environment:
+      # Server Mode Configuration - Required for image generation
+      - NEXT_PUBLIC_SERVICE_MODE=server
+      - APP_URL=${LOBECHAT_APP_URL:-http://localhost:7302}
+      # Database Configuration
+      - DATABASE_URL=${LOBECHAT_DATABASE_URL:-postgresql://postgres:litellm_password123@postgres:5432/lobechat}
+      - KEY_VAULTS_SECRET=${LOBECHAT_KEY_VAULTS_SECRET:-lobechat-vault-secret-key-change-in-production}
+      # Authentication - Disable NextAuth entirely
+      - NEXT_PUBLIC_ENABLE_NEXT_AUTH=0
+      # AI Provider Configuration
       - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-wqn0xwq_vha4MVM2yzw}
-      - OPENAI_PROXY_URL=${OPENAI_PROXY_URL:-http://litellm:7010/v1}
+      - OPENAI_PROXY_URL=${OPENAI_PROXY_URL:-http://litellm:4000/v1}
+      # S3 Storage Configuration (for image generation)
+      - S3_ACCESS_KEY_ID=${LOBECHAT_S3_ACCESS_KEY_ID:-minioadmin}
+      - S3_SECRET_ACCESS_KEY=${LOBECHAT_S3_SECRET_ACCESS_KEY:-minioadmin}
+      - S3_ENDPOINT=${LOBECHAT_S3_ENDPOINT:-http://minio:9000}
+      - S3_BUCKET=${LOBECHAT_S3_BUCKET:-lobechat}
+      - S3_PUBLIC_DOMAIN=${LOBECHAT_S3_PUBLIC_DOMAIN:-http://localhost:7303/lobechat}
+      - S3_ENABLE_PATH_STYLE=1
+      # Optional Configuration
       - ACCESS_CODE=${LOBECHAT_ACCESS_CODE:-}
       - NEXT_PUBLIC_BASE_PATH=${LOBECHAT_BASE_PATH:-}
-      - DATABASE_URL=${LOBECHAT_DATABASE_URL:-postgresql://postgres:litellm_password123@postgres:5432/lobechat}
-      - NEXTAUTH_SECRET=${LOBECHAT_NEXTAUTH_SECRET:-lobechat-secret-key}
-      - NEXTAUTH_URL=${LOBECHAT_NEXTAUTH_URL:-http://lobechat.zoi.local}
     volumes:
-      - lobechat_data:/app/.next
+      - lobechat_data:/app/.next/cache
+      - lobechat_config:/app/config
+      - lobechat_uploads:/app/public/uploads
       - /etc/localtime:/etc/localtime:ro
     # Note: External dependency on traefik from platform stack
     healthcheck:
@@ -177,6 +193,45 @@ services:
     networks:
       - zoi-network
 
+  # MinIO S3-compatible storage for image generation
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
+    container_name: minio
+    restart: unless-stopped
+    ports:
+      - "7303:9000"  # API port
+      - "7304:9001"  # Console port
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
+      - MINIO_API_CORS_ALLOW_ORIGIN=http://lobechat.zoi.local,http://localhost:7302
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data:/data
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 60s
+    labels:
+      - "traefik.enable=true"
+
+      # MinIO API routes
+      - "traefik.http.routers.minio-api.rule=Host(`minio.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.minio-api.entrypoints=web"
+      - "traefik.http.routers.minio-api.service=minio-api"
+      - "traefik.http.services.minio-api.loadbalancer.server.port=9000"
+
+      # MinIO Console routes
+      - "traefik.http.routers.minio-console.rule=Host(`minio-console.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.minio-console.entrypoints=web"
+      - "traefik.http.routers.minio-console.service=minio-console"
+      - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
+    networks:
+      - zoi-network
+
 volumes:
   postgres_data:
   redis_data:
@@ -189,6 +244,9 @@ volumes:
   n8n_data:
   openwebui_data:
   lobechat_data:
+  lobechat_config:
+  lobechat_uploads:
+  minio_data:
 
 networks:
   zoi-network:

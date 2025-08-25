@@ -9,8 +9,8 @@ general_settings:
   telemetry: false
   timeout: 300  # Increased timeout for local models
   prometheus_metrics: true
-  set_verbose: true
-  json_logs: true
+  # set_verbose: true  # Deprecated - use LITELLM_LOG environment variable instead
+  json_logs: false  # Disabled due to JSON serialization bug with Logging objects
   # Optional global rate limits (uncomment to enable)
   # rpm: 6000
   # tpm: 2000000
@@ -62,10 +62,30 @@ litellm_settings:
 
   # MCP Aliases - Map aliases to server names for easier tool access
   mcp_aliases:
-    "archon": "archon_mcp_server"
-    "knowledge": "archon_mcp_server"
-    "tasks": "archon_mcp_server"
-    "docs": "archon_mcp_server"
+    "archon": "archon"
+    "knowledge": "archon"
+    "tasks": "archon"
+    "docs": "archon"
+    "projects": "archon"
+    "documents": "archon"
+
+  # MCP Gateway Settings - Centralized tool management
+  mcp_gateway:
+    enabled: true
+    auto_discovery: true
+    tool_name_format: "{alias}_{tool_name}"  # Format: archon_list_projects
+    cache_tools: true
+    cache_ttl: 300  # 5 minutes
+    health_check_interval: 60  # 1 minute
+    max_concurrent_requests: 50
+    request_timeout: 30
+
+  # System Prompt Enhancement for MCP Tools
+  system_prompt_enhancement:
+    enabled: true
+    include_available_tools: true
+    tool_description_format: "detailed"  # brief, detailed, or full
+    auto_generate_examples: true
 
   # Development-focused default parameters
   default_params:
@@ -299,6 +319,26 @@ model_list:
       max_tokens: 6144   # Large for comprehensive solutions
       top_p: 0.92       # Slightly broader for innovative approaches
 
+  # === ZOI CHAT - Optimized for Real-time Voice Conversations ===
+  # Dedicated model for voice chat with optimized parameters for conversational AI
+  - model_name: zoi-chat
+    litellm_params:
+      model: ollama/qwen2.5:7b  # Use reliable Qwen2.5 for voice responses
+      api_base: http://ollama:11434
+      api_key: dummy
+      # Voice chat optimized parameters for Qwen2.5
+      temperature: 0.3   # Balanced for natural conversation
+      max_tokens: 2048   # Shorter responses for voice chat
+      top_p: 0.9        # Focused but natural responses
+      timeout: 60       # Faster timeout for real-time feel
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002   # 7B model cost
+      output_cost_per_token: 0.000004  # 7B model cost
+      max_input_tokens: 32768
+      max_output_tokens: 2048
+      supports_function_calling: true
+
   # === GPT OSS as GPT-4 Alternative ===
   # Route GPT-4 requests to the new OpenAI GPT OSS model for better performance
   - model_name: gpt-4-oss
@@ -467,28 +507,84 @@ model_list:
       max_output_tokens: 6144
 
 # ------------------------------
-# MCP Servers Configuration
+# MCP Servers Configuration - Centralized Tool Management
 # ------------------------------
 mcp_servers:
-  # Archon Knowledge Base and Task Management
-  archon_mcp_server:
-    url: "http://archon-mcp:7082"
+  # Archon Knowledge Base and Task Management - Primary MCP Server
+  archon:
+    url: "http://Archon-MCP:7082/mcp"
     transport: "http"
-    description: "Archon knowledge base, document search, and task management"
+    description: "Archon knowledge base, document search, task management, and project management"
     auth_type: "none"
     spec_version: "2025-03-26"
-    access_groups: ["dev_group", "knowledge_group"]
+    enabled: true
+    health_check: true
+    timeout: 30
+    retry_attempts: 3
+    access_groups: ["dev_group", "knowledge_group", "voice_group", "admin_group"]
+    tags: ["archon","knowledge", "tasks", "projects", "documents", "search", "management"]
     mcp_info:
       mcp_server_cost_info:
         # Default cost for Archon MCP operations
         default_cost_per_query: 0.001
         # Custom costs for specific tools
         tool_name_to_cost_per_query:
+          # Knowledge Management Tools
           search_documents: 0.002
+          get_document: 0.001
+          upload_document: 0.003
+          # Task Management Tools
           create_task: 0.001
           update_task: 0.001
-          get_task_context: 0.001
-          crawl_website: 0.005
+          delete_task: 0.001
+          list_tasks: 0.001
+          get_task: 0.001
+          # Project Management Tools
+          create_project: 0.002
+          update_project: 0.002
+          list_projects: 0.001
+          get_project: 0.001
+          # System Tools
+          get_weather: 0.005
+          search_web: 0.010
+          crawl_website: 0.015
+
+# ------------------------------
+# MCP Access Control and Permission Management
+# ------------------------------
+mcp_access_control:
+  # Default access groups for new keys
+  default_access_groups: ["dev_group"]
+
+  # Access group definitions
+  access_groups:
+    dev_group:
+      description: "Development team access to all tools"
+      allowed_servers: ["archon"]
+      allowed_tools: ["*"]  # All tools
+      rate_limit: 1000  # requests per hour
+
+    knowledge_group:
+      description: "Knowledge management tools only"
+      allowed_servers: ["archon"]
+      allowed_tools: ["search_documents", "get_document", "upload_document"]
+      rate_limit: 500
+
+    voice_group:
+      description: "Voice chat optimized tool access"
+      allowed_servers: ["archon"]
+      allowed_tools: [
+        "list_projects", "get_project", "create_project",
+        "list_tasks", "get_task", "create_task",
+        "search_documents", "get_weather", "search_web"
+      ]
+      rate_limit: 2000  # Higher limit for voice interactions
+
+    admin_group:
+      description: "Full administrative access"
+      allowed_servers: ["*"]
+      allowed_tools: ["*"]
+      rate_limit: 5000
 
 # ------------------------------
 # Router settings for intelligent routing
