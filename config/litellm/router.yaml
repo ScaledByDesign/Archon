@@ -42,8 +42,8 @@ routing_rules:
       
     # Embedding generation
     embedding:
-      primary_models: ["text-embedding-3-large", "text-embedding-3-small"]
-      fallback_models: ["embed-english-v3", "nomic-embed"]
+      primary_models: ["zoi-embed"]
+      fallback_models: ["text-embedding-3-small", "embed-english-v3"]
       
   # Route based on user preferences
   by_user_tier:

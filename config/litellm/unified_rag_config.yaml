@@ -1,0 +1,148 @@
+# Unified RAG Configuration for 100% Cross-Collection Context
+# This configuration enables LobeChat to access ALL knowledge from every service
+
+# Cross-Collection Search Configuration
+unified_rag:
+  enabled: true
+  search_strategy: "multi_collection"  # Search across all collections
+  max_results_per_collection: 10
+  global_similarity_threshold: 0.6
+  rerank_results: true
+  
+  # Collection weights for relevance scoring
+  collection_weights:
+    zoi_knowledge_base: 1.0        # Primary knowledge
+    code_embeddings: 0.9           # Code context
+    archon_knowledge: 0.8          # AI agent knowledge
+    openwebui_conversations: 0.7   # Chat history context
+    n8n_workflows: 0.6             # Automation workflows
+    lobechat_agents: 0.8           # Agent configurations
+    user_preferences: 0.5          # User settings
+    litellm_cache: 0.4             # Cached responses
+
+# Multi-Database Integration
+database_federation:
+  enabled: true
+  
+  # PostgreSQL shared embeddings
+  postgres_shared:
+    enabled: true
+    connection: "postgresql://postgres:litellm_password123@postgres:5432/postgres"
+    table: "shared.embeddings"
+    vector_column: "embedding"
+    content_column: "content_text"
+    metadata_column: "metadata"
+    service_filter_column: "service_name"
+    
+  # Qdrant collections
+  qdrant_collections:
+    enabled: true
+    host: "qdrant"
+    port: 6333
+    collections:
+      - name: "zoi_knowledge_base"
+        weight: 1.0
+        description: "Primary Zoi knowledge repository"
+      - name: "code_embeddings" 
+        weight: 0.9
+        description: "Code snippets and documentation"
+      - name: "archon_knowledge"
+        weight: 0.8
+        description: "Archon AI agent knowledge base"
+      - name: "openwebui_conversations"
+        weight: 0.7
+        description: "OpenWebUI chat history and context"
+      - name: "n8n_workflows"
+        weight: 0.6
+        description: "N8N automation workflows"
+      - name: "lobechat_agents"
+        weight: 0.8
+        description: "LobeChat agent configurations"
+      - name: "user_preferences"
+        weight: 0.5
+        description: "User settings and preferences"
+      - name: "litellm_cache"
+        weight: 0.4
+        description: "Cached LLM responses"
+        
+  # Neo4j graph relationships
+  neo4j_graph:
+    enabled: true
+    uri: "bolt://neo4j:7687"
+    username: "neo4j"
+    password: "password123"
+    database: "neo4j"
+    
+# Unified Search Pipeline
+search_pipeline:
+  stages:
+    1_vector_search:
+      enabled: true
+      description: "Search across all vector collections"
+      parallel_search: true
+      
+    2_graph_expansion:
+      enabled: true
+      description: "Expand results using Neo4j relationships"
+      max_hops: 2
+      
+    3_cross_reference:
+      enabled: true
+      description: "Cross-reference between PostgreSQL and Qdrant"
+      
+    4_rerank:
+      enabled: true
+      description: "Rerank results by relevance and recency"
+      
+    5_context_fusion:
+      enabled: true
+      description: "Merge and deduplicate context from all sources"
+
+# Context Aggregation Rules
+context_aggregation:
+  max_total_tokens: 8000          # Total context limit
+  max_sources_per_type: 5         # Max results per collection
+  deduplicate_similar: true       # Remove similar content
+  similarity_threshold: 0.85      # Threshold for deduplication
+  
+  # Source prioritization
+  source_priority:
+    - "code_embeddings"           # Code context first
+    - "zoi_knowledge_base"        # Then general knowledge
+    - "archon_knowledge"          # AI agent knowledge
+    - "openwebui_conversations"   # Chat history
+    - "n8n_workflows"             # Workflows
+    - "lobechat_agents"           # Agent configs
+    - "user_preferences"          # User settings
+    - "litellm_cache"             # Cached responses
+
+# Real-time Synchronization
+sync_configuration:
+  enabled: true
+  sync_interval: 300  # 5 minutes
+  
+  # Cross-service embedding sync
+  cross_service_sync:
+    - source_service: "archon"
+      target_collections: ["zoi_knowledge_base", "code_embeddings"]
+    - source_service: "openwebui"
+      target_collections: ["openwebui_conversations", "zoi_knowledge_base"]
+    - source_service: "langflow"
+      target_collections: ["n8n_workflows", "zoi_knowledge_base"]
+    - source_service: "lobechat"
+      target_collections: ["lobechat_agents", "zoi_knowledge_base"]
+
+# Performance Optimization
+performance:
+  cache_search_results: true
+  cache_ttl: 3600  # 1 hour
+  parallel_collection_search: true
+  max_concurrent_searches: 8
+  batch_embedding_size: 50
+  
+# Monitoring and Logging
+monitoring:
+  log_search_queries: true
+  log_result_counts: true
+  track_collection_usage: true
+  performance_metrics: true

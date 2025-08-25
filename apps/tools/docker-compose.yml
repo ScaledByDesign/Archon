@@ -132,6 +132,8 @@ services:
     restart: unless-stopped
     ports:
       - "7302:3210"
+    env_file:
+      - .env
     environment:
       # Server Mode Configuration - Required for image generation
       - NEXT_PUBLIC_SERVICE_MODE=server
@@ -139,18 +141,97 @@ services:
       # Database Configuration
       - DATABASE_URL=${LOBECHAT_DATABASE_URL:-postgresql://postgres:litellm_password123@postgres:5432/lobechat}
       - KEY_VAULTS_SECRET=${LOBECHAT_KEY_VAULTS_SECRET:-lobechat-vault-secret-key-change-in-production}
-      # Authentication - Disable NextAuth entirely
-      - NEXT_PUBLIC_ENABLE_NEXT_AUTH=0
-      # AI Provider Configuration
-      - OPENAI_API_KEY=${OPENAI_API_KEY:-sk-wqn0xwq_vha4MVM2yzw}
-      - OPENAI_PROXY_URL=${OPENAI_PROXY_URL:-http://litellm:4000/v1}
-      # S3 Storage Configuration (for image generation)
-      - S3_ACCESS_KEY_ID=${LOBECHAT_S3_ACCESS_KEY_ID:-minioadmin}
-      - S3_SECRET_ACCESS_KEY=${LOBECHAT_S3_SECRET_ACCESS_KEY:-minioadmin}
-      - S3_ENDPOINT=${LOBECHAT_S3_ENDPOINT:-http://minio:9000}
-      - S3_BUCKET=${LOBECHAT_S3_BUCKET:-lobechat}
-      - S3_PUBLIC_DOMAIN=${LOBECHAT_S3_PUBLIC_DOMAIN:-http://localhost:7303/lobechat}
-      - S3_ENABLE_PATH_STYLE=1
+      # Authentication - Google SSO Configuration
+      - NEXT_PUBLIC_ENABLE_NEXT_AUTH=1
+      - NEXT_AUTH_SECRET=${LOBECHAT_NEXTAUTH_SECRET:-lobechat-secret-key-change-in-production}
+      - NEXTAUTH_URL=${LOBECHAT_NEXTAUTH_URL:-http://localhost:7302/api/auth}
+      - NEXT_AUTH_SSO_PROVIDERS=google
+      - AUTH_GOOGLE_ID=${LOBECHAT_GOOGLE_CLIENT_ID:-your-google-client-id}
+      - AUTH_GOOGLE_SECRET=${LOBECHAT_GOOGLE_CLIENT_SECRET:-your-google-client-secret}
+      # AI Provider Configuration - LiteLLM Integration
+      - OPENAI_API_KEY=${LOBECHAT_OPENAI_API_KEY:-sk-wqn0xwq_vha4MVM2yzw}
+      - OPENAI_PROXY_URL=${LOBECHAT_OPENAI_PROXY_URL:-http://litellm:4000/v1}
+      - OPENAI_MODEL_LIST=${LOBECHAT_OPENAI_MODEL_LIST:-+gpt-4-oss,+gpt-oss,+zoi-auto}
+      # Ollama Configuration (disabled since using LiteLLM)
+      - ENABLED_OLLAMA=${LOBECHAT_ENABLED_OLLAMA:-0}
+
+      # === LITELLM MCP PLUGIN INTEGRATION ===
+      # Configure LobeChat to use LiteLLM's MCP servers directly as plugins
+      - PLUGIN_SETTINGS=${LOBECHAT_PLUGIN_SETTINGS:-}
+
+      # === VECTOR DATABASE & RAG CONFIGURATION ===
+      # Enable knowledge base and RAG features
+      - ENABLE_KNOWLEDGE_BASE=${ENABLE_KNOWLEDGE_BASE:-true}
+      - ENABLE_RAG=${ENABLE_RAG:-true}
+      - ENABLE_VECTOR_SEARCH=${ENABLE_VECTOR_SEARCH:-true}
+      - VECTOR_DIMENSION=${VECTOR_DIMENSION:-1536}
+
+      # UI Feature Flags
+      - NEXT_PUBLIC_ENABLE_KNOWLEDGE_BASE=true
+      - NEXT_PUBLIC_ENABLE_FILE_UPLOAD=true
+      - NEXT_PUBLIC_ENABLE_RAG=true
+
+      # File upload configuration
+      - ENABLE_FILE_UPLOAD=${ENABLE_FILE_UPLOAD:-true}
+      - MAX_FILE_SIZE=${MAX_FILE_SIZE:-10485760}
+      - SUPPORTED_FILE_TYPES=${SUPPORTED_FILE_TYPES:-.txt,.md,.pdf,.docx,.json,.csv}
+
+      # External vector database (Qdrant)
+      - QDRANT_URL=${QDRANT_URL:-http://qdrant:6333}
+      - QDRANT_API_KEY=${QDRANT_API_KEY:-}
+
+      # === LITELLM VECTOR STORE INTEGRATION ===
+      # Connect LobeChat to LiteLLM's vector stores for UI knowledge base access
+      - VECTOR_STORE_API_URL=http://litellm:4000
+      - VECTOR_STORE_API_KEY=sk-wqn0xwq_vha4MVM2yzw
+      - LITELLM_VECTOR_STORE_ENDPOINT=http://litellm:4000/vector_store
+
+      # Enable LiteLLM vector store features in UI
+      - NEXT_PUBLIC_ENABLE_VECTOR_STORE=true
+      - NEXT_PUBLIC_VECTOR_STORE_PROVIDER=litellm
+      - NEXT_PUBLIC_LITELLM_ENDPOINT=http://localhost:7010
+
+      # External graph database (Neo4j) for advanced RAG
+      - NEO4J_URI=${NEO4J_URI:-bolt://neo4j:7687}
+      - NEO4J_USERNAME=${NEO4J_USERNAME:-neo4j}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD:-password123}
+
+      # === UNIFIED RAG SERVICE INTEGRATION ===
+      # Cross-collection knowledge access for 100% context
+      - UNIFIED_RAG_URL=${UNIFIED_RAG_URL:-http://unified-rag:8000}
+      - UNIFIED_RAG_ENABLED=${UNIFIED_RAG_ENABLED:-true}
+      - POSTGRES_SHARED_URL=${POSTGRES_SHARED_URL:-postgresql://postgres:litellm_password123@postgres:5432/postgres}
+
+      # Configure LobeChat to use unified RAG as primary knowledge source
+      - KNOWLEDGE_BASE_URL=http://unified-rag:8000
+      - KNOWLEDGE_BASE_SEARCH_ENDPOINT=/search
+      - KNOWLEDGE_BASE_COLLECTIONS_ENDPOINT=/collections
+      - NEXT_PUBLIC_KNOWLEDGE_BASE_API=http://localhost:7090
+
+      # Enable cross-collection search
+      - NEXT_PUBLIC_ENABLE_UNIFIED_RAG=true
+      - NEXT_PUBLIC_CROSS_COLLECTION_SEARCH=true
+
+      # === ZOI KNOWLEDGE BASE CONFIGURATION ===
+      # Pre-configure ZOI knowledge collections for easy access
+      - ZOI_KNOWLEDGE_COLLECTIONS=zoi_knowledge_base,code_embeddings,archon_knowledge
+      - DEFAULT_VECTOR_STORE_ID=zoi_knowledge_base
+      - KNOWLEDGE_BASE_NAME=ZOI AI Ecosystem Knowledge
+      - NEXT_PUBLIC_DEFAULT_KNOWLEDGE_BASE=zoi_knowledge_base
+
+      # === MINIO S3 STORAGE CONFIGURATION ===
+      # S3 configuration is now handled via .env file
+      # This ensures proper separation of internal/external endpoints
+
+      # Enable MCP tools through function calling
+      - ENABLE_TOOLS_CALLING=1
+      - TOOLS_CALLING_TYPE=mcp
+
+      # MCP Authentication
+      - MCP_AUTH_HEADER=x-litellm-api-key
+      - MCP_AUTH_TOKEN=Bearer sk-wqn0xwq_vha4MVM2yzw
+      # S3 Storage Configuration (using .env file values)
+      # S3 configuration is handled via .env file to avoid override conflicts
       # Optional Configuration
       - ACCESS_CODE=${LOBECHAT_ACCESS_CODE:-}
       - NEXT_PUBLIC_BASE_PATH=${LOBECHAT_BASE_PATH:-}
@@ -193,44 +274,9 @@ services:
     networks:
       - zoi-network
 
-  # MinIO S3-compatible storage for image generation
-  minio:
-    image: quay.io/minio/minio:RELEASE.2024-12-18T13-15-44Z
-    container_name: minio
-    restart: unless-stopped
-    ports:
-      - "7303:9000"  # API port
-      - "7304:9001"  # Console port
-    environment:
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
-      - MINIO_API_CORS_ALLOW_ORIGIN=http://lobechat.zoi.local,http://localhost:7302
-    command: server /data --console-address ":9001"
-    volumes:
-      - minio_data:/data
-      - /etc/localtime:/etc/localtime:ro
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-      start_period: 60s
-    labels:
-      - "traefik.enable=true"
-
-      # MinIO API routes
-      - "traefik.http.routers.minio-api.rule=Host(`minio.${DOMAIN:-zoi.local}`)"
-      - "traefik.http.routers.minio-api.entrypoints=web"
-      - "traefik.http.routers.minio-api.service=minio-api"
-      - "traefik.http.services.minio-api.loadbalancer.server.port=9000"
-
-      # MinIO Console routes
-      - "traefik.http.routers.minio-console.rule=Host(`minio-console.${DOMAIN:-zoi.local}`)"
-      - "traefik.http.routers.minio-console.entrypoints=web"
-      - "traefik.http.routers.minio-console.service=minio-console"
-      - "traefik.http.services.minio-console.loadbalancer.server.port=9001"
-    networks:
-      - zoi-network
+  # MinIO S3-compatible storage is provided by the core stack
+  # Running on ports 7065 (API) and 7066 (Console)
+  # No need for duplicate MinIO service here
 
 volumes:
   postgres_data:
@@ -246,7 +292,6 @@ volumes:
   lobechat_data:
   lobechat_config:
   lobechat_uploads:
-  minio_data:
 
 networks:
   zoi-network:

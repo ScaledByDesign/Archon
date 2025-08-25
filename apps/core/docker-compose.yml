@@ -11,6 +11,7 @@ volumes:
   postgres-data:
   redis-data:
   qdrant-data:
+  minio_data:
 
 services:
   # 🧠 Ollama (RTX 5070 Ti GPU Enabled)
@@ -64,7 +65,32 @@ services:
       - HF_HOME=/root/.cache/huggingface
       - TRANSFORMERS_CACHE=/root/.cache/huggingface/transformers
       - VLLM_CACHE_DIR=/models/cache
-    command: ["Qwen/Qwen2.5-Coder-7B-Instruct", "--host", "0.0.0.0", "--port", "8000", "--max-model-len", "8192", "--gpu-memory-utilization", "0.9"]
+      # === AGENTIC CODING OPTIMIZATIONS ===
+      - VLLM_ATTENTION_BACKEND=FLASHINFER  # Faster attention for long contexts
+      - VLLM_USE_MODELSCOPE=false          # Disable ModelScope for stability
+      - VLLM_WORKER_USE_RAY=false          # Disable Ray for simpler deployment
+      - VLLM_ENGINE_ITERATION_TIMEOUT_S=60 # Longer timeout for complex reasoning
+      - CUDA_VISIBLE_DEVICES=0             # Explicit GPU assignment
+    command: [
+      "Qwen/Qwen3-0.6B",
+      "--host", "0.0.0.0",
+      "--port", "8000",
+      "--max-model-len", "8192",
+      "--gpu-memory-utilization", "0.9",
+      # === AGENTIC CODING FEATURES ===
+      "--enable-auto-tool-choice",           # Enable automatic tool selection
+      "--tool-call-parser", "hermes",        # Use Hermes parser for tool calls
+      "--enable-chunked-prefill",            # Better handling of long contexts
+      "--max-num-seqs", "256",               # Higher concurrent sequences for agents
+      "--max-num-batched-tokens", "8192",    # Optimize batch processing
+      "--enable-prefix-caching",             # Cache common prefixes (system prompts)
+      "--disable-log-stats",                 # Reduce noise in logs
+      "--served-model-name", "zoi-coder",    # Consistent model name
+      "--response-role", "assistant",        # Ensure proper role in responses
+      "--enable-lora",                       # Enable LoRA adapter support
+      "--max-lora-rank", "64",               # Support for fine-tuned adapters
+      "--trust-remote-code"                  # Allow custom model code (needed for some models)
+    ]
     deploy:
       resources:
         reservations:
@@ -114,10 +140,15 @@ services:
     restart: unless-stopped
     networks: [zoi-network]
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsSL http://localhost:4000/health || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fsS -H 'Authorization: Bearer ${LITELLM_MASTER_KEY}' -H 'X-API-KEY: ${LITELLM_MASTER_KEY}' http://localhost:4000/health || curl -fsS -H 'Authorization: Bearer ${LITELLM_MASTER_KEY}' -H 'X-API-KEY: ${LITELLM_MASTER_KEY}' http://localhost:4000/healthz || exit 1"
+        ]
       interval: 20s
       timeout: 5s
       retries: 10
+      start_period: 20s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.litellm.rule=Host(`litellm.${DOMAIN:-zoi.local}`)"
@@ -260,3 +291,70 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # === UNIFIED RAG SERVICE ===
+  # Cross-collection knowledge access for 100% context
+  unified-rag:
+    image: python:3.11-slim
+    container_name: unified-rag
+    working_dir: /app
+    volumes:
+      - ../../services:/app/services
+      - ../../config:/app/config
+    environment:
+      - POSTGRES_URL=postgresql://postgres:litellm_password123@postgres:5432/postgres
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=password123
+      - LOG_LEVEL=INFO
+    command: >
+      bash -c "
+        pip install --no-cache-dir fastapi uvicorn asyncpg qdrant-client neo4j httpx numpy &&
+        cd /app &&
+        python -m uvicorn services.unified_rag_service:app --host 0.0.0.0 --port 8000
+      "
+    ports:
+      - "7090:8000"  # Unified RAG API
+    depends_on:
+      - postgres
+      - qdrant
+      - neo4j
+    restart: unless-stopped
+    networks:
+      - zoi-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # === MINIO S3 STORAGE ===
+  # S3-compatible object storage for LobeChat file uploads
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin123
+      - MINIO_DEFAULT_BUCKETS=lobechat
+      - MINIO_SERVER_URL=http://localhost:7065
+      - MINIO_BROWSER_REDIRECT_URL=http://localhost:7066
+      - MINIO_API_CORS_ALLOW_ORIGIN=http://localhost:7302,http://lobechat.zoi.local
+    ports:
+      - "7065:9000"  # S3 API
+      - "7066:9001"  # MinIO Console
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+    networks:
+      - zoi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 40s
