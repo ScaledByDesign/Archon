@@ -131,20 +131,21 @@ services:
     container_name: lobechat
     restart: unless-stopped
     ports:
-      - "7302:3210"
+      - "${LOBE_PORT:-7302}:3210"
     env_file:
       - .env
     environment:
+      - LOBE_PORT=7302
       # Server Mode Configuration - Required for image generation
       - NEXT_PUBLIC_SERVICE_MODE=server
-      - APP_URL=${LOBECHAT_APP_URL:-http://localhost:7302}
+      - APP_URL=${LOBECHAT_APP_URL:-http://host.docker.internal:7302}
       # Database Configuration
       - DATABASE_URL=${LOBECHAT_DATABASE_URL:-postgresql://postgres:litellm_password123@postgres:5432/lobechat}
       - KEY_VAULTS_SECRET=${LOBECHAT_KEY_VAULTS_SECRET:-lobechat-vault-secret-key-change-in-production}
       # Authentication - Google SSO Configuration
       - NEXT_PUBLIC_ENABLE_NEXT_AUTH=1
       - NEXT_AUTH_SECRET=${LOBECHAT_NEXTAUTH_SECRET:-lobechat-secret-key-change-in-production}
-      - NEXTAUTH_URL=${LOBECHAT_NEXTAUTH_URL:-http://localhost:7302/api/auth}
+      - NEXTAUTH_URL=${LOBECHAT_NEXTAUTH_URL:-http://host.docker.internal:7302/api/auth}
       - NEXT_AUTH_SSO_PROVIDERS=google
       - AUTH_GOOGLE_ID=${LOBECHAT_GOOGLE_CLIENT_ID:-your-google-client-id}
       - AUTH_GOOGLE_SECRET=${LOBECHAT_GOOGLE_CLIENT_SECRET:-your-google-client-secret}
@@ -164,7 +165,7 @@ services:
       - ENABLE_KNOWLEDGE_BASE=${ENABLE_KNOWLEDGE_BASE:-true}
       - ENABLE_RAG=${ENABLE_RAG:-true}
       - ENABLE_VECTOR_SEARCH=${ENABLE_VECTOR_SEARCH:-true}
-      - VECTOR_DIMENSION=${VECTOR_DIMENSION:-1536}
+      - VECTOR_DIMENSION=${VECTOR_DIMENSION:-1024}
 
       # UI Feature Flags
       - NEXT_PUBLIC_ENABLE_KNOWLEDGE_BASE=true
@@ -189,7 +190,7 @@ services:
       # Enable LiteLLM vector store features in UI
       - NEXT_PUBLIC_ENABLE_VECTOR_STORE=true
       - NEXT_PUBLIC_VECTOR_STORE_PROVIDER=litellm
-      - NEXT_PUBLIC_LITELLM_ENDPOINT=http://localhost:7010
+      - NEXT_PUBLIC_LITELLM_ENDPOINT=http://host.docker.internal:7010
 
       # External graph database (Neo4j) for advanced RAG
       - NEO4J_URI=${NEO4J_URI:-bolt://neo4j:7687}
@@ -206,7 +207,7 @@ services:
       - KNOWLEDGE_BASE_URL=http://unified-rag:8000
       - KNOWLEDGE_BASE_SEARCH_ENDPOINT=/search
       - KNOWLEDGE_BASE_COLLECTIONS_ENDPOINT=/collections
-      - NEXT_PUBLIC_KNOWLEDGE_BASE_API=http://localhost:7090
+      - NEXT_PUBLIC_KNOWLEDGE_BASE_API=http://host.docker.internal:7090
 
       # Enable cross-collection search
       - NEXT_PUBLIC_ENABLE_UNIFIED_RAG=true
@@ -227,9 +228,7 @@ services:
       - ENABLE_TOOLS_CALLING=1
       - TOOLS_CALLING_TYPE=mcp
 
-      # MCP Authentication
-      - MCP_AUTH_HEADER=x-litellm-api-key
-      - MCP_AUTH_TOKEN=Bearer sk-wqn0xwq_vha4MVM2yzw
+      # MCP Configuration removed - using direct HTTP proxy instead
       # S3 Storage Configuration (using .env file values)
       # S3 configuration is handled via .env file to avoid override conflicts
       # Optional Configuration
@@ -277,6 +276,33 @@ services:
   # MinIO S3-compatible storage is provided by the core stack
   # Running on ports 7065 (API) and 7066 (Console)
   # No need for duplicate MinIO service here
+
+  # MCP Proxy Service - HTTP bridge to bypass LobeChat MCP client issues
+  mcp-proxy:
+    build:
+      context: ./mcp-proxy
+      dockerfile: Dockerfile
+    container_name: mcp-proxy
+    restart: unless-stopped
+    ports:
+      - "7303:8000"
+    environment:
+      - ARCHON_SERVER_URL=http://archon-server:7081
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - zoi-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.mcp-proxy.rule=Host(`mcp-proxy.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.mcp-proxy.entrypoints=web"
+      - "traefik.http.services.mcp-proxy.loadbalancer.server.port=8000"
 
 volumes:
   postgres_data:

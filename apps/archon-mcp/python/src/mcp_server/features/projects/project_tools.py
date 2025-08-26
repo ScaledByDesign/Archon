@@ -162,29 +162,56 @@ def register_project_tools(mcp: FastMCP):
     @mcp.tool()
     async def list_projects(ctx: Context) -> str:
         """
-        List all projects.
+        List all projects with basic information only.
 
         Returns:
-            JSON array of all projects with their basic information
+            JSON array of all projects with just id, title, and created_at
 
         Example:
             list_projects()
         """
+        logger.info("🚀 list_projects tool called!")
         try:
             api_url = get_api_url()
             timeout = get_default_timeout()
 
+            logger.info(f"Making request to: {api_url}/api/projects")
+
             async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.get(urljoin(api_url, "/api/projects"))
 
+                logger.info(f"Response status: {response.status_code}")
+                logger.info(f"Response headers: {dict(response.headers)}")
+
                 if response.status_code == 200:
                     projects = response.json()
-                    return json.dumps({
+                    logger.info(f"Received {len(projects)} projects from API")
+
+                    # Create ultra-minimal project list - just count and first few titles
+                    ultra_minimal = []
+                    for i, project in enumerate(projects[:5]):  # Limit to first 5 projects
+                        # Very short title
+                        title = project.get("title", "")
+                        if len(title) > 30:
+                            title = title[:27] + "..."
+
+                        ultra_minimal.append({
+                            "id": project.get("id"),
+                            "title": title
+                        })
+
+                    logger.info(f"Created {len(ultra_minimal)} ultra-minimal projects from {len(projects)} total")
+                    result = {
                         "success": True,
-                        "projects": projects,
-                        "count": len(projects),
-                    })
+                        "projects": ultra_minimal,
+                        "total_count": len(projects),
+                        "showing": len(ultra_minimal)
+                    }
+                    result_json = json.dumps(result)
+                    logger.info(f"Returning ultra-minimal result with {len(result_json)} characters")
+                    return result_json
                 else:
+                    logger.error(f"API request failed with status {response.status_code}: {response.text}")
                     return MCPErrorFormatter.from_http_error(response, "list projects")
 
         except httpx.RequestError as e:

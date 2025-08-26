@@ -245,8 +245,10 @@ model_list:
       mode: chat
       input_cost_per_token: 0.000001
       output_cost_per_token: 0.000002
-      max_input_tokens: 8192
+      max_input_tokens: 32768
       max_output_tokens: 6144
+      supports_function_calling: true
+      supports_parallel_function_calling: true
 
   # Ollama — Reasoning
   - model_name: zoi-thinker
@@ -263,6 +265,8 @@ model_list:
       output_cost_per_token: 0.000004
       max_input_tokens: 32768
       max_output_tokens: 4096
+      supports_function_calling: true
+      supports_parallel_function_calling: true
 
   # Ollama — Helper (fast code)
   - model_name: zoi-helper
@@ -280,6 +284,27 @@ model_list:
       output_cost_per_token: 0.000003
       max_input_tokens: 32768
       max_output_tokens: 3072
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+
+  # Zoi Auto Router - Intelligent model selection with function calling
+  - model_name: zoi-auto
+    litellm_params:
+      model: ollama/qwen2.5:7b
+      api_base: http://ollama:11434
+      api_key: dummy
+      temperature: 0.15
+      max_tokens: 4096
+      top_p: 0.9
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000004
+      max_input_tokens: 32768
+      max_output_tokens: 4096
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+      description: "Intelligent auto-routing model with function calling support"
 
   # Ollama — Embeddings
   - model_name: zoi-embed
@@ -356,6 +381,8 @@ model_list:
       vector_store: qdrant
       embedding_model: zoi-embed
       rag_context_window: 4000
+      supports_function_calling: true
+      supports_parallel_function_calling: true
 
   - model_name: zoi-rag-thinker
     litellm_params:
@@ -376,6 +403,8 @@ model_list:
       vector_store: qdrant
       embedding_model: zoi-embed
       rag_context_window: 4000
+      supports_function_calling: true
+      supports_parallel_function_calling: true
 
   # Compatibility aliases
   - model_name: gpt-3.5-turbo
@@ -388,6 +417,14 @@ model_list:
       max_tokens: 4096
       top_p: 0.9
       frequency_penalty: 0.1
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.000002
+      max_input_tokens: 32768
+      max_output_tokens: 4096
+      supports_function_calling: true
+      supports_parallel_function_calling: true
 
   - model_name: gpt-4
     litellm_params:
@@ -397,6 +434,14 @@ model_list:
       temperature: 0.15
       max_tokens: 6144
       top_p: 0.92
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000004
+      max_input_tokens: 32768
+      max_output_tokens: 6144
+      supports_function_calling: true
+      supports_parallel_function_calling: true
 
   # Voice chat tuned
   - model_name: zoi-chat
@@ -415,6 +460,7 @@ model_list:
       max_input_tokens: 32768
       max_output_tokens: 2048
       supports_function_calling: true
+      supports_parallel_function_calling: true
 
   # GPT OSS (via Ollama)
   - model_name: gpt-4-oss
@@ -432,6 +478,10 @@ model_list:
       output_cost_per_token: 0.000008
       max_input_tokens: 32768
       max_output_tokens: 8192
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+      supports_function_calling: true
+      supports_parallel_function_calling: true
 
   - model_name: gpt-4o-mini-oss
     litellm_params:
@@ -487,22 +537,25 @@ model_list:
       api_base: http://vllm:8000/v1
       api_key: dummy
 
-  # GPT-5-MINI alias -> vLLM
+  # GPT-5-MINI alias -> vLLM with increased context window
   - model_name: gpt-5-mini
     litellm_params:
       custom_llm_provider: openai
       model: zoi-coder
       api_base: http://vllm:8000/v1
       api_key: dummy
-      supports_function_calling: true
-      supports_parallel_function_calling: true
+      temperature: 0.1
+      max_tokens: 4096
+      top_p: 0.9
+      context_window_fallbacks: ["zoi-thinker", "zoi-helper"]
     model_info:
       mode: chat
       input_cost_per_token: 0.000001
       output_cost_per_token: 0.000002
-      max_input_tokens: 8192
-      max_output_tokens: 2048
+      max_input_tokens: 32768
+      max_output_tokens: 4096
       supports_function_calling: true
+      supports_parallel_function_calling: true
 
   # Hybrid RAG — single collection (LiteLLM-native)
   - model_name: zoi-coder-with-code-knowledge
@@ -516,7 +569,7 @@ model_list:
       mode: chat
       input_cost_per_token: 0.000001
       output_cost_per_token: 0.000002
-      max_input_tokens: 8192
+      max_input_tokens: 32768
       max_output_tokens: 4096
       supports_function_calling: true
 
@@ -532,6 +585,8 @@ model_list:
       output_cost_per_token: 0.000004
       max_input_tokens: 32768
       max_output_tokens: 4096
+      supports_function_calling: true
+      supports_parallel_function_calling: true
 
   # Unified cross-collection RAG (custom service)
   - model_name: zoi-unified-rag
@@ -548,9 +603,10 @@ model_list:
       mode: chat
       input_cost_per_token: 0.000001
       output_cost_per_token: 0.000002
-      max_input_tokens: 8192
+      max_input_tokens: 32768
       max_output_tokens: 8192
       supports_function_calling: true
+      supports_parallel_function_calling: true
 
   # Wildcard fallback -> vLLM
   - model_name: "*"
@@ -566,8 +622,20 @@ model_list:
       mode: chat
       input_cost_per_token: 0.000001
       output_cost_per_token: 0.000002
-      max_input_tokens: 8192
+      max_input_tokens: 32768
       max_output_tokens: 2048
+
+# ------------------------------
+# Model Groups (for context window fallbacks)
+# ------------------------------
+model_groups:
+  - group_name: gpt-5-mini-group
+    models:
+      - model_name: gpt-5-mini
+        context_window_fallbacks: ["zoi-thinker", "zoi-helper"]
+      - model_name: zoi-thinker
+        context_window_fallbacks: ["zoi-helper"]
+      - model_name: zoi-helper
 
 # ------------------------------
 # MCP Servers Configuration
@@ -644,6 +712,7 @@ router_settings:
   fallback_models: ["zoi-coder-vllm"]
   model_group_alias:
     "zoi:auto": "zoi-auto"
+    "gpt-5-mini": "gpt-5-mini-group"
   num_retries: 2
   timeout: 300
   allow_model_override: true
@@ -672,6 +741,7 @@ fallbacks:
   zoi-coder-30b: [zoi-helper]
   zoi-thinker: [zoi-helper, zoi-coder-30b]
   zoi-helper: [zoi-thinker]
+  gpt-5-mini: [zoi-thinker, zoi-helper]
 
 # ------------------------------
 # Cost hints (routing bias)

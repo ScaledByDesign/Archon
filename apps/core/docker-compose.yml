@@ -75,14 +75,14 @@ services:
       "Qwen/Qwen3-0.6B",
       "--host", "0.0.0.0",
       "--port", "8000",
-      "--max-model-len", "8192",
+      "--max-model-len", "32768",
       "--gpu-memory-utilization", "0.9",
       # === AGENTIC CODING FEATURES ===
       "--enable-auto-tool-choice",           # Enable automatic tool selection
       "--tool-call-parser", "hermes",        # Use Hermes parser for tool calls
       "--enable-chunked-prefill",            # Better handling of long contexts
       "--max-num-seqs", "256",               # Higher concurrent sequences for agents
-      "--max-num-batched-tokens", "8192",    # Optimize batch processing
+      "--max-num-batched-tokens", "32768",   # Optimize batch processing for larger contexts
       "--enable-prefix-caching",             # Cache common prefixes (system prompts)
       "--disable-log-stats",                 # Reduce noise in logs
       "--served-model-name", "zoi-coder",    # Consistent model name
@@ -143,12 +143,12 @@ services:
       test:
         [
           "CMD-SHELL",
-          "curl -fsS -H 'Authorization: Bearer ${LITELLM_MASTER_KEY}' -H 'X-API-KEY: ${LITELLM_MASTER_KEY}' http://localhost:4000/health || curl -fsS -H 'Authorization: Bearer ${LITELLM_MASTER_KEY}' -H 'X-API-KEY: ${LITELLM_MASTER_KEY}' http://localhost:4000/healthz || exit 1"
+          "wget --quiet --tries=1 --timeout=5 -O /dev/null http://localhost:4000/health/readiness || exit 1"
         ]
-      interval: 20s
-      timeout: 5s
-      retries: 10
-      start_period: 20s
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.litellm.rule=Host(`litellm.${DOMAIN:-zoi.local}`)"
