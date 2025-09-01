@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refact.ai - AI Coding Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 3rem;
+            max-width: 800px;
+            width: 90%;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 2rem;
+        }
+        
+        .status {
+            display: flex;
+            justify-content: space-around;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .service {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .service h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .service-status {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .status-checking {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-online {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .links {
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+        
+        .link-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: #333;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .link-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .link-card h4 {
+            margin-bottom: 0.5rem;
+            color: #667eea;
+        }
+        
+        .link-card p {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .setup-info {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            text-align: left;
+        }
+        
+        .setup-info h3 {
+            color: #1976d2;
+            margin-bottom: 1rem;
+        }
+        
+        .setup-info code {
+            background: #f5f5f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+        }
+        
+        .setup-info ol {
+            margin-left: 1.5rem;
+        }
+        
+        .setup-info li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🤖 Refact.ai</div>
+        <div class="subtitle">AI-Powered Coding Assistant</div>
+        
+        <div class="status">
+            <div class="service">
+                <h3>Refact Server</h3>
+                <div id="server-status" class="service-status status-checking">Checking...</div>
+            </div>
+            <div class="service">
+                <h3>Refact Agent</h3>
+                <div id="agent-status" class="service-status status-checking">Checking...</div>
+            </div>
+            <div class="service">
+                <h3>LiteLLM Gateway</h3>
+                <div id="litellm-status" class="service-status status-checking">Checking...</div>
+            </div>
+        </div>
+        
+        <div class="links">
+            <a href="http://localhost:7400" class="link-card" target="_blank">
+                <h4>🖥️ Refact Server</h4>
+                <p>Model management and configuration interface</p>
+            </a>
+            <a href="http://localhost:7401/v1/caps" class="link-card" target="_blank">
+                <h4>🔧 Agent API</h4>
+                <p>LSP server capabilities and status</p>
+            </a>
+            <a href="http://localhost:7010" class="link-card" target="_blank">
+                <h4>🚪 LiteLLM Gateway</h4>
+                <p>AI model routing and management</p>
+            </a>
+            <a href="http://localhost:7403" class="link-card" target="_blank">
+                <h4>📚 Documentation</h4>
+                <p>Setup guides and API documentation</p>
+            </a>
+        </div>
+        
+        <div class="setup-info">
+            <h3>🔧 IDE Setup</h3>
+            <p><strong>For VS Code:</strong></p>
+            <ol>
+                <li>Install the <strong>Refact.ai extension</strong></li>
+                <li>Set Inference URL: <code>http://localhost:7401</code></li>
+                <li>Set API Key: <code>refact-admin-token-zoi-2024-secure</code></li>
+            </ol>
+            
+            <p style="margin-top: 1rem;"><strong>For JetBrains IDEs:</strong></p>
+            <ol>
+                <li>Install the <strong>Refact.ai plugin</strong></li>
+                <li>Go to Settings → Tools → Refact.ai → Advanced</li>
+                <li>Set Inference URL: <code>http://localhost:7401</code></li>
+                <li>Set API Key: <code>refact-admin-token-zoi-2024-secure</code></li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        // Check service status
+        async function checkService(url, statusElementId) {
+            const statusElement = document.getElementById(statusElementId);
+            try {
+                const response = await fetch(url, { 
+                    method: 'GET',
+                    mode: 'no-cors' // Allow cross-origin requests
+                });
+                statusElement.textContent = 'Online';
+                statusElement.className = 'service-status status-online';
+            } catch (error) {
+                // Try alternative health check
+                try {
+                    const img = new Image();
+                    img.onload = () => {
+                        statusElement.textContent = 'Online';
+                        statusElement.className = 'service-status status-online';
+                    };
+                    img.onerror = () => {
+                        statusElement.textContent = 'Offline';
+                        statusElement.className = 'service-status status-offline';
+                    };
+                    img.src = url + '/favicon.ico?' + Date.now();
+                } catch (e) {
+                    statusElement.textContent = 'Offline';
+                    statusElement.className = 'service-status status-offline';
+                }
+            }
+        }
+        
+        // Check all services on page load
+        window.addEventListener('load', () => {
+            checkService('http://localhost:7400', 'server-status');
+            checkService('http://localhost:7401', 'agent-status');
+            checkService('http://localhost:7010', 'litellm-status');
+            
+            // Refresh status every 30 seconds
+            setInterval(() => {
+                checkService('http://localhost:7400', 'server-status');
+                checkService('http://localhost:7401', 'agent-status');
+                checkService('http://localhost:7010', 'litellm-status');
+            }, 30000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+# Refact Agent Configuration for Zoi LiteLLM Integration
+# This file configures the Refact agent to use the Zoi ecosystem's LiteLLM gateway
+
+# LiteLLM Provider Configuration
+litellm:
+  chat_endpoint: "http://litellm:4000/v1/chat/completions"
+  completion_endpoint: "http://litellm:4000/v1/completions"
+  embedding_endpoint: "http://litellm:4000/v1/embeddings"
+  supports_completion: true
+  
+  api_key: "sk-wqn0xwq_vha4MVM2yzw"
+  
+  running_models:
+    # Zoi Auto Router - Intelligent model selection
+    - zoi-auto
+    
+    # Local Models via Ollama
+    - qwen2.5-coder:7b-instruct
+    - qwen2.5-coder:14b-instruct
+    - qwen2.5-coder:32b-instruct
+    - llama3.1:8b-instruct
+    - llama3.2:3b-instruct
+    - deepseek-coder:6.7b-instruct
+    
+    # Cloud Models (if API keys configured)
+    - gpt-4o
+    - gpt-4o-mini
+    - claude-3-5-sonnet-20241022
+    - claude-3-5-haiku-20241022
+    
+  model_default_settings_ui:
+    chat:
+      n_ctx: 32768
+      supports_tools: true
+      supports_multimodality: true
+      supports_agent: true
+      tokenizer: fake
+      temperature: 0.1
+      max_tokens: 4096
+    completion:
+      n_ctx: 8192
+      tokenizer: fake
+      temperature: 0.1
+      max_tokens: 512
+
+# Refact Server Integration
+refact_server:
+  endpoint: "http://refact-server:8008"
+  api_key: "refact-admin-token-zoi-2024-secure"
+
+# Database Configuration
+database:
+  type: "postgresql"
+  url: "postgresql://postgres:litellm_password123@postgres:5432/refact"
+
+# Redis Cache Configuration
+redis:
+  url: "redis://redis:6379"
+
+# Vector Database Configuration (Qdrant)
+vector_db:
+  type: "qdrant"
+  url: "http://qdrant:6333"
+  collection_name: "refact_code_embeddings"
+
+# Telemetry Configuration
+telemetry:
+  enabled: true
+  endpoint: "http://refact-server:8008/telemetry"
+  basic_telemetry: true
+
+# Logging Configuration
+logging:
+  level: "info"
+  format: "json"
+
+# Features Configuration
+features:
+  # Code completion with RAG
+  completion_rag: true
+  
+  # Chat with codebase understanding
+  chat_with_context: true
+  
+  # AST parsing and indexing
+  ast_indexing: true
+  
+  # Tool integrations
+  tools_enabled: true
+  
+  # Memory and context management
+  memory_enabled: true
+  
+  # Web browsing capability
+  web_browsing: false
+  
+  # Git integration
+  git_integration: true
+  
+  # Docker integration
+  docker_integration: true
+  
+  # Database integrations
+  postgres_integration: true
+  mysql_integration: false
+
+# Model Preferences
+model_preferences:
+  # Default model for code completion
+  completion_model: "qwen2.5-coder:7b-instruct"
+  
+  # Default model for chat
+  chat_model: "zoi-auto"
+  
+  # Model for embeddings
+  embedding_model: "text-embedding-3-small"
+  
+  # Model for code analysis
+  analysis_model: "qwen2.5-coder:14b-instruct"
+
+# Performance Settings
+performance:
+  # Maximum concurrent requests
+  max_concurrent_requests: 10
+  
+  # Request timeout in seconds
+  request_timeout: 60
+  
+  # Cache settings
+  cache_enabled: true
+  cache_ttl: 3600
+  
+  # Indexing settings
+  indexing_batch_size: 100
+  indexing_interval: 300
+
+# Security Settings
+security:
+  # Enable API key validation
+  api_key_required: true
+  
+  # Enable CORS
+  cors_enabled: true
+  cors_origins: ["http://localhost:*", "http://*.zoi.local"]
+  
+  # Rate limiting
+  rate_limit_enabled: true
+  rate_limit_requests_per_minute: 100
+
+# Integration Settings
+integrations:
+  # GitHub integration
+  github:
+    enabled: false
+    # token: "ghp_your_token_here"
+  
+  # GitLab integration
+  gitlab:
+    enabled: false
+    # token: "glpat_your_token_here"
+  
+  # PostgreSQL integration
+  postgres:
+    enabled: true
+    host: "postgres"
+    port: 5432
+    database: "refact"
+    username: "postgres"
+    password: "litellm_password123"
+  
+  # Docker integration
+  docker:
+    enabled: true
+    socket_path: "/var/run/docker.sock"
+  
+  # Shell integration
+  shell:
+    enabled: true
+    allowed_commands: ["ls", "cat", "grep", "find", "git"]
+
+# File Processing Settings
+file_processing:
+  # Supported file extensions
+  supported_extensions: [
+    ".py", ".js", ".ts", ".jsx", ".tsx", ".rs", ".go", ".java", ".cpp", ".c", ".h",
+    ".cs", ".php", ".rb", ".swift", ".kt", ".scala", ".clj", ".hs", ".ml", ".fs",
+    ".sh", ".bash", ".zsh", ".fish", ".ps1", ".bat", ".cmd",
+    ".html", ".css", ".scss", ".sass", ".less", ".vue", ".svelte",
+    ".json", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".conf",
+    ".md", ".rst", ".txt", ".log"
+  ]
+  
+  # Maximum file size in bytes (10MB)
+  max_file_size: 10485760
+  
+  # Files to ignore
+  ignore_patterns: [
+    "node_modules/**",
+    ".git/**",
+    "target/**",
+    "build/**",
+    "dist/**",
+    "*.min.js",
+    "*.min.css",
+    "*.map"
+  ]

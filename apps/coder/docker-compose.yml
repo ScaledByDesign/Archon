@@ -1,0 +1,201 @@
+name: zoi-coder
+
+services:
+  # 🤖 Refact Server - AI Inference Server with Web UI
+  refact-server:
+    image: smallcloud/refact_self_hosting:latest
+    container_name: refact-server
+    restart: unless-stopped
+    ports:
+      - "${REFACT_SERVER_PORT:-7400}:8008"
+    environment:
+      # Database Configuration - Use PostgreSQL instead of Cassandra
+      - REFACT_DATABASE_HOST=postgres
+      - REFACT_DATABASE_PORT=5432
+      - REFACT_DATABASE_NAME=refact
+      - REFACT_DATABASE_USER=postgres
+      - REFACT_DATABASE_PASSWORD=litellm_password123
+      
+      # Storage Configuration
+      - REFACT_PERM_DIR=/perm_storage
+      - REFACT_TMP_DIR=/tmp
+      
+      # Model Configuration
+      - MODELS_PATH=/models
+      - HF_HOME=/models/huggingface
+      - TRANSFORMERS_CACHE=/models/huggingface/transformers
+      
+      # LiteLLM Integration
+      - LITELLM_BASE_URL=http://litellm:4000
+      - LITELLM_API_KEY=${LITELLM_MASTER_KEY}
+      
+      # Redis Cache
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      
+      # Performance Settings
+      - CUDA_VISIBLE_DEVICES=all
+      - RDMAV_FORK_SAFE=0
+      - RDMAV_HUGEPAGES_SAFE=0
+      
+      # Security
+      - REFACT_ADMIN_TOKEN=${REFACT_ADMIN_TOKEN:-refact-admin-token-change-me}
+      
+    volumes:
+      - refact_storage:/perm_storage
+      - ${MODELS_PATH:-D:/models}:/models:ro
+      - /etc/localtime:/etc/localtime:ro
+    
+    networks:
+      - zoi-network
+    
+    # Dependencies managed by main docker-compose.yml
+    # depends_on services from other stacks
+    
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:8008/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.refact-server.rule=Host(`refact.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.refact-server.entrypoints=web"
+      - "traefik.http.services.refact-server.loadbalancer.server.port=8008"
+    
+    # GPU support for NVIDIA
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  # 🦀 Refact Agent - LSP Server for IDE Integration
+  # TEMPORARILY DISABLED - refact-lsp binary not available in standard image
+  # TODO: Fix refact-agent setup - current issue: /opt/nvidia/nvidia_entrypoint.sh: line 67: exec: refact-lsp: not found
+  # refact-agent:
+  #   image: smallcloud/refact_self_hosting:latest
+  #   command: ["python", "-m", "refact_webgui.webgui.main", "--host", "0.0.0.0", "--port", "8001", "--lsp-mode"]
+  #   container_name: refact-agent
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${REFACT_AGENT_PORT:-7401}:8001"
+  #   working_dir: /app
+  #   environment:
+  #     # Server Connection
+  #     - REFACT_SERVER_URL=http://refact-server:8008
+  #     - REFACT_API_KEY=${REFACT_ADMIN_TOKEN:-refact-admin-token-change-me}
+
+  #     # LiteLLM Integration
+  #     - OPENAI_API_BASE=http://litellm:4000/v1
+  #     - OPENAI_API_KEY=${LITELLM_MASTER_KEY}
+
+  #     # Database Configuration
+  #     - DATABASE_URL=postgresql://postgres:litellm_password123@postgres:5432/refact
+
+  #     # Cache Configuration
+  #     - REDIS_URL=redis://redis:6379
+
+  #     # Logging
+  #     - RUST_LOG=info
+  #     - REFACT_LOG_LEVEL=info
+
+  #   volumes:
+  #     - refact_agent_cache:/root/.cache/refact
+  #     - ./config/bring-your-own-key.yaml:/app/.config/refact/bring-your-own-key.yaml:ro
+  #     - /etc/localtime:/etc/localtime:ro
+
+  #   networks:
+  #     - zoi-network
+
+  #   depends_on:
+  #     refact-server:
+  #       condition: service_healthy
+
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -fsSL http://localhost:8001/health || exit 1"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.refact-agent.rule=Host(`refact-agent.${DOMAIN:-zoi.local}`)"
+  #     - "traefik.http.routers.refact-agent.entrypoints=web"
+  #     - "traefik.http.services.refact-agent.loadbalancer.server.port=8001"
+
+  # ⚛️ Refact GUI - Simple Web Interface
+  refact-gui:
+    image: nginx:alpine
+    container_name: refact-gui
+    restart: unless-stopped
+    ports:
+      - "${REFACT_GUI_PORT:-7402}:80"
+
+    volumes:
+      - ./gui-simple:/usr/share/nginx/html:ro
+      - /etc/localtime:/etc/localtime:ro
+    
+    networks:
+      - zoi-network
+    
+    depends_on:
+      refact-server:
+        condition: service_healthy
+      refact-agent:
+        condition: service_healthy
+    
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.refact-gui.rule=Host(`refact-chat.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.refact-gui.entrypoints=web"
+      - "traefik.http.services.refact-gui.loadbalancer.server.port=3000"
+
+  # 📚 Refact Documentation
+  refact-docs:
+    build:
+      context: ./docs
+      dockerfile: Dockerfile
+    container_name: refact-docs
+    restart: unless-stopped
+    ports:
+      - "${REFACT_DOCS_PORT:-7403}:80"
+    
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    
+    networks:
+      - zoi-network
+    
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.refact-docs.rule=Host(`refact-docs.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.refact-docs.entrypoints=web"
+      - "traefik.http.services.refact-docs.loadbalancer.server.port=80"
+
+volumes:
+  refact_storage:
+    name: refact_storage
+  refact_agent_cache:
+    name: refact_agent_cache
+
+networks:
+  zoi-network:
+    name: zoi-network
+    external: true

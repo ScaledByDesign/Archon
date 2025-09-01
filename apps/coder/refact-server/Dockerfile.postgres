@@ -1,0 +1,104 @@
+# Refact Server with PostgreSQL Integration
+# Based on the original Dockerfile but modified for PostgreSQL instead of Cassandra
+
+FROM nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+
+ENV INSTALL_OPTIONAL=TRUE
+ENV MAX_JOBS=8
+
+# Install system dependencies
+RUN apt-get update && DEBIAN_FRONTEND="noninteractive" TZ=Etc/UTC apt-get install -y \
+    curl \
+    git \
+    htop \
+    tmux \
+    file \
+    vim \
+    expect \
+    mpich \
+    libmpich-dev \
+    protobuf-compiler \
+    python3 \
+    python3-pip \
+    python3-packaging \
+    ruby-full \
+    ruby-bundler \
+    build-essential \
+    pkg-config \
+    libicu-dev \
+    zlib1g-dev \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    # PostgreSQL client and development libraries
+    postgresql-client \
+    libpq-dev \
+    # Redis client
+    redis-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up Python and build tools
+RUN echo "export PATH=/usr/local/cuda/bin:\$PATH" > /etc/profile.d/50-smc.sh
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+
+# Remove cmake and install newer version
+RUN DEBIAN_FRONTEND="noninteractive" TZ=Etc/UTC apt remove cmake -y
+RUN pip install cmake --upgrade
+
+# Install linguist for language detection
+RUN git clone https://github.com/smallcloudai/linguist.git /tmp/linguist \
+    && cd /tmp/linguist \
+    && bundle install \
+    && rake build_gem
+ENV PATH="${PATH}:/tmp/linguist/bin"
+
+# Install PyTorch and related packages
+RUN pip install --no-cache-dir torch==2.6.0
+RUN pip install --no-cache-dir xformers==0.0.29.post2
+RUN pip install ninja
+RUN pip install packaging==24.1 setuptools==70.0.0 setuptools-scm==8.1.0
+
+# Install vLLM with CUDA support
+ENV CMAKE_ARGS="-DLLAMA_CUBLAS=on -DCMAKE_CUDA_ARCHITECTURES=60;61;70;75;80;86;89;90+PTX"
+RUN pip install -v --no-build-isolation vllm==v0.8.5
+
+# Install PostgreSQL Python adapter
+RUN pip install psycopg2-binary asyncpg
+
+# Install additional Python packages for PostgreSQL integration
+RUN pip install \
+    sqlalchemy \
+    alembic \
+    redis \
+    fastapi \
+    uvicorn \
+    pydantic
+
+# Copy application code
+ARG GIT_COMMIT_HASH=""
+COPY . /tmp/app
+RUN echo "refact ${GIT_COMMIT_HASH}" >> /refact-build-info.txt
+
+# Install Refact application
+RUN pip install ninja
+RUN pip install -U cython
+RUN pip install /tmp/app -v --no-build-isolation && rm -rf /tmp/app
+
+# Set environment variables
+ENV REFACT_PERM_DIR="/perm_storage"
+ENV REFACT_TMP_DIR="/tmp"
+ENV RDMAV_FORK_SAFE=0
+ENV RDMAV_HUGEPAGES_SAFE=0
+
+# Expose port
+EXPOSE 8008
+
+# Copy custom entrypoint script
+COPY docker-entrypoint-postgres.sh /docker-entrypoint-postgres.sh
+RUN chmod +x /docker-entrypoint-postgres.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=5 \
+    CMD curl -f http://localhost:8008/health || exit 1
+
+# Use PostgreSQL-compatible entrypoint
+CMD ["/docker-entrypoint-postgres.sh"]
