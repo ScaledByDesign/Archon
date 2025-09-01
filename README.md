@@ -1,511 +1,495 @@
-# 🌀 Zoi AI Ecosystem
-
-> **A comprehensive, self-hosted AI infrastructure with intelligent model routing, vector storage, workflow automation, and knowledge management.**
-
-[![Docker](https://img.shields.io/badge/Docker-Compose-blue?logo=docker)](https://docker.com)
-[![AI Models](https://img.shields.io/badge/AI-18%20Models-green?logo=openai)](http://localhost:7010)
-[![Vector DB](https://img.shields.io/badge/Vector-Qdrant-purple?logo=qdrant)](http://localhost:7060)
-[![Workflows](https://img.shields.io/badge/Workflows-LangFlow-orange?logo=langflow)](http://localhost:7070)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
-
-## 📋 Table of Contents
-
-- [🎯 Overview](#-overview)
-- [🏗️ Architecture](#️-architecture)
-- [🚀 Quick Start](#-quick-start)
-- [🌐 Service Directory](#-service-directory)
-- [🤖 AI Models & Capabilities](#-ai-models--capabilities)
-- [📁 Project Structure](#-project-structure)
-- [🔧 Configuration](#-configuration)
-- [🚦 Management Commands](#-management-commands)
-- [🔍 Monitoring & Health](#-monitoring--health)
-- [🎯 Use Cases](#-use-cases)
-- [🔧 Advanced Configuration](#-advanced-configuration)
-- [🚨 Troubleshooting](#-troubleshooting)
-- [📊 Performance Metrics](#-performance-metrics)
-- [🔐 Security](#-security)
-- [🚀 Production Deployment](#-production-deployment)
-- [🤝 Contributing](#-contributing)
-- [📄 License](#-license)
-- [🙏 Acknowledgments](#-acknowledgments)
-
-## 🎯 Overview
-
-Zoi is a production-ready, self-hosted AI ecosystem that provides:
-
-- **🤖 Multi-Model AI Gateway** - Unified API for 18+ AI models with intelligent routing
-- **🧠 Vector Knowledge Base** - RAG-enabled semantic search and document understanding
-- **🔄 Visual Workflows** - No-code AI automation with LangFlow and n8n
-- **💬 Modern Chat Interfaces** - OpenWebUI and LobeChat with multi-model support
-- **👨‍💻 AI Code Assistant** - Refact for intelligent code completion and generation
-- **📊 Knowledge Management** - Archon MCP for structured knowledge and task management
-- **🔐 Enterprise Security** - Authentik SSO, Traefik reverse proxy, and network isolation
-
-## 🏗️ Architecture
-
-### Microservices Stack
-```
-┌─────────────────┬─────────────────┬─────────────────┬─────────────────┐
-│   🌀 CORE       │  🏢 PLATFORM    │   🛠️ TOOLS      │  📚 KNOWLEDGE   │
-├─────────────────┼─────────────────┼─────────────────┼─────────────────┤
-│ • LiteLLM       │ • Traefik       │ • n8n           │ • Archon MCP    │
-│ • vLLM          │ • Authentik     │ • OpenWebUI     │ • Neo4j         │
-│ • Ollama        │ • PostgreSQL    │ • LobeChat      │ • Vector Store  │
-│ • Qdrant        │ • Redis         │ • Refact Coder  │                 │
-│ • LangFlow      │ • MongoDB       │                 │                 │
-└─────────────────┴─────────────────┴─────────────────┴─────────────────┘
-```
-
-### Network Architecture
-- **🌐 zoi-network** - Unified Docker network for secure inter-service communication
-- **🔒 SSL Termination** - Traefik handles HTTPS and domain routing
-- **🛡️ Authentication** - Authentik provides SSO and OAuth2 flows
-- **📊 Monitoring** - Comprehensive observability with Grafana and Prometheus
-
-## 🚀 Quick Start
-
-### Prerequisites
-- **Docker & Docker Compose** (v2.20+)
-- **16GB+ RAM** (32GB recommended for optimal performance)
-- **NVIDIA GPU** (optional, for accelerated inference)
-- **50GB+ Storage** (for models and data)
-
-### 1. Clone & Setup
-```bash
-git clone https://github.com/ScaledByDesign/zoi.git
-cd zoi
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-### 2. Bootstrap System
-```bash
-# Automated bootstrap (recommended)
-make bootstrap
-
-# Or manual startup
-make start
-```
-
-### 3. Access Services
-```bash
-# Core AI Services
-open http://localhost:7010  # LiteLLM API Gateway
-open http://localhost:7070  # LangFlow Workflows
-open http://localhost:7060  # Qdrant Vector DB
-
-# Chat Interfaces
-open http://localhost:7301  # OpenWebUI
-open http://localhost:7302  # LobeChat
-
-# Code Assistant
-open http://localhost:7011  # Refact AI Coder
-
-# Knowledge Management
-open http://localhost:7080  # Archon MCP
-```
-
-## 🌐 Service Directory
-
-### 🌀 Core AI Services
-| Service | Port | URL | Purpose |
-|---------|------|-----|---------|
-| **LiteLLM Gateway** | 7010 | http://localhost:7010 | Unified AI API with 18+ models |
-| **vLLM Inference** | 7050 | http://localhost:7050 | High-performance model serving |
-| **Ollama API** | 7040 | http://localhost:7040 | Local model management |
-| **Qdrant Vector DB** | 7060 | http://localhost:7060 | Vector storage & semantic search |
-| **LangFlow Builder** | 7070 | http://localhost:7070 | Visual AI workflow automation |
-| **Neo4j Graph DB** | 7061 | http://localhost:7061 | Knowledge graph & reasoning |
-
-### 🏢 Platform Services
-| Service | Port | URL | Purpose |
-|---------|------|-----|---------|
-| **Traefik Dashboard** | 8080 | http://localhost:8080 | Reverse proxy & load balancer |
-| **Authentik SSO** | 7208 | http://localhost:7208 | Authentication & identity |
-| **PostgreSQL** | 7063 | localhost:7063 | Primary database |
-| **Redis Cache** | 7064 | localhost:7064 | Caching & sessions |
-| **MongoDB** | 7202 | localhost:7202 | Document storage |
-
-### 🛠️ Productivity Tools
-| Service | Port | URL | Purpose |
-|---------|------|-----|---------|
-| **n8n Workflows** | 7300 | http://localhost:7300 | Automation & integrations |
-| **OpenWebUI** | 7301 | http://localhost:7301 | Modern AI chat interface |
-| **LobeChat** | 7302 | http://localhost:7302 | Advanced AI chat with plugins |
-| **Refact Coder** | 7011 | http://localhost:7011 | AI code completion & generation |
-
-### 📚 Knowledge Management
-| Service | Port | URL | Purpose |
-|---------|------|-----|---------|
-| **Archon UI** | 7080 | http://localhost:7080 | Knowledge base dashboard |
-| **Archon API** | 7081 | http://localhost:7081 | Backend API service |
-| **Archon MCP** | 7082 | http://localhost:7082 | Model Context Protocol |
-| **Archon Agents** | 7083 | http://localhost:7083 | AI processing service |
-
-## 🤖 AI Models & Capabilities
-
-### Available Models (18 Total)
-```yaml
-Local Models:
-  • zoi-thinker      → General reasoning (Qwen2.5-7B)
-  • zoi-helper       → Assistant tasks (Qwen2.5-7B)  
-  • zoi-coder-vllm   → Code generation (Qwen2.5-Coder-7B)
-  • zoi-embed        → Embeddings (mxbai-embed-large)
-  • zoi-rag-helper   → RAG assistance
-  • zoi-rag-thinker  → RAG reasoning
-
-API Compatible:
-  • gpt-3.5-turbo, gpt-4, gpt-4o-mini
-  • claude-3-5-sonnet, claude-3-opus, claude-3-haiku
-  • Auto-routing with zoi:auto
-```
-
-### Smart Features
-- **🎯 Auto-Routing** - Intelligent model selection based on query type
-- **🧠 RAG Integration** - Context-aware responses with vector search
-- **💾 Response Caching** - Redis-based caching for performance
-- **📊 Usage Tracking** - Comprehensive analytics and cost monitoring
-- **🔄 Load Balancing** - Automatic failover and scaling
-
-## �‍💻 AI Code Assistant (Refact)
-
-### Features
-- **🧠 Intelligent Code Completion** - Context-aware suggestions across 40+ languages
-- **🔄 Code Refactoring** - AI-powered code improvements and optimization
-- **💬 Chat Interface** - Ask questions about your codebase
-- **🔍 Code Analysis** - Understand complex codebases with AI assistance
-- **🌐 IDE Integration** - Works with VS Code, JetBrains, Vim, and more
-
-### Setup & Usage
-```bash
-# Refact is automatically configured to use your local LiteLLM
-# Access the web interface at:
-open http://localhost:7011
-
-# Configure your IDE plugin:
-# 1. Install Refact plugin for your IDE
-# 2. Set inference URL to: http://localhost:7011
-# 3. Start coding with AI assistance!
-```
-
-### IDE Plugin Installation
-- **VS Code**: Search "Refact.ai" in extensions marketplace
-- **JetBrains**: Install from plugins marketplace
-- **Vim/Neovim**: Use the official Refact plugin
-- **Other IDEs**: Check [Refact documentation](https://refact.ai/docs)
-
-### Model Configuration
-Refact is pre-configured to use your local models through LiteLLM:
-- **Code Completion**: Uses `gpt-4o-mini-oss` via LiteLLM
-- **Chat Interface**: Full model selection available
-- **Custom Models**: Add more models in `~/.refact/perm-storage/cfg/third_party_models.cfg`
-
-## �📁 Project Structure
-
-```
-zoi/
-├── 📁 apps/                    # Service stacks
-│   ├── 🌀 core/               # AI infrastructure
-│   ├── 🏢 platform/           # Base services
-│   ├── 🛠️ tools/              # Productivity apps
-│   ├── 👨‍💻 coder/              # AI code assistant (Refact)
-│   ├── 📚 archon-mcp/         # Knowledge management
-│   └── 📊 monitor/            # Observability
-├── 📁 config/                 # Centralized configuration
-│   ├── 🤖 litellm/           # AI gateway config
-│   ├── 🗄️ qdrant/            # Vector DB config
-│   ├── 🔐 authentik/         # Auth config
-│   └── 🌐 traefik/           # Proxy config
-├── 📁 scripts/               # Automation scripts
-├── 📁 docs/                  # Documentation
-├── 🐳 docker-compose.yml     # Stack orchestrator
-├── ⚙️ .env                   # Environment config
-└── 📋 Makefile              # Build automation
-```
-
-## 🔧 Configuration
-
-### Environment Variables
-Key settings in `.env`:
-```bash
-# AI Configuration
-LITELLM_MASTER_KEY="your-api-key"
-OLLAMA_PORT=7040
-QDRANT_PORT=7060
-LANGFLOW_PORT=7070
-
-# Database Settings  
-POSTGRES_PASSWORD="secure-password"
-REDIS_PASSWORD="redis-password"
-
-# Domain Configuration
-DOMAIN=zoi.local
-```
-
-### Model Configuration
-Models are configured in `config/litellm/config.yaml`:
-- Model routing rules
-- Performance settings
-- Vector store integration
-- Caching policies
-
-## 🚦 Management Commands
-
-```bash
-# System Management
-make bootstrap    # Complete system setup
-make start       # Start all services
-make stop        # Stop all services  
-make restart     # Restart all services
-make status      # Check service health
-
-# Stack Management
-make start-core      # Start AI services
-make start-platform  # Start infrastructure
-make start-tools     # Start productivity apps
-make start-archon    # Start knowledge management
-
-# Maintenance
-make logs        # View all logs
-make clean       # Clean up containers
-make update      # Update all images
-```
-
-## 🔍 Monitoring & Health
-
-### Health Checks
-- **Service Status**: `make status`
-- **API Health**: http://localhost:7010/health
-- **Vector DB**: http://localhost:7060/dashboard
-- **Traefik Dashboard**: http://localhost:8080
-
-### Logs & Debugging
-```bash
-# View logs for specific services
-docker compose logs -f litellm
-docker compose logs -f qdrant
-docker compose logs -f langflow
-
-# System-wide logs
-make logs
-```
-
-## 🎯 Use Cases
-
-### 🤖 AI Development
-- **Multi-Model Testing** - Compare responses across different AI models
-- **RAG Applications** - Build context-aware AI applications
-- **Workflow Automation** - Create complex AI pipelines with LangFlow
-- **Code Generation** - AI-powered code completion and refactoring with Refact
-- **API Integration** - OpenAI-compatible API for existing applications
-
-### 📚 Knowledge Management
-- **Document Processing** - Intelligent document analysis and extraction
-- **Semantic Search** - Find information by meaning, not just keywords
-- **Knowledge Graphs** - Build structured knowledge representations
-- **Task Management** - AI-powered project and task organization
-
-### 🏢 Enterprise Applications
-- **Internal ChatGPT** - Private AI assistant for your organization
-- **Process Automation** - Streamline workflows with n8n integration
-- **Data Analysis** - AI-powered insights from your data
-- **Content Generation** - Automated content creation and editing
-
-## 🔧 Advanced Configuration
-
-### GPU Acceleration
-For NVIDIA GPU support, ensure Docker has GPU access:
-```bash
-# Install NVIDIA Container Toolkit
-curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
-curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
-  sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
-  sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
-sudo nvidia-ctk runtime configure --runtime=docker
-sudo systemctl restart docker
-```
-
-### Custom Models
-Add your own models to `config/litellm/config.yaml`:
-```yaml
-model_list:
-  - model_name: my-custom-model
-    litellm_params:
-      model: ollama/my-model:latest
-      api_base: http://ollama:11434
-```
-
-### Domain Configuration
-For custom domains, update `/etc/hosts`:
-```bash
-127.0.0.1 zoi.local
-127.0.0.1 auth.zoi.local
-127.0.0.1 traefik.zoi.local
-127.0.0.1 llm.zoi.local
-127.0.0.1 chat.zoi.local
-```
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-#### Services Won't Start
-```bash
-# Check Docker daemon
-sudo systemctl status docker
-
-# Verify network exists
-docker network ls | grep zoi-network
-
-# Check port conflicts
-netstat -tulpn | grep :7010
-```
-
-#### Out of Memory
-```bash
-# Check system resources
-docker stats
-
-# Reduce model concurrency in config/litellm/config.yaml
-# Increase Docker memory limits
-```
-
-#### GPU Not Detected
-```bash
-# Verify GPU access
-nvidia-smi
-docker run --rm --gpus all nvidia/cuda:11.8-base-ubuntu20.04 nvidia-smi
-```
-
-### Performance Tuning
-
-#### Database Optimization
-```sql
--- PostgreSQL tuning for AI workloads
-ALTER SYSTEM SET shared_buffers = '2GB';
-ALTER SYSTEM SET effective_cache_size = '8GB';
-ALTER SYSTEM SET work_mem = '256MB';
-SELECT pg_reload_conf();
-```
-
-#### Vector Database Tuning
-```yaml
-# config/qdrant/config.yaml
-storage:
-  performance:
-    max_search_threads: 8
-    max_optimization_threads: 4
-```
-
-## 📊 Performance Metrics
-
-### Typical Performance
-- **Response Time**: 200-2000ms (depending on model)
-- **Throughput**: 10-50 requests/second
-- **Memory Usage**: 8-16GB (with models loaded)
-- **Storage**: 20-50GB (models + data)
-
-### Scaling Recommendations
-- **Small Team (1-10 users)**: 16GB RAM, 4 CPU cores
-- **Medium Team (10-50 users)**: 32GB RAM, 8 CPU cores, GPU
-- **Large Team (50+ users)**: 64GB RAM, 16 CPU cores, Multiple GPUs
-
-## 🔐 Security
-
-### Authentication & Authorization
-- **Authentik SSO** - Enterprise-grade identity provider
-- **OAuth2/OIDC** - Standard authentication protocols
-- **Role-Based Access** - Granular permission control
-- **API Key Management** - Secure API access tokens
-
-### Network Security
-- **Docker Network Isolation** - Services communicate via private networks
-- **Traefik SSL Termination** - HTTPS encryption for all services
-- **Internal Service Communication** - No external exposure of internal APIs
-- **Firewall Ready** - Easy to configure with iptables/ufw
-
-### Data Protection
-- **Encrypted Storage** - Database encryption at rest
-- **Secure Secrets** - Environment-based secret management
-- **Audit Logging** - Comprehensive access and activity logs
-- **Backup Strategy** - Automated backup procedures
-
-## 🚀 Production Deployment
-
-### Infrastructure Requirements
-```yaml
-Minimum Production Setup:
-  CPU: 8 cores (16 recommended)
-  RAM: 32GB (64GB recommended)
-  Storage: 500GB SSD (1TB recommended)
-  Network: 1Gbps connection
-  GPU: NVIDIA RTX 4090 or better (optional)
-```
-
-### Deployment Checklist
-- [ ] **Security Hardening** - Change default passwords, enable SSL
-- [ ] **Backup Strategy** - Configure automated backups
-- [ ] **Monitoring Setup** - Deploy Grafana/Prometheus stack
-- [ ] **Load Testing** - Verify performance under load
-- [ ] **Disaster Recovery** - Document recovery procedures
-- [ ] **Update Strategy** - Plan for rolling updates
-
-### High Availability Setup
-```bash
-# Multi-node deployment with Docker Swarm
-docker swarm init
-docker stack deploy -c docker-compose.prod.yml zoi
-
-# Or with Kubernetes
-kubectl apply -f k8s/
-```
-
-## 🤝 Contributing
-
-### Development Setup
-```bash
-# Clone with development branch
-git clone -b develop https://github.com/ScaledByDesign/zoi.git
-cd zoi
-
-# Install development dependencies
-pip install -r requirements-dev.txt
-npm install -g @commitlint/cli @commitlint/config-conventional
-
-# Run tests
-make test
-```
-
-### Contribution Guidelines
-1. **Fork** the repository
-2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
-3. **Commit** changes (`git commit -m 'feat: add amazing feature'`)
-4. **Push** to branch (`git push origin feature/amazing-feature`)
-5. **Open** a Pull Request
-
-### Code Standards
-- **Python**: Black formatting, type hints, docstrings
-- **JavaScript**: ESLint, Prettier formatting
-- **Docker**: Multi-stage builds, security scanning
-- **Documentation**: Clear README files for all components
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-Built with amazing open-source projects:
-- [LiteLLM](https://github.com/BerriAI/litellm) - AI Gateway
-- [Qdrant](https://github.com/qdrant/qdrant) - Vector Database
-- [LangFlow](https://github.com/langflow-ai/langflow) - Visual Workflows
-- [Traefik](https://github.com/traefik/traefik) - Reverse Proxy
-- [Authentik](https://github.com/goauthentik/authentik) - Authentication
+<p align="center">
+  <img src="./archon-ui-main/public/archon-main-graphic.png" alt="Archon Main Graphic" width="853" height="422">
+</p>
+
+<p align="center">
+  <em>Power up your AI coding assistants with your own custom knowledge base and task management as an MCP server</em>
+</p>
+
+<p align="center">
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#upgrading">Upgrading</a> •
+  <a href="#whats-included">What's Included</a> •
+  <a href="#architecture">Architecture</a> •
+  <a href="#troubleshooting">Troubleshooting</a>
+</p>
 
 ---
 
-**🌟 Star this repo if you find it useful!**
+## 🎯 What is Archon?
 
-For detailed documentation, visit our [docs](./docs/) directory or check individual service READMEs in the `apps/` folder.
+> Archon is currently in beta! Expect things to not work 100%, and please feel free to share any feedback and contribute with fixes/new features! Thank you to everyone for all the excitement we have for Archon already, as well as the bug reports, PRs, and discussions. It's a lot for our small team to get through but we're committed to addressing everything and making Archon into the best tool it possibly can be!
+
+Archon is the **command center** for AI coding assistants. For you, it's a sleek interface to manage knowledge, context, and tasks for your projects. For the AI coding assistant(s), it's a **Model Context Protocol (MCP) server** to collaborate on and leverage the same knowledge, context, and tasks. Connect Claude Code, Kiro, Cursor, Windsurf, etc. to give your AI agents access to:
+
+- **Your documentation** (crawled websites, uploaded PDFs/docs)
+- **Smart search capabilities** with advanced RAG strategies
+- **Task management** integrated with your knowledge base
+- **Real-time updates** as you add new content and collaborate with your coding assistant on tasks
+- **Much more** coming soon to build Archon into an integrated environment for all context engineering
+
+This new vision for Archon replaces the old one (the agenteer). Archon used to be the AI agent that builds other agents, and now you can use Archon to do that and more.
+
+> It doesn't matter what you're building or if it's a new/existing codebase - Archon's knowledge and task management capabilities will improve the output of **any** AI driven coding.
+
+## 🔗 Important Links
+
+- **[GitHub Discussions](https://github.com/coleam00/Archon/discussions)** - Join the conversation and share ideas about Archon
+- **[Contributing Guide](CONTRIBUTING.md)** - How to get involved and contribute to Archon
+- **[Introduction Video](https://youtu.be/8pRc_s2VQIo)** - Getting started guide and vision for Archon
+- **[Archon Kanban Board](https://github.com/users/coleam00/projects/1)** - Where maintainers are managing issues/features
+- **[Dynamous AI Mastery](https://dynamous.ai)** - The birthplace of Archon - come join a vibrant community of other early AI adopters all helping each other transform their careers and businesses!
+
+## Quick Start
+
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- [Node.js 18+](https://nodejs.org/) (for hybrid development mode)
+- [Supabase](https://supabase.com/) account (free tier or local Supabase both work)
+- [OpenAI API key](https://platform.openai.com/api-keys) (Gemini and Ollama are supported too!)
+- (OPTIONAL) [Make](https://www.gnu.org/software/make/) (see [Installing Make](#installing-make) below)
+
+### Setup Instructions
+
+1. **Clone Repository**:
+   ```bash
+   git clone https://github.com/coleam00/archon.git
+   ```
+   ```bash
+   cd archon
+   ```
+2. **Environment Configuration**:
+
+   ```bash
+   cp .env.example .env
+   # Edit .env and add your Supabase credentials:
+   # SUPABASE_URL=https://your-project.supabase.co
+   # SUPABASE_SERVICE_KEY=your-service-key-here
+   ```
+
+   IMPORTANT NOTES:
+   - For cloud Supabase: they recently introduced a new type of service role key but use the legacy one (the longer one).
+   - For local Supabase: set SUPABASE_URL to http://host.docker.internal:8000 (unless you have an IP address set up).
+
+3. **Database Setup**: In your [Supabase project](https://supabase.com/dashboard) SQL Editor, copy, paste, and execute the contents of `migration/complete_setup.sql`
+
+4. **Start Services** (choose one):
+
+   **Full Docker Mode (Recommended for Normal Archon Usage)**
+
+   ```bash
+   docker compose up --build -d
+   ```
+
+   This starts all core microservices in Docker:
+   - **Server**: Core API and business logic (Port: 8181)
+   - **MCP Server**: Protocol interface for AI clients (Port: 8051)
+   - **UI**: Web interface (Port: 3737)
+
+   Ports are configurable in your .env as well!
+
+5. **Configure API Keys**:
+   - Open http://localhost:3737
+   - You'll automatically be brought through an onboarding flow to set your API key (OpenAI is default)
+
+## ⚡ Quick Test
+
+Once everything is running:
+
+1. **Test Web Crawling**: Go to http://localhost:3737 → Knowledge Base → "Crawl Website" → Enter a doc URL (such as https://ai.pydantic.dev/llms-full.txt)
+2. **Test Document Upload**: Knowledge Base → Upload a PDF
+3. **Test Projects**: Projects → Create a new project and add tasks
+4. **Integrate with your AI coding assistant**: MCP Dashboard → Copy connection config for your AI coding assistant 
+
+## Installing Make
+
+<details>
+<summary><strong>🛠️ Make installation (OPTIONAL - For Dev Workflows)</strong></summary>
+
+### Windows
+
+```bash
+# Option 1: Using Chocolatey
+choco install make
+
+# Option 2: Using Scoop
+scoop install make
+
+# Option 3: Using WSL2
+wsl --install
+# Then in WSL: sudo apt-get install make
+```
+
+### macOS
+
+```bash
+# Make comes pre-installed on macOS
+# If needed: brew install make
+```
+
+### Linux
+
+```bash
+# Debian/Ubuntu
+sudo apt-get install make
+
+# RHEL/CentOS/Fedora
+sudo yum install make
+```
+
+</details>
+
+<details>
+<summary><strong>🚀 Quick Command Reference for Make</strong></summary>
+<br/>
+
+| Command           | Description                                             |
+| ----------------- | ------------------------------------------------------- |
+| `make dev`        | Start hybrid dev (backend in Docker, frontend local) ⭐ |
+| `make dev-docker` | Everything in Docker                                    |
+| `make stop`       | Stop all services                                       |
+| `make test`       | Run all tests                                           |
+| `make lint`       | Run linters                                             |
+| `make install`    | Install dependencies                                    |
+| `make check`      | Check environment setup                                 |
+| `make clean`      | Remove containers and volumes (with confirmation)       |
+
+</details>
+
+## 🔄 Database Reset (Start Fresh if Needed)
+
+If you need to completely reset your database and start fresh:
+
+<details>
+<summary>⚠️ <strong>Reset Database - This will delete ALL data for Archon!</strong></summary>
+
+1. **Run Reset Script**: In your Supabase SQL Editor, run the contents of `migration/RESET_DB.sql`
+
+   ⚠️ WARNING: This will delete all Archon specific tables and data! Nothing else will be touched in your DB though.
+
+2. **Rebuild Database**: After reset, run `migration/complete_setup.sql` to create all the tables again.
+
+3. **Restart Services**:
+
+   ```bash
+   docker compose --profile full up -d
+   ```
+
+4. **Reconfigure**:
+   - Select your LLM/embedding provider and set the API key again
+   - Re-upload any documents or re-crawl websites
+
+The reset script safely removes all tables, functions, triggers, and policies with proper dependency handling.
+
+</details>
+
+## 📚 Documentation
+
+### Core Services
+
+| Service            | Container Name | Default URL           | Purpose                           |
+| ------------------ | -------------- | --------------------- | --------------------------------- |
+| **Web Interface**  | archon-ui      | http://localhost:3737 | Main dashboard and controls       |
+| **API Service**    | archon-server  | http://localhost:8181 | Web crawling, document processing |
+| **MCP Server**     | archon-mcp     | http://localhost:8051 | Model Context Protocol interface  |
+| **Agents Service** | archon-agents  | http://localhost:8052 | AI/ML operations, reranking       |  
+
+## Upgrading
+
+To upgrade Archon to the latest version:
+
+1. **Pull latest changes**:
+   ```bash
+   git pull
+   ```
+
+2. **Check for migrations**: Look in the `migration/` folder for any SQL files newer than your last update. Check the file created dates to determine if you need to run them. You can run these in the SQL editor just like you did when you first set up Archon. We are also working on a way to make handling these migrations automatic!
+
+3. **Rebuild and restart**:
+   ```bash
+   docker compose up -d --build
+   ```
+
+This is the same command used for initial setup - it rebuilds containers with the latest code and restarts services.
+
+## What's Included
+
+### 🧠 Knowledge Management
+
+- **Smart Web Crawling**: Automatically detects and crawls entire documentation sites, sitemaps, and individual pages
+- **Document Processing**: Upload and process PDFs, Word docs, markdown files, and text documents with intelligent chunking
+- **Code Example Extraction**: Automatically identifies and indexes code examples from documentation for enhanced search
+- **Vector Search**: Advanced semantic search with contextual embeddings for precise knowledge retrieval
+- **Source Management**: Organize knowledge by source, type, and tags for easy filtering
+
+### 🤖 AI Integration
+
+- **Model Context Protocol (MCP)**: Connect any MCP-compatible client (Claude Code, Cursor, even non-AI coding assistants like Claude Desktop)
+- **MCP Tools**: Comprehensive yet simple set of tools for RAG queries, task management, and project operations
+- **Multi-LLM Support**: Works with OpenAI, Ollama, and Google Gemini models
+- **RAG Strategies**: Hybrid search, contextual embeddings, and result reranking for optimal AI responses
+- **Real-time Streaming**: Live responses from AI agents with progress tracking
+
+### 📋 Project & Task Management
+
+- **Hierarchical Projects**: Organize work with projects, features, and tasks in a structured workflow
+- **AI-Assisted Creation**: Generate project requirements and tasks using integrated AI agents
+- **Document Management**: Version-controlled documents with collaborative editing capabilities
+- **Progress Tracking**: Real-time updates and status management across all project activities
+
+### 🔄 Real-time Collaboration
+
+- **WebSocket Updates**: Live progress tracking for crawling, processing, and AI operations
+- **Multi-user Support**: Collaborative knowledge building and project management
+- **Background Processing**: Asynchronous operations that don't block the user interface
+- **Health Monitoring**: Built-in service health checks and automatic reconnection
+
+## Architecture
+
+### Microservices Structure
+
+Archon uses true microservices architecture with clear separation of concerns:
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend UI   │    │  Server (API)   │    │   MCP Server    │    │ Agents Service  │
+│                 │    │                 │    │                 │    │                 │
+│  React + Vite   │◄──►│    FastAPI +    │◄──►│    Lightweight  │◄──►│   PydanticAI    │
+│  Port 3737      │    │    SocketIO     │    │    HTTP Wrapper │    │   Port 8052     │
+│                 │    │    Port 8181    │    │    Port 8051    │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                        │                        │                        │
+         └────────────────────────┼────────────────────────┼────────────────────────┘
+                                  │                        │
+                         ┌─────────────────┐               │
+                         │    Database     │               │
+                         │                 │               │
+                         │    Supabase     │◄──────────────┘
+                         │    PostgreSQL   │
+                         │    PGVector     │
+                         └─────────────────┘
+```
+
+### Service Responsibilities
+
+| Service        | Location             | Purpose                      | Key Features                                                       |
+| -------------- | -------------------- | ---------------------------- | ------------------------------------------------------------------ |
+| **Frontend**   | `archon-ui-main/`    | Web interface and dashboard  | React, TypeScript, TailwindCSS, Socket.IO client                   |
+| **Server**     | `python/src/server/` | Core business logic and APIs | FastAPI, service layer, Socket.IO broadcasts, all ML/AI operations |
+| **MCP Server** | `python/src/mcp/`    | MCP protocol interface       | Lightweight HTTP wrapper, MCP tools, session management         |
+| **Agents**     | `python/src/agents/` | PydanticAI agent hosting     | Document and RAG agents, streaming responses                       |
+
+### Communication Patterns
+
+- **HTTP-based**: All inter-service communication uses HTTP APIs
+- **Socket.IO**: Real-time updates from Server to Frontend
+- **MCP Protocol**: AI clients connect to MCP Server via SSE or stdio
+- **No Direct Imports**: Services are truly independent with no shared code dependencies
+
+### Key Architectural Benefits
+
+- **Lightweight Containers**: Each service contains only required dependencies
+- **Independent Scaling**: Services can be scaled independently based on load
+- **Development Flexibility**: Teams can work on different services without conflicts
+- **Technology Diversity**: Each service uses the best tools for its specific purpose
+
+## 🔧 Configuring Custom Ports & Hostname
+
+By default, Archon services run on the following ports:
+
+- **archon-ui**: 3737
+- **archon-server**: 8181
+- **archon-mcp**: 8051
+- **archon-agents**: 8052
+- **archon-docs**: 3838 (optional)
+
+### Changing Ports
+
+To use custom ports, add these variables to your `.env` file:
+
+```bash
+# Service Ports Configuration
+ARCHON_UI_PORT=3737
+ARCHON_SERVER_PORT=8181
+ARCHON_MCP_PORT=8051
+ARCHON_AGENTS_PORT=8052
+ARCHON_DOCS_PORT=3838
+```
+
+Example: Running on different ports:
+
+```bash
+ARCHON_SERVER_PORT=8282
+ARCHON_MCP_PORT=8151
+```
+
+### Configuring Hostname
+
+By default, Archon uses `localhost` as the hostname. You can configure a custom hostname or IP address by setting the `HOST` variable in your `.env` file:
+
+```bash
+# Hostname Configuration
+HOST=localhost  # Default
+
+# Examples of custom hostnames:
+HOST=192.168.1.100     # Use specific IP address
+HOST=archon.local      # Use custom domain
+HOST=myserver.com      # Use public domain
+```
+
+This is useful when:
+
+- Running Archon on a different machine and accessing it remotely
+- Using a custom domain name for your installation
+- Deploying in a network environment where `localhost` isn't accessible
+
+After changing hostname or ports:
+
+1. Restart Docker containers: `docker compose down && docker compose --profile full up -d`
+2. Access the UI at: `http://${HOST}:${ARCHON_UI_PORT}`
+3. Update your AI client configuration with the new hostname and MCP port
+
+## 🔧 Development
+
+### Quick Start
+
+```bash
+# Install dependencies
+make install
+
+# Start development (recommended)
+make dev        # Backend in Docker, frontend local with hot reload
+
+# Alternative: Everything in Docker
+make dev-docker # All services in Docker
+
+# Stop everything (local FE needs to be stopped manually)
+make stop
+```
+
+### Development Modes
+
+#### Hybrid Mode (Recommended) - `make dev`
+
+Best for active development with instant frontend updates:
+
+- Backend services run in Docker (isolated, consistent)
+- Frontend runs locally with hot module replacement
+- Instant UI updates without Docker rebuilds
+
+#### Full Docker Mode - `make dev-docker`
+
+For all services in Docker environment:
+
+- All services run in Docker containers
+- Better for integration testing
+- Slower frontend updates
+
+### Testing & Code Quality
+
+```bash
+# Run tests
+make test       # Run all tests
+make test-fe    # Run frontend tests
+make test-be    # Run backend tests
+
+# Run linters
+make lint       # Lint all code
+make lint-fe    # Lint frontend code
+make lint-be    # Lint backend code
+
+# Check environment
+make check      # Verify environment setup
+
+# Clean up
+make clean      # Remove containers and volumes (asks for confirmation)
+```
+
+### Viewing Logs
+
+```bash
+# View logs using Docker Compose directly
+docker compose logs -f              # All services
+docker compose logs -f archon-server # API server
+docker compose logs -f archon-mcp    # MCP server
+docker compose logs -f archon-ui     # Frontend
+```
+
+**Note**: The backend services are configured with `--reload` flag in their uvicorn commands and have source code mounted as volumes for automatic hot reloading when you make changes.
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### Port Conflicts
+
+If you see "Port already in use" errors:
+
+```bash
+# Check what's using a port (e.g., 3737)
+lsof -i :3737
+
+# Stop all containers and local services
+make stop
+
+# Change the port in .env
+```
+
+#### Docker Permission Issues (Linux)
+
+If you encounter permission errors with Docker:
+
+```bash
+# Add your user to the docker group
+sudo usermod -aG docker $USER
+
+# Log out and back in, or run
+newgrp docker
+```
+
+#### Windows-Specific Issues
+
+- **Make not found**: Install Make via Chocolatey, Scoop, or WSL2 (see [Installing Make](#installing-make))
+- **Line ending issues**: Configure Git to use LF endings:
+  ```bash
+  git config --global core.autocrlf false
+  ```
+
+#### Frontend Can't Connect to Backend
+
+- Check backend is running: `curl http://localhost:8181/health`
+- Verify port configuration in `.env`
+- For custom ports, ensure both `ARCHON_SERVER_PORT` and `VITE_ARCHON_SERVER_PORT` are set
+
+#### Docker Compose Hangs
+
+If `docker compose` commands hang:
+
+```bash
+# Reset Docker Compose
+docker compose down --remove-orphans
+docker system prune -f
+
+# Restart Docker Desktop (if applicable)
+```
+
+#### Hot Reload Not Working
+
+- **Frontend**: Ensure you're running in hybrid mode (`make dev`) for best HMR experience
+- **Backend**: Check that volumes are mounted correctly in `docker-compose.yml`
+- **File permissions**: On some systems, mounted volumes may have permission issues
+
+## 📈 Progress
+
+<p align="center">
+  <a href="https://star-history.com/#coleam00/Archon&Date">
+    <img src="https://api.star-history.com/svg?repos=coleam00/Archon&type=Date" width="500" alt="Star History Chart">
+  </a>
+</p>
+
+## 📄 License
+
+Archon Community License (ACL) v1.2 - see [LICENSE](LICENSE) file for details.
+
+**TL;DR**: Archon is free, open, and hackable. Run it, fork it, share it - just don't sell it as-a-service without permission.
