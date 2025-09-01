@@ -35,7 +35,8 @@ futures = "0.3"
 git2 = "0.20.2"
 glob = "0.3.1"
 hashbrown = "0.15.2"
-headless_chrome = "1.0.16"
+# TEMPORARILY DISABLED - headless_chrome requires edition2024 which is not stable
+# headless_chrome = "1.0.16"
 heed = "0.22.0"
 home = "0.5"
 html2text = "0.12.5"
@@ -104,4 +105,5 @@ zerocopy = "0.8.14"
 
 # There you can use a local copy
 # rmcp = { path = "../../../rust-sdk/crates/rmcp/", "features" = ["client", "transport-child-process", "transport-sse"] }
-rmcp = { git = "https://github.com/smallcloudai/rust-sdk", branch = "main", features = ["client", "transport-child-process", "transport-sse-client", "reqwest"] }
+# TEMPORARILY DISABLED - rmcp package not found in repository
+# rmcp = { git = "https://github.com/smallcloudai/rust-sdk", branch = "main", features = ["client", "transport-child-process", "transport-sse-client", "reqwest"] }

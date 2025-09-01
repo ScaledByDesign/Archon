@@ -278,20 +278,9 @@ try:
     )
     logger.info("✓ FastMCP server instance created successfully")
 
-    # Add a simple test endpoint to bypass MCP session issues
-    @mcp.app.get("/test/list_projects")
-    async def test_list_projects():
-        """Test endpoint to verify our project tool logic works"""
-        try:
-            from .features.projects.project_tools import ProjectTools
-            project_tools = ProjectTools()
-            result = await project_tools.list_projects(None)  # Pass None for context since it's a test
-            return {"success": True, "data": result}
-        except Exception as e:
-            logger.error(f"Test endpoint error: {e}")
-            return {"success": False, "error": str(e)}
-
-    logger.info("✓ Test endpoint added: /test/list_projects")
+    # Note: FastMCP doesn't support custom HTTP endpoints via .app attribute
+    # Test endpoints would need to be implemented differently if needed
+    logger.info("✓ FastMCP server configured (no custom endpoints)")
 
 except Exception as e:
     logger.error(f"✗ Failed to create FastMCP server: {e}")

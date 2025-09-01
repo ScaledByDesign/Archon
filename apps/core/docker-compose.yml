@@ -258,7 +258,7 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: litellm_password123
-      POSTGRES_MULTIPLE_DATABASES: litellm,langflow,lobechat,n8n,openwebui,authentik
+      POSTGRES_MULTIPLE_DATABASES: litellm,langflow,lobechat,n8n,openwebui,authentik,refact
       PGDATA: /var/lib/postgresql/data/pgdata
       # Performance tuning for AI/ML workloads
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=trust"
