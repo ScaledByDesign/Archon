@@ -133,8 +133,8 @@ services:
       - LITELLM_LOG=INFO  # Use INFO instead of DEBUG to avoid JSON serialization issues
     command: ["--config", "/app/config.yaml"]
     depends_on:
-      - vllm
-      - ollama
+      # - vllm  # Removed - using external LLM Studio
+      # - ollama  # Removed - using external LLM Studio
       - postgres
       - redis
     restart: unless-stopped

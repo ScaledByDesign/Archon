@@ -1,8 +1,8 @@
 # ============================================
-# Zoi — LiteLLM front door (container port 4000, host 7010)
-# Internal backends:
-#   - vLLM (3090):   http://vllm:8000/v1
-#   - Ollama (5070): http://ollama:11434
+# Zoi — Simplified LiteLLM Configuration
+# Two LLM Studio endpoints:
+#   - ioz.zoi:1234/v1     (RTX 5070 Ti - Qwen 14B)
+#   - astra.zoi:1234/v1   (RTX 5090 - Qwen 30B + Embeddings)
 # ============================================
 
 general_settings:
@@ -18,8 +18,8 @@ general_settings:
 
   # Keys & defaults
   master_key: sk-wqn0xwq_vha4MVM2yzw
-  default_model: zoi-coder-vllm
-  fallback_models: [zoi-coder-vllm]
+  default_model: zoi-coder
+  fallback_models: [zoi-coder, zoi-planner]
 
   # Persistence
   store_model_in_db: true
@@ -71,9 +71,9 @@ litellm_settings:
     ttl: 600
     namespace: litellm
     supported_call_types: ["acompletion", "atext_completion", "aembedding", "atranscription"]
-  drop_params: true  # Drop unsupported params (e.g., dimensions/encoding_format) for providers like Ollama
+  drop_params: true
 
-  # Cost tracking (dup kept for clarity, harmless with general_settings)
+  # Cost tracking
   enable_cost_tracking: true
   track_cost_per_model: true
   track_cost_per_api_key: true
@@ -120,7 +120,7 @@ litellm_settings:
     well-structured, and production-ready solutions. Include code examples, best practices,
     and consider security, performance, and maintainability.
 
-  # Vector Store (global default RAG provider)
+  # Vector Store (using astra.zoi for embeddings)
   vector_store:
     type: qdrant
     host: qdrant
@@ -134,7 +134,322 @@ litellm_settings:
     embedding_model: zoi-embed
 
 # ------------------------------
-# Vector Store Registry (for UI Management)
+# Model registry (simplified)
+# ------------------------------
+model_list:
+  # Primary: Qwen 14B on RTX 5070 Ti (ioz.zoi)
+  - model_name: zoi-coder
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-14b
+      api_base: http://ioz.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.1
+      max_tokens: 8192
+      top_p: 0.9
+      frequency_penalty: 0.05
+      presence_penalty: 0.02
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.000002
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+      description: "Fast coding model on RTX 5070 Ti"
+
+  # Advanced: Qwen 30B on RTX 5090 (astra.zoi)
+  - model_name: zoi-planner
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-30b
+      api_base: http://astra.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.2
+      max_tokens: 8192
+      top_p: 0.9
+      frequency_penalty: 0.05
+      presence_penalty: 0.02
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000004
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+      description: "Advanced reasoning and planning on RTX 5090"
+
+  # Embeddings on RTX 5090 (astra.zoi)
+  - model_name: zoi-embed
+    litellm_params:
+      custom_llm_provider: openai
+      model: nomic-embed-text
+      api_base: http://astra.zoi:1234/v1
+      api_key: lm-studio
+      timeout: 60
+    model_info:
+      mode: embedding
+      input_cost_per_token: 0.0000005
+      output_cost_per_token: 0.0
+      max_input_tokens: 8192
+      output_vector_size: 1024
+      description: "High-quality embeddings on RTX 5090"
+
+  # ============================================
+  # Model Aliases for Compatibility
+  # ============================================
+  
+  # OpenAI aliases -> zoi-coder (fast)
+  - model_name: gpt-3.5-turbo
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-14b
+      api_base: http://ioz.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.1
+      max_tokens: 4096
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.000002
+      max_input_tokens: 32768
+      max_output_tokens: 4096
+      supports_function_calling: true
+
+  - model_name: gpt-4o-mini
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-14b
+      api_base: http://ioz.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.1
+      max_tokens: 4096
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.000002
+      max_input_tokens: 32768
+      max_output_tokens: 4096
+      supports_function_calling: true
+
+  # OpenAI aliases -> zoi-planner (advanced)
+  - model_name: gpt-4
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-30b
+      api_base: http://astra.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.15
+      max_tokens: 8192
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000004
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+      supports_function_calling: true
+
+  - model_name: gpt-4-turbo
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-30b
+      api_base: http://astra.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.15
+      max_tokens: 8192
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000004
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+      supports_function_calling: true
+
+  # Claude aliases -> zoi models
+  - model_name: claude-3-haiku-20240307
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-14b
+      api_base: http://ioz.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.1
+      max_tokens: 4096
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.000002
+      max_input_tokens: 32768
+      max_output_tokens: 4096
+
+  - model_name: claude-3-sonnet-20240229
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-14b
+      api_base: http://ioz.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.15
+      max_tokens: 6144
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.000002
+      max_input_tokens: 32768
+      max_output_tokens: 6144
+
+  - model_name: claude-3-opus-20240229
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-30b
+      api_base: http://astra.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.2
+      max_tokens: 8192
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000004
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+
+  - model_name: claude-3-5-sonnet-20241022
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-30b
+      api_base: http://astra.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.2
+      max_tokens: 8192
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000004
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+
+  # Embedding aliases -> zoi-embed
+  - model_name: text-embedding-3-small
+    litellm_params:
+      custom_llm_provider: openai
+      model: nomic-embed-text
+      api_base: http://astra.zoi:1234/v1
+      api_key: lm-studio
+      timeout: 60
+    model_info:
+      mode: embedding
+      input_cost_per_token: 0.0000005
+      output_cost_per_token: 0.0
+      max_input_tokens: 8192
+      output_vector_size: 1024
+
+  - model_name: text-embedding-3-large
+    litellm_params:
+      custom_llm_provider: openai
+      model: nomic-embed-text
+      api_base: http://astra.zoi:1234/v1
+      api_key: lm-studio
+      timeout: 60
+    model_info:
+      mode: embedding
+      input_cost_per_token: 0.0000005
+      output_cost_per_token: 0.0
+      max_input_tokens: 8192
+      output_vector_size: 1024
+
+  - model_name: text-embedding-ada-002
+    litellm_params:
+      custom_llm_provider: openai
+      model: nomic-embed-text
+      api_base: http://astra.zoi:1234/v1
+      api_key: lm-studio
+      timeout: 60
+    model_info:
+      mode: embedding
+      input_cost_per_token: 0.0000005
+      output_cost_per_token: 0.0
+      max_input_tokens: 8192
+      output_vector_size: 1024
+
+  # RAG models (with context enhancement)
+  - model_name: zoi-rag
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-30b
+      api_base: http://astra.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.15
+      max_tokens: 8192
+      top_p: 0.9
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000002
+      output_cost_per_token: 0.000004
+      max_input_tokens: 32768
+      max_output_tokens: 8192
+      enable_rag: true
+      vector_store: qdrant
+      embedding_model: zoi-embed
+      rag_context_window: 4000
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+      description: "RAG-enhanced model for knowledge retrieval"
+
+  # Auto routing model
+  - model_name: zoi-auto
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-14b
+      api_base: http://ioz.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.15
+      max_tokens: 4096
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.000002
+      max_input_tokens: 32768
+      max_output_tokens: 4096
+      supports_function_calling: true
+      supports_parallel_function_calling: true
+      description: "Intelligent auto-routing model"
+
+  # Wildcard fallback -> zoi-coder
+  - model_name: "*"
+    litellm_params:
+      custom_llm_provider: openai
+      model: qwen-14b
+      api_base: http://ioz.zoi:1234/v1
+      api_key: lm-studio
+      temperature: 0.2
+      max_tokens: 2048
+    model_info:
+      mode: chat
+      input_cost_per_token: 0.000001
+      output_cost_per_token: 0.000002
+      max_input_tokens: 32768
+      max_output_tokens: 2048
+
+# ------------------------------
+# Model Groups (for load balancing)
+# ------------------------------
+model_groups:
+  - group_name: coding-group
+    models:
+      - model_name: zoi-coder
+        priority: 1
+      - model_name: zoi-planner
+        priority: 2
+
+  - group_name: reasoning-group
+    models:
+      - model_name: zoi-planner
+        priority: 1
+      - model_name: zoi-coder
+        priority: 2
+
+# ------------------------------
+# Vector Store Registry
 # ------------------------------
 vector_store_registry:
   - vector_store_name: "Zoi Knowledge Base"
@@ -162,480 +477,6 @@ vector_store_registry:
         vector_size: 1024
         distance: "cosine"
         embedding_model: "zoi-embed"
-
-  - vector_store_name: "Code Embeddings"
-    litellm_params:
-      vector_store_id: "code_embeddings"
-      custom_llm_provider: "qdrant"
-      vector_store_description: "Code snippets and documentation embeddings"
-      vector_store_metadata:
-        host: "qdrant"
-        port: 6333
-        collection_name: "code_embeddings"
-        vector_size: 1024
-        distance: "cosine"
-        embedding_model: "zoi-embed"
-
-  - vector_store_name: "N8N Workflows"
-    litellm_params:
-      vector_store_id: "n8n_workflows"
-      custom_llm_provider: "qdrant"
-      vector_store_description: "N8N workflow documentation and examples"
-      vector_store_metadata:
-        host: "qdrant"
-        port: 6333
-        collection_name: "n8n_workflows"
-        vector_size: 1024
-        distance: "cosine"
-        embedding_model: "zoi-embed"
-
-  - vector_store_name: "OpenWebUI Conversations"
-    litellm_params:
-      vector_store_id: "openwebui_conversations"
-      custom_llm_provider: "qdrant"
-      vector_store_description: "Chat history and conversation embeddings"
-      vector_store_metadata:
-        host: "qdrant"
-        port: 6333
-        collection_name: "openwebui_conversations"
-        vector_size: 1024
-        distance: "cosine"
-        embedding_model: "zoi-embed"
-
-  - vector_store_name: "Unified Knowledge (All Collections)"
-    litellm_params:
-      vector_store_id: "unified_all_collections"
-      custom_llm_provider: "custom"
-      vector_store_description: "Cross-collection search across all 10 knowledge sources"
-      vector_store_metadata:
-        api_base: "http://unified-rag:8000"
-        search_endpoint: "/search"
-        collections_count: 10
-        sources: "Qdrant + PostgreSQL + Neo4j"
-
-  - vector_store_name: "Shared Embeddings (PostgreSQL)"
-    litellm_params:
-      vector_store_id: "postgres_shared_embeddings"
-      custom_llm_provider: "pgvector"
-      vector_store_description: "Cross-service shared embeddings in PostgreSQL"
-      vector_store_metadata:
-        connection_string: "${POSTGRES_PRISMA_URL}"
-        table_name: "shared.embeddings"
-        vector_column: "embedding"
-        content_column: "content_text"
-        metadata_column: "metadata"
-
-# ------------------------------
-# Model registry (aliases)
-# ------------------------------
-model_list:
-  # vLLM (OpenAI-compatible) — Qwen3-0.6B
-  - model_name: zoi-coder-vllm
-    litellm_params:
-      custom_llm_provider: openai
-      model: zoi-coder
-      api_base: http://vllm:8000/v1
-      api_key: dummy
-      temperature: 0.05
-      max_tokens: 6144
-      top_p: 0.9
-      frequency_penalty: 0.1
-      presence_penalty: 0.05
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000001
-      output_cost_per_token: 0.000002
-      max_input_tokens: 32768
-      max_output_tokens: 6144
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-
-  # Ollama — Reasoning
-  - model_name: zoi-thinker
-    litellm_params:
-      model: ollama/qwen2.5:7b
-      api_base: http://ollama:11434
-      api_key: dummy
-      temperature: 0.2
-      max_tokens: 4096
-      top_p: 0.9
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000002
-      output_cost_per_token: 0.000004
-      max_input_tokens: 32768
-      max_output_tokens: 4096
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-
-  # Ollama — Helper (fast code)
-  - model_name: zoi-helper
-    litellm_params:
-      model: ollama/qwen2.5-coder:7b-instruct
-      api_base: http://ollama:11434
-      api_key: dummy
-      timeout: 180
-      temperature: 0.1
-      max_tokens: 3072
-      top_p: 0.85
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000002
-      output_cost_per_token: 0.000003
-      max_input_tokens: 32768
-      max_output_tokens: 3072
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-
-  # Zoi Auto Router - Intelligent model selection with function calling
-  - model_name: zoi-auto
-    litellm_params:
-      model: ollama/qwen2.5:7b
-      api_base: http://ollama:11434
-      api_key: dummy
-      temperature: 0.15
-      max_tokens: 4096
-      top_p: 0.9
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000002
-      output_cost_per_token: 0.000004
-      max_input_tokens: 32768
-      max_output_tokens: 4096
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-      description: "Intelligent auto-routing model with function calling support"
-
-  # Ollama — Embeddings
-  - model_name: zoi-embed
-    litellm_params:
-      model: ollama/mxbai-embed-large
-      api_base: http://ollama:11434
-      api_key: dummy
-      timeout: 60
-    model_info:
-      mode: embedding
-      input_cost_per_token: 0.0000005
-      output_cost_per_token: 0.0
-      max_input_tokens: 8192
-      output_vector_size: 1024
-
-  # Embedding aliases -> zoi-embed
-  - model_name: text-embedding-3-small
-    litellm_params:
-      model: ollama/mxbai-embed-large
-      api_base: http://ollama:11434
-      api_key: dummy
-      timeout: 60
-    model_info:
-      mode: embedding
-      input_cost_per_token: 0.0000005
-      output_cost_per_token: 0.0
-      max_input_tokens: 8192
-      output_vector_size: 1024
-
-  - model_name: text-embedding-3-large
-    litellm_params:
-      model: ollama/mxbai-embed-large
-      api_base: http://ollama:11434
-      api_key: dummy
-      timeout: 60
-    model_info:
-      mode: embedding
-      input_cost_per_token: 0.0000005
-      output_cost_per_token: 0.0
-      max_input_tokens: 8192
-      output_vector_size: 1024
-
-
-  - model_name: text-embedding-ada-002
-    litellm_params:
-      model: ollama/mxbai-embed-large
-      api_base: http://ollama:11434
-      api_key: dummy
-      timeout: 60
-    model_info:
-      mode: embedding
-      input_cost_per_token: 0.0000005
-      output_cost_per_token: 0.0
-      max_input_tokens: 8192
-      output_vector_size: 1024
-
-  # RAG models (Ollama)
-  - model_name: zoi-rag-helper
-    litellm_params:
-      model: ollama/qwen2.5-coder:7b-instruct
-      api_base: http://ollama:11434
-      api_key: dummy
-      timeout: 240
-      temperature: 0.15
-      max_tokens: 5120
-      top_p: 0.9
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000003
-      output_cost_per_token: 0.000004
-      max_input_tokens: 32768
-      max_output_tokens: 5120
-      enable_rag: true
-      vector_store: qdrant
-      embedding_model: zoi-embed
-      rag_context_window: 4000
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-
-  - model_name: zoi-rag-thinker
-    litellm_params:
-      model: ollama/qwen2.5:7b
-      api_base: http://ollama:11434
-      api_key: dummy
-      timeout: 240
-      temperature: 0.25
-      max_tokens: 6144
-      top_p: 0.92
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000003
-      output_cost_per_token: 0.000005
-      max_input_tokens: 32768
-      max_output_tokens: 6144
-      enable_rag: true
-      vector_store: qdrant
-      embedding_model: zoi-embed
-      rag_context_window: 4000
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-
-  # Compatibility aliases
-  - model_name: gpt-3.5-turbo
-    litellm_params:
-      custom_llm_provider: openai
-      model: zoi-coder
-      api_base: http://vllm:8000/v1
-      api_key: dummy
-      temperature: 0.1
-      max_tokens: 4096
-      top_p: 0.9
-      frequency_penalty: 0.1
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000001
-      output_cost_per_token: 0.000002
-      max_input_tokens: 32768
-      max_output_tokens: 4096
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-
-  - model_name: gpt-4
-    litellm_params:
-      model: ollama/qwen2.5:7b
-      api_base: http://ollama:11434
-      api_key: dummy
-      temperature: 0.15
-      max_tokens: 6144
-      top_p: 0.92
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000002
-      output_cost_per_token: 0.000004
-      max_input_tokens: 32768
-      max_output_tokens: 6144
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-
-  # Voice chat tuned
-  - model_name: zoi-chat
-    litellm_params:
-      model: ollama/qwen2.5:7b
-      api_base: http://ollama:11434
-      api_key: dummy
-      temperature: 0.3
-      max_tokens: 2048
-      top_p: 0.9
-      timeout: 60
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000002
-      output_cost_per_token: 0.000004
-      max_input_tokens: 32768
-      max_output_tokens: 2048
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-
-  # GPT OSS (via Ollama)
-  - model_name: gpt-4-oss
-    litellm_params:
-      model: ollama/gpt-oss
-      api_base: http://ollama:11434
-      api_key: dummy
-      temperature: 0.15
-      max_tokens: 8192
-      top_p: 0.92
-      timeout: 300
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000002
-      output_cost_per_token: 0.000008
-      max_input_tokens: 32768
-      max_output_tokens: 8192
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-
-  - model_name: gpt-4o-mini-oss
-    litellm_params:
-      model: ollama/gpt-oss
-      api_base: http://ollama:11434
-      api_key: dummy
-      temperature: 0.1
-      max_tokens: 4096
-      top_p: 0.9
-      timeout: 300
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000001
-      output_cost_per_token: 0.000004
-      max_input_tokens: 16384
-      max_output_tokens: 4096
-
-  # Claude aliases -> local
-  - model_name: claude-3-5-sonnet-20241022
-    litellm_params:
-      model: ollama/qwen2.5:7b
-      api_base: http://ollama:11434
-      api_key: dummy
-      temperature: 0.2
-      max_tokens: 8192
-      top_p: 0.9
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000003
-      output_cost_per_token: 0.000015
-      max_input_tokens: 32768
-      max_output_tokens: 8192
-
-  - model_name: claude-3-sonnet-20240229
-    litellm_params:
-      model: ollama/qwen2.5-coder:7b-instruct
-      api_base: http://ollama:11434
-      api_key: dummy
-      temperature: 0.15
-      max_tokens: 6144
-      top_p: 0.9
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000003
-      output_cost_per_token: 0.000015
-      max_input_tokens: 32768
-      max_output_tokens: 6144
-
-  - model_name: claude-3-opus-20240229
-    litellm_params:
-      custom_llm_provider: openai
-      model: zoi-coder
-      api_base: http://vllm:8000/v1
-      api_key: dummy
-
-  # GPT-5-MINI alias -> vLLM with increased context window
-  - model_name: gpt-5-mini
-    litellm_params:
-      custom_llm_provider: openai
-      model: zoi-coder
-      api_base: http://vllm:8000/v1
-      api_key: dummy
-      temperature: 0.1
-      max_tokens: 4096
-      top_p: 0.9
-      context_window_fallbacks: ["zoi-thinker", "zoi-helper"]
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000001
-      output_cost_per_token: 0.000002
-      max_input_tokens: 32768
-      max_output_tokens: 4096
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-
-  # Hybrid RAG — single collection (LiteLLM-native)
-  - model_name: zoi-coder-with-code-knowledge
-    litellm_params:
-      custom_llm_provider: openai
-      model: zoi-coder
-      api_base: http://vllm:8000/v1
-      api_key: dummy
-      vector_store_ids: ["code_embeddings"]
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000001
-      output_cost_per_token: 0.000002
-      max_input_tokens: 32768
-      max_output_tokens: 4096
-      supports_function_calling: true
-
-  - model_name: zoi-thinker-with-archon-knowledge
-    litellm_params:
-      model: ollama/qwen2.5:7b
-      api_base: http://ollama:11434
-      api_key: dummy
-      vector_store_ids: ["archon_knowledge"]
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000002
-      output_cost_per_token: 0.000004
-      max_input_tokens: 32768
-      max_output_tokens: 4096
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-
-  # Unified cross-collection RAG (custom service)
-  - model_name: zoi-unified-rag
-    litellm_params:
-      custom_llm_provider: openai
-      model: zoi-coder
-      api_base: http://vllm:8000/v1
-      api_key: dummy
-      vector_store_ids: ["unified_all_collections"]
-      temperature: 0.25
-      max_tokens: 8192
-      top_p: 0.92
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000001
-      output_cost_per_token: 0.000002
-      max_input_tokens: 32768
-      max_output_tokens: 8192
-      supports_function_calling: true
-      supports_parallel_function_calling: true
-
-  # Wildcard fallback -> vLLM
-  - model_name: "*"
-    litellm_params:
-      custom_llm_provider: openai
-      model: zoi-coder
-      api_base: http://vllm:8000/v1
-      api_key: dummy
-      temperature: 0.2
-      max_tokens: 2048
-      top_p: 0.9
-    model_info:
-      mode: chat
-      input_cost_per_token: 0.000001
-      output_cost_per_token: 0.000002
-      max_input_tokens: 32768
-      max_output_tokens: 2048
-
-# ------------------------------
-# Model Groups (for context window fallbacks)
-# ------------------------------
-model_groups:
-  - group_name: gpt-5-mini-group
-    models:
-      - model_name: gpt-5-mini
-        context_window_fallbacks: ["zoi-thinker", "zoi-helper"]
-      - model_name: zoi-thinker
-        context_window_fallbacks: ["zoi-helper"]
-      - model_name: zoi-helper
 
 # ------------------------------
 # MCP Servers Configuration
@@ -669,12 +510,9 @@ mcp_servers:
           update_project: 0.002
           list_projects: 0.001
           get_project: 0.001
-          get_weather: 0.005
-          search_web: 0.010
-          crawl_website: 0.015
 
 # ------------------------------
-# MCP Access Control / Permissions
+# MCP Access Control
 # ------------------------------
 mcp_access_control:
   default_access_groups: ["dev_group"]
@@ -693,7 +531,7 @@ mcp_access_control:
       description: "Voice chat optimized tool access"
       allowed_servers: ["archon"]
       allowed_tools:
-        ["list_projects","get_project","create_project","list_tasks","get_task","create_task","search_documents","get_weather","search_web"]
+        ["list_projects","get_project","create_project","list_tasks","get_task","create_task","search_documents"]
       rate_limit: 2000
     admin_group:
       description: "Full administrative access"
@@ -702,60 +540,51 @@ mcp_access_control:
       rate_limit: 5000
 
 # ------------------------------
-# Router settings (intelligent routing)
+# Router settings (simplified)
 # ------------------------------
 router_settings:
-  routing_strategy: "cost-based-routing"
+  routing_strategy: "simple"
   enable_pre_call_checks: true
-  default_model: "zoi-coder-vllm"
+  default_model: "zoi-coder"
   enable_fallbacks: true
-  fallback_models: ["zoi-coder-vllm"]
+  fallback_models: ["zoi-coder", "zoi-planner"]
   model_group_alias:
-    "zoi:auto": "zoi-auto"
-    "gpt-5-mini": "gpt-5-mini-group"
+    "coding": "coding-group"
+    "reasoning": "reasoning-group"
   num_retries: 2
   timeout: 300
   allow_model_override: true
 
   routes:
-    - name: code_heavy_route
-      models: [zoi-coder-vllm, zoi-helper]
+    - name: code_route
+      models: [zoi-coder, zoi-planner]
       retry_policy: { max_retries: 2, backoff: exponential }
 
-    - name: reason_route
-      models: [zoi-thinker, zoi-coder-vllm]
-      retry_policy: { max_retries: 2, backoff: exponential }
-
-    - name: code_light_route
-      models: [zoi-helper, zoi-thinker]
+    - name: reasoning_route
+      models: [zoi-planner, zoi-coder]
       retry_policy: { max_retries: 2, backoff: exponential }
 
     - name: embed_route
       models: [zoi-embed]
 
 # ------------------------------
-# Fallbacks (per alias)
+# Fallbacks
 # ------------------------------
 fallbacks:
-  zoi-auto: [zoi-helper, zoi-thinker]
-  zoi-coder-30b: [zoi-helper]
-  zoi-thinker: [zoi-helper, zoi-coder-30b]
-  zoi-helper: [zoi-thinker]
-  gpt-5-mini: [zoi-thinker, zoi-helper]
+  zoi-coder: [zoi-planner]
+  zoi-planner: [zoi-coder]
+  zoi-auto: [zoi-coder, zoi-planner]
 
 # ------------------------------
-# Cost hints (routing bias)
+# Cost hints
 # ------------------------------
 litellm_model_cost_map:
-  zoi-coder-30b:
-    input_cost_per_token: 0.0000009
-    output_cost_per_token: 0.0000012
-  zoi-thinker:
-    input_cost_per_token: 0.0000004
-    output_cost_per_token: 0.0000006
-  zoi-helper:
-    input_cost_per_token: 0.0000003
-    output_cost_per_token: 0.0000004
+  zoi-coder:
+    input_cost_per_token: 0.000001
+    output_cost_per_token: 0.000002
+  zoi-planner:
+    input_cost_per_token: 0.000002
+    output_cost_per_token: 0.000004
   zoi-embed:
-    input_cost_per_token: 0.0000002
-    output_cost_per_token: 0.0000002
+    input_cost_per_token: 0.0000005
+    output_cost_per_token: 0.0000005
