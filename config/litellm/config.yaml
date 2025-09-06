@@ -41,7 +41,7 @@ general_settings:
   log_raw_request_response: false
 
   # Health checks
-  health_check: true
+  health_check: false
   health_check_interval: 120
   health_check_timeout: 60
 
@@ -141,9 +141,9 @@ model_list:
   - model_name: zoi-coder
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-14b
+      model: qwen/qwen3-14b
       api_base: http://ioz.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.1
       max_tokens: 8192
       top_p: 0.9
@@ -163,9 +163,9 @@ model_list:
   - model_name: zoi-planner
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-30b
+      model: qwen/qwen3-coder-30b
       api_base: http://astra.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.2
       max_tokens: 8192
       top_p: 0.9
@@ -185,9 +185,9 @@ model_list:
   - model_name: zoi-embed
     litellm_params:
       custom_llm_provider: openai
-      model: nomic-embed-text
+      model: text-embedding-nomic-embed-text-v1.5
       api_base: http://astra.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       timeout: 60
     model_info:
       mode: embedding
@@ -205,9 +205,9 @@ model_list:
   - model_name: gpt-3.5-turbo
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-14b
+      model: qwen/qwen3-14b
       api_base: http://ioz.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.1
       max_tokens: 4096
     model_info:
@@ -221,9 +221,9 @@ model_list:
   - model_name: gpt-4o-mini
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-14b
+      model: qwen/qwen3-14b
       api_base: http://ioz.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.1
       max_tokens: 4096
     model_info:
@@ -238,9 +238,9 @@ model_list:
   - model_name: gpt-4
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-30b
+      model: qwen/qwen3-coder-30b
       api_base: http://astra.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.15
       max_tokens: 8192
     model_info:
@@ -254,9 +254,9 @@ model_list:
   - model_name: gpt-4-turbo
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-30b
+      model: qwen/qwen3-coder-30b
       api_base: http://astra.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.15
       max_tokens: 8192
     model_info:
@@ -271,9 +271,9 @@ model_list:
   - model_name: claude-3-haiku-20240307
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-14b
+      model: qwen/qwen3-14b
       api_base: http://ioz.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.1
       max_tokens: 4096
     model_info:
@@ -286,9 +286,9 @@ model_list:
   - model_name: claude-3-sonnet-20240229
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-14b
+      model: qwen/qwen3-14b
       api_base: http://ioz.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.15
       max_tokens: 6144
     model_info:
@@ -301,9 +301,9 @@ model_list:
   - model_name: claude-3-opus-20240229
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-30b
+      model: qwen/qwen3-coder-30b
       api_base: http://astra.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.2
       max_tokens: 8192
     model_info:
@@ -316,9 +316,9 @@ model_list:
   - model_name: claude-3-5-sonnet-20241022
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-30b
+      model: qwen/qwen3-coder-30b
       api_base: http://astra.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.2
       max_tokens: 8192
     model_info:
@@ -332,9 +332,9 @@ model_list:
   - model_name: text-embedding-3-small
     litellm_params:
       custom_llm_provider: openai
-      model: nomic-embed-text
+      model: text-embedding-nomic-embed-text-v1.5
       api_base: http://astra.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       timeout: 60
     model_info:
       mode: embedding
@@ -346,9 +346,9 @@ model_list:
   - model_name: text-embedding-3-large
     litellm_params:
       custom_llm_provider: openai
-      model: nomic-embed-text
+      model: text-embedding-nomic-embed-text-v1.5
       api_base: http://astra.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       timeout: 60
     model_info:
       mode: embedding
@@ -360,9 +360,9 @@ model_list:
   - model_name: text-embedding-ada-002
     litellm_params:
       custom_llm_provider: openai
-      model: nomic-embed-text
+      model: text-embedding-nomic-embed-text-v1.5
       api_base: http://astra.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       timeout: 60
     model_info:
       mode: embedding
@@ -375,9 +375,9 @@ model_list:
   - model_name: zoi-rag
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-30b
+      model: qwen/qwen3-coder-30b
       api_base: http://astra.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.15
       max_tokens: 8192
       top_p: 0.9
@@ -399,9 +399,9 @@ model_list:
   - model_name: zoi-auto
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-14b
+      model: qwen/qwen3-14b
       api_base: http://ioz.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.15
       max_tokens: 4096
     model_info:
@@ -418,9 +418,9 @@ model_list:
   - model_name: "*"
     litellm_params:
       custom_llm_provider: openai
-      model: qwen-14b
+      model: qwen/qwen3-14b
       api_base: http://ioz.zoi.local:1234/v1
-      api_key: lm-studio
+      api_key: sk-no-key-required
       temperature: 0.2
       max_tokens: 2048
     model_info:
@@ -544,7 +544,7 @@ mcp_access_control:
 # ------------------------------
 router_settings:
   routing_strategy: "simple"
-  enable_pre_call_checks: true
+  enable_pre_call_checks: false
   default_model: "zoi-coder"
   enable_fallbacks: true
   fallback_models: ["zoi-coder", "zoi-planner"]
