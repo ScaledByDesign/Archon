@@ -5,10 +5,11 @@ A comprehensive local AI stack with intelligent model routing, vector storage, a
 ## 🏗️ Architecture
 
 ### Core Services
-- **LiteLLM** → Unified API gateway with intelligent routing
-- **vLLM** → High-performance inference for complex tasks (Qwen2.5-Coder-7B-Instruct)
-- **Ollama** → Local model serving for helper tasks
-- **Qdrant** → Vector database for RAG and embeddings
+- **LiteLLM** → Unified API gateway with intelligent routing (Host Network Mode)
+- **LLM Studio (RTX 5070 Ti)** → High-speed inference for coding tasks (Qwen 14B)
+- **LLM Studio (RTX 3090)** → Advanced reasoning & embeddings (Qwen 30B + NOMIC)
+- **Weaviate** → Vector database for RAG and embeddings
+- **Elysia** → Agentic platform for Weaviate data analysis
 - **LangFlow** → Visual AI workflow builder
 - **Neo4j** → Graph database for structured reasoning
 - **Archon** → AI knowledge base and task management with MCP integration
@@ -21,10 +22,11 @@ A comprehensive local AI stack with intelligent model routing, vector storage, a
 
 | Service | URL | Purpose |
 |---------|-----|---------|
-| LiteLLM API | http://localhost:7010/v1 | Main API gateway |
-| vLLM (Planner) | http://localhost:7030/v1 | High-performance inference |
-| Ollama (Helper) | http://localhost:7040 | Local model serving |
-| Qdrant | http://localhost:7060 | Vector database |
+| **LiteLLM API** | http://localhost:7010/v1 | Main API gateway (Host Network) |
+| **RTX 5070 Ti** | http://192.168.8.135:1234/v1 | High-speed coding inference (Qwen 14B) |
+| **RTX 3090** | http://192.168.8.241:1234/v1 | Advanced reasoning (Qwen 30B + NOMIC) |
+| **Weaviate** | http://localhost:7080 | Vector database & collections |
+| **Elysia** | http://localhost:7085 | Agentic analysis platform |
 | Neo4j Browser | http://localhost:7061 | Graph database UI |
 | Neo4j Bolt | bolt://localhost:7062 | Graph database API |
 | PostgreSQL | localhost:7063 | Database |
@@ -80,46 +82,63 @@ curl http://localhost:7030/v1/models
 
 ### Available Models
 
-| Model Name | Service | Use Case | Performance |
-|------------|---------|----------|-------------|
-| `zoi-coder-vllm` | vLLM | Complex code generation | High |
-| `zoi-helper` | Ollama | Quick coding help | Fast |
-| `zoi-thinker` | vLLM | Strategic planning | High |
-| `zoi-rag-helper` | Ollama | Knowledge retrieval | Fast |
-| `zoi-auto` | Auto-routed | Intelligent routing | Adaptive |
+| Model Name | GPU Hardware | Use Case | Performance |
+|------------|--------------|----------|-------------|
+| **`zoi-coder`** | RTX 5070 Ti | Fast coding & development | High Speed |
+| **`zoi-planner`** | RTX 3090 | Complex reasoning & analysis | Maximum Power |
+| **`zoi-embed`** | RTX 3090 | Vector embeddings | Specialized |
+| **`gpt-3.5-turbo`** | RTX 5070 Ti (alias) | OpenAI API compatibility | High Speed |
+| **`gpt-4`** | RTX 3090 (alias) | OpenAI API compatibility | Maximum Power |
+
+#### Hardware Specifications
+- **RTX 5070 Ti (ioz.zoi.local)**: Qwen/Qwen3-14B optimized for speed
+- **RTX 3090 (astra.zoi.local)**: Qwen/Qwen3-Coder-30B + NOMIC embeddings
 
 ### Example API Calls
 
 #### Direct Model Access
 ```bash
-# Use the high-performance vLLM model for complex tasks
+# Use RTX 3090 for complex reasoning and analysis
 curl -X POST http://localhost:7010/v1/chat/completions \
+  -H "Authorization: Bearer sk-wqn0xwq_vha4MVM2yzw" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "zoi-coder-vllm",
-    "messages": [{"role": "user", "content": "Build a complete REST API with authentication"}],
+    "model": "zoi-planner",
+    "messages": [{"role": "user", "content": "Design a microservices architecture for an e-commerce platform"}],
     "temperature": 0.1,
     "max_tokens": 4096
   }'
 
-# Use Ollama for quick help
+# Use RTX 5070 Ti for fast coding tasks
 curl -X POST http://localhost:7010/v1/chat/completions \
+  -H "Authorization: Bearer sk-wqn0xwq_vha4MVM2yzw" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "zoi-helper",
-    "messages": [{"role": "user", "content": "Fix this Python syntax error"}],
-    "temperature": 0.2
+    "model": "zoi-coder",
+    "messages": [{"role": "user", "content": "Fix this Python syntax error and explain the solution"}],
+    "temperature": 0.2,
+    "max_tokens": 2048
+  }'
+
+# Use embeddings model for vector operations
+curl -X POST http://localhost:7010/v1/embeddings \
+  -H "Authorization: Bearer sk-wqn0xwq_vha4MVM2yzw" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "zoi-embed",
+    "input": ["Document text to embed", "Another document"]
   }'
 ```
 
-#### Auto-Routing (Recommended)
+#### OpenAI API Compatibility
 ```bash
-# Let the system choose the best model automatically
+# Use familiar OpenAI model names (automatically routed)
 curl -X POST http://localhost:7010/v1/chat/completions \
+  -H "Authorization: Bearer sk-wqn0xwq_vha4MVM2yzw" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "zoi-auto",
-    "messages": [{"role": "user", "content": "Design a microservices architecture for an e-commerce platform"}]
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Analyze this complex algorithm"}]
   }'
 ```
 
@@ -296,11 +315,26 @@ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 # Check LiteLLM health
 curl http://localhost:7010/health
 
-# Check Archon health
-curl http://localhost:7081/health
+# Test RTX GPU connectivity
+curl -X POST http://192.168.8.135:1234/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model": "qwen/qwen3-14b", "messages": [{"role": "user", "content": "Hello"}], "max_tokens": 10}'
 
-# Check Archon MCP
-curl http://localhost:7082/mcp
+curl -X POST http://192.168.8.241:1234/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model": "qwen/qwen3-coder-30b", "messages": [{"role": "user", "content": "Hello"}], "max_tokens": 10}'
+
+# Test LiteLLM model routing
+curl -X POST http://localhost:7010/v1/chat/completions \
+  -H "Authorization: Bearer sk-wqn0xwq_vha4MVM2yzw" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "zoi-coder", "messages": [{"role": "user", "content": "Hello"}], "max_tokens": 10}'
+
+# Check Weaviate collections
+curl http://localhost:7080/v1/meta
+
+# Check Elysia health
+curl http://localhost:7085/api/health
 ```
 
 #### Common Issues

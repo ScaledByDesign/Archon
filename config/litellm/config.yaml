@@ -44,6 +44,9 @@ general_settings:
   health_check: false
   health_check_interval: 120
   health_check_timeout: 60
+  disable_health_check: true
+  disable_spend_logs: false
+  disable_health_check: true
 
   # Cost tracking
   track_cost_per_model: true
@@ -72,6 +75,8 @@ litellm_settings:
     namespace: litellm
     supported_call_types: ["acompletion", "atext_completion", "aembedding", "atranscription"]
   drop_params: true
+  disable_provider_health_check: true
+  disable_provider_health_check: true
 
   # Cost tracking
   enable_cost_tracking: true
@@ -548,6 +553,8 @@ router_settings:
   default_model: "zoi-coder"
   enable_fallbacks: true
   fallback_models: ["zoi-coder", "zoi-planner"]
+  disable_cooldowns: true
+  allowed_fails: 10
   model_group_alias:
     "coding": "coding-group"
     "reasoning": "reasoning-group"
