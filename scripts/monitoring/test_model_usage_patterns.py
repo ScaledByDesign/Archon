@@ -8,7 +8,7 @@ import time
 import sys
 from typing import Dict, Any, List
 
-def test_model_with_usage_pattern(model_name: str, ollama_model: str, test_case: Dict[str, Any]) -> Dict[str, Any]:
+def test_model_with_usage_pattern(model_name: str, backend_model: str, test_case: Dict[str, Any]) -> Dict[str, Any]:
     """Test a model with a specific usage pattern"""
     print(f"Testing: {test_case['name']}")
     print(f"  Message: {test_case['message'][:50]}...")
@@ -16,9 +16,9 @@ def test_model_with_usage_pattern(model_name: str, ollama_model: str, test_case:
     
     try:
         response = requests.post(
-            'http://ollama:11434/v1/chat/completions',
+            'http://litellm:4000/v1/chat/completions',
             json={
-                'model': ollama_model,
+                'model': model_name,
                 'messages': [{'role': 'user', 'content': test_case['message']}],
                 'max_tokens': test_case['max_tokens'],
                 'temperature': test_case.get('temperature', 0.1)
@@ -65,9 +65,10 @@ def test_model_with_usage_pattern(model_name: str, ollama_model: str, test_case:
 def calculate_cost(model_name: str, usage: Dict[str, Any]) -> Dict[str, float]:
     """Calculate cost based on model pricing"""
     
-    # Cost per token for the test model (zoi-helper)
+    # Cost per token for the test model
     model_costs = {
-        'zoi-helper': {'input': 0.000002, 'output': 0.000003}
+        'zoi-coder': {'input': 0.000001, 'output': 0.000002},
+        'zoi-planner': {'input': 0.000002, 'output': 0.000004}
     }
     
     if model_name not in model_costs:
@@ -162,11 +163,11 @@ def generate_usage_report(results: List[Dict[str, Any]]) -> None:
 def main():
     """Main test function"""
     print("=" * 100)
-    print("MODEL USAGE PATTERN TESTING - ZOI-HELPER")
+    print("MODEL USAGE PATTERN TESTING - ZOI-CODER")
     print("=" * 100)
     
-    model_name = "zoi-helper"
-    ollama_model = "qwen2.5-coder:7b-instruct"
+    model_name = "zoi-coder"
+    backend_model = "qwen-14b"
     
     # Define different usage patterns to test
     test_cases = [
@@ -220,7 +221,7 @@ def main():
         }
     ]
     
-    print(f"Testing model: {model_name} ({ollama_model})")
+    print(f"Testing model: {model_name} ({backend_model})")
     print(f"Number of test cases: {len(test_cases)}")
     print(f"Expected cost per input token: $0.000002")
     print(f"Expected cost per output token: $0.000003")
@@ -230,7 +231,7 @@ def main():
     results = []
     for i, test_case in enumerate(test_cases, 1):
         print(f"\n[{i}/{len(test_cases)}] ", end="")
-        result = test_model_with_usage_pattern(model_name, ollama_model, test_case)
+        result = test_model_with_usage_pattern(model_name, backend_model, test_case)
         results.append(result)
         
         # Wait between tests to avoid overwhelming the model

@@ -81,7 +81,7 @@ services:
       # Interface Settings
       - WEBUI_NAME=Zoi AI Chat
       - WEBUI_URL=http://openwebui.zoi.local
-      - DEFAULT_MODELS=zoi-auto,qwen2.5-coder:7b-instruct
+      - DEFAULT_MODELS=zoi-auto,zoi-coder,zoi-planner
       # Features
       - ENABLE_RAG=true
       - ENABLE_WEB_SEARCH=false

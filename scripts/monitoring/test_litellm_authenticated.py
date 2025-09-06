@@ -139,12 +139,10 @@ def calculate_expected_cost(model_name: str, usage: Dict[str, Any]) -> Dict[str,
     """Calculate expected cost based on our model pricing"""
     
     model_costs = {
-        'zoi-coder-vllm': {'input': 0.000001, 'output': 0.000002},
-        'zoi-thinker': {'input': 0.000002, 'output': 0.000004},
-        'zoi-helper': {'input': 0.000002, 'output': 0.000003},
+        'zoi-coder': {'input': 0.000001, 'output': 0.000002},
+        'zoi-planner': {'input': 0.000002, 'output': 0.000004},
         'zoi-embed': {'input': 0.0000005, 'output': 0.0},
-        'zoi-rag-helper': {'input': 0.000003, 'output': 0.000004},
-        'zoi-rag-thinker': {'input': 0.000003, 'output': 0.000005}
+        'zoi-rag': {'input': 0.000002, 'output': 0.000004}
     }
     
     if model_name not in model_costs:
@@ -254,7 +252,7 @@ def main():
     # Models to test with different usage patterns
     test_cases = [
         {
-            'model': 'zoi-helper',
+            'model': 'zoi-coder',
             'message': 'Write a simple Python function to add two numbers.',
             'max_tokens': 100
         },
@@ -264,7 +262,7 @@ def main():
             'max_tokens': 0  # Not used for embeddings
         },
         {
-            'model': 'zoi-thinker',
+            'model': 'zoi-planner',
             'message': 'Explain the benefits of using Docker containers.',
             'max_tokens': 150
         }

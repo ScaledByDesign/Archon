@@ -142,7 +142,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-14b
-      api_base: http://ioz.zoi:1234/v1
+      api_base: http://ioz.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.1
       max_tokens: 8192
@@ -164,7 +164,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-30b
-      api_base: http://astra.zoi:1234/v1
+      api_base: http://astra.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.2
       max_tokens: 8192
@@ -186,7 +186,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: nomic-embed-text
-      api_base: http://astra.zoi:1234/v1
+      api_base: http://astra.zoi.local:1234/v1
       api_key: lm-studio
       timeout: 60
     model_info:
@@ -206,7 +206,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-14b
-      api_base: http://ioz.zoi:1234/v1
+      api_base: http://ioz.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.1
       max_tokens: 4096
@@ -222,7 +222,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-14b
-      api_base: http://ioz.zoi:1234/v1
+      api_base: http://ioz.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.1
       max_tokens: 4096
@@ -239,7 +239,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-30b
-      api_base: http://astra.zoi:1234/v1
+      api_base: http://astra.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.15
       max_tokens: 8192
@@ -255,7 +255,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-30b
-      api_base: http://astra.zoi:1234/v1
+      api_base: http://astra.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.15
       max_tokens: 8192
@@ -272,7 +272,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-14b
-      api_base: http://ioz.zoi:1234/v1
+      api_base: http://ioz.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.1
       max_tokens: 4096
@@ -287,7 +287,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-14b
-      api_base: http://ioz.zoi:1234/v1
+      api_base: http://ioz.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.15
       max_tokens: 6144
@@ -302,7 +302,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-30b
-      api_base: http://astra.zoi:1234/v1
+      api_base: http://astra.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.2
       max_tokens: 8192
@@ -317,7 +317,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-30b
-      api_base: http://astra.zoi:1234/v1
+      api_base: http://astra.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.2
       max_tokens: 8192
@@ -333,7 +333,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: nomic-embed-text
-      api_base: http://astra.zoi:1234/v1
+      api_base: http://astra.zoi.local:1234/v1
       api_key: lm-studio
       timeout: 60
     model_info:
@@ -347,7 +347,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: nomic-embed-text
-      api_base: http://astra.zoi:1234/v1
+      api_base: http://astra.zoi.local:1234/v1
       api_key: lm-studio
       timeout: 60
     model_info:
@@ -361,7 +361,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: nomic-embed-text
-      api_base: http://astra.zoi:1234/v1
+      api_base: http://astra.zoi.local:1234/v1
       api_key: lm-studio
       timeout: 60
     model_info:
@@ -376,7 +376,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-30b
-      api_base: http://astra.zoi:1234/v1
+      api_base: http://astra.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.15
       max_tokens: 8192
@@ -400,7 +400,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-14b
-      api_base: http://ioz.zoi:1234/v1
+      api_base: http://ioz.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.15
       max_tokens: 4096
@@ -419,7 +419,7 @@ model_list:
     litellm_params:
       custom_llm_provider: openai
       model: qwen-14b
-      api_base: http://ioz.zoi:1234/v1
+      api_base: http://ioz.zoi.local:1234/v1
       api_key: lm-studio
       temperature: 0.2
       max_tokens: 2048

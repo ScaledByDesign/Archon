@@ -1,5 +1,5 @@
-# LiteLLM Router Configuration for Advanced Model Routing
-# This file defines routing strategies, load balancing, and model selection logic
+# LiteLLM Router Configuration - Simplified for Two LLM Studio Instances
+# This file defines routing strategies for zoi-coder (14B) and zoi-planner (30B)
 
 # Model Routing Rules
 routing_rules:
@@ -7,88 +7,84 @@ routing_rules:
   by_request_type:
     # Code generation and analysis
     code:
-      primary_models: ["codellama-7b", "gpt-4", "claude-3-opus"]
-      fallback_models: ["gpt-4-turbo", "claude-3-sonnet"]
+      primary_models: ["zoi-coder", "gpt-3.5-turbo", "gpt-4o-mini"]
+      fallback_models: ["zoi-planner", "gpt-4"]
       temperature: 0.1
-      max_tokens: 4096
+      max_tokens: 8192
       
     # Creative writing and content generation
     creative:
-      primary_models: ["claude-3-opus", "gpt-4", "claude-3-sonnet"]
-      fallback_models: ["gpt-4-turbo", "command-r-plus"]
+      primary_models: ["zoi-planner", "gpt-4", "claude-3-opus-20240229"]
+      fallback_models: ["zoi-coder", "gpt-3.5-turbo"]
       temperature: 0.8
-      max_tokens: 4096
+      max_tokens: 8192
       
     # Data analysis and reasoning
     analysis:
-      primary_models: ["gpt-4", "claude-3-opus", "gpt-4-turbo"]
-      fallback_models: ["claude-3-sonnet", "command-r-plus"]
+      primary_models: ["zoi-planner", "gpt-4", "gpt-4-turbo"]
+      fallback_models: ["zoi-coder", "gpt-3.5-turbo"]
       temperature: 0.3
-      max_tokens: 4096
+      max_tokens: 8192
       
     # Quick responses and chat
     chat:
-      primary_models: ["gpt-3.5-turbo", "claude-3-haiku", "command-r"]
-      fallback_models: ["gemini-pro", "mistral-7b"]
+      primary_models: ["zoi-coder", "gpt-3.5-turbo", "claude-3-haiku-20240307"]
+      fallback_models: ["zoi-planner", "gpt-4"]
       temperature: 0.7
-      max_tokens: 2048
-      
-    # Vision and image analysis
-    vision:
-      primary_models: ["gpt-4-vision", "claude-3-opus", "claude-3-sonnet"]
-      fallback_models: ["gpt-4-turbo", "gemini-pro-vision"]
-      temperature: 0.5
       max_tokens: 4096
+      
+    # Vision and image analysis (using planner for complex reasoning)
+    vision:
+      primary_models: ["zoi-planner", "gpt-4", "claude-3-opus-20240229"]
+      fallback_models: ["zoi-coder", "gpt-3.5-turbo"]
+      temperature: 0.5
+      max_tokens: 8192
       
     # Embedding generation
     embedding:
       primary_models: ["zoi-embed"]
-      fallback_models: ["text-embedding-3-small", "embed-english-v3"]
+      fallback_models: ["text-embedding-3-small", "text-embedding-3-large"]
       
-  # Route based on user preferences
+  # Route based on user preferences (simplified tiers)
   by_user_tier:
     premium:
-      allowed_models: ["gpt-4", "claude-3-opus", "gpt-4-turbo", "azure-gpt-4"]
+      allowed_models: ["zoi-planner", "zoi-coder", "zoi-embed", "gpt-4", "claude-3-opus-20240229"]
       rate_limit: 1000  # requests per hour
       priority: "high"
       
     standard:
-      allowed_models: ["gpt-3.5-turbo", "claude-3-sonnet", "claude-3-haiku", "command-r-plus", "gemini-pro"]
+      allowed_models: ["zoi-coder", "zoi-planner", "zoi-embed", "gpt-3.5-turbo", "claude-3-sonnet-20240229"]
       rate_limit: 500
       priority: "medium"
       
     basic:
-      allowed_models: ["gpt-3.5-turbo", "claude-3-haiku", "command-r", "mistral-7b", "llama2-7b"]
+      allowed_models: ["zoi-coder", "gpt-3.5-turbo", "claude-3-haiku-20240307"]
       rate_limit: 100
       priority: "low"
       
     local_only:
-      allowed_models: ["mistral-7b", "llama2-7b", "llama3-8b", "codellama-7b", "nomic-embed"]
+      allowed_models: ["zoi-coder", "zoi-planner", "zoi-embed"]
       rate_limit: 1000
       priority: "medium"
-      cost_tracking: false
+      cost_tracking: true
 
 # Load Balancing Strategies
 load_balancing:
   # Strategy for distributing requests
   strategy: "weighted_round_robin"  # Options: round_robin, weighted_round_robin, least_busy, random
   
-  # Model weights for weighted strategies
+  # Model weights for weighted strategies (simplified)
   model_weights:
-    "gpt-4": 10
-    "claude-3-opus": 10
-    "gpt-4-turbo": 8
-    "claude-3-sonnet": 7
-    "gpt-3.5-turbo": 5
-    "claude-3-haiku": 5
-    "command-r-plus": 6
-    "command-r": 4
-    "gemini-pro": 5
-    "azure-gpt-4": 9
-    "mistral-7b": 3
-    "llama2-7b": 3
-    "llama3-8b": 4
-    "codellama-7b": 3
+    "zoi-planner": 10     # Powerful 30B model on RTX 5090
+    "zoi-coder": 8        # Fast 14B model on RTX 5070 Ti
+    "zoi-embed": 5        # Embedding model on RTX 5090
+    "gpt-4": 10           # Maps to zoi-planner
+    "gpt-4-turbo": 9      # Maps to zoi-planner
+    "gpt-3.5-turbo": 7    # Maps to zoi-coder
+    "gpt-4o-mini": 7      # Maps to zoi-coder
+    "claude-3-opus-20240229": 10   # Maps to zoi-planner
+    "claude-3-sonnet-20240229": 8  # Maps to zoi-coder
+    "claude-3-haiku-20240307": 7   # Maps to zoi-coder
     
   # Health check configuration
   health_checks:
@@ -99,156 +95,126 @@ load_balancing:
     
   # Circuit breaker configuration
   circuit_breaker:
-    failure_threshold: 5
-    timeout: 300  # seconds
-    half_open_max_calls: 3
+    enabled: true
+    error_threshold: 5     # Number of errors before opening circuit
+    success_threshold: 2    # Number of successes to close circuit
+    timeout: 60            # Seconds before attempting to close circuit
+    half_open_requests: 3  # Number of test requests in half-open state
 
-# Cost Optimization Rules
-cost_optimization:
-  # Automatic model selection based on cost
-  enable_cost_routing: true
+# Fallback Configuration
+fallback_strategy:
+  enabled: true
+  max_retries: 2
+  retry_delay: 1000  # milliseconds
   
-  # Cost thresholds for automatic downgrading
-  cost_thresholds:
-    daily_limit: 100.00  # USD
-    hourly_limit: 10.00  # USD
-    per_request_limit: 1.00  # USD
+  # Fallback chains (simplified)
+  chains:
+    - primary: "zoi-coder"
+      fallbacks: ["zoi-planner"]
+      
+    - primary: "zoi-planner"
+      fallbacks: ["zoi-coder"]
+      
+    - primary: "gpt-4"
+      fallbacks: ["zoi-planner", "zoi-coder"]
+      
+    - primary: "gpt-3.5-turbo"
+      fallbacks: ["zoi-coder", "zoi-planner"]
+      
+    - primary: "claude-3-opus-20240229"
+      fallbacks: ["zoi-planner", "zoi-coder"]
+      
+    - primary: "claude-3-sonnet-20240229"
+      fallbacks: ["zoi-coder", "zoi-planner"]
+
+# Rate Limiting
+rate_limiting:
+  enabled: true
+  
+  # Global limits
+  global:
+    requests_per_minute: 1000
+    tokens_per_minute: 100000
     
-  # Fallback strategy when cost limits are reached
-  cost_fallback_strategy:
-    - "downgrade_to_cheaper"  # Try cheaper models first
-    - "use_local_models"      # Fall back to local models
-    - "queue_request"         # Queue for later processing
-    - "reject_request"        # Reject if no alternatives
+  # Per-model limits (simplified)
+  per_model:
+    "zoi-coder":
+      requests_per_minute: 500
+      tokens_per_minute: 50000
+      
+    "zoi-planner":
+      requests_per_minute: 200
+      tokens_per_minute: 80000
+      
+    "zoi-embed":
+      requests_per_minute: 1000
+      tokens_per_minute: 20000
+
+# Cost Optimization
+cost_optimization:
+  enabled: true
+  budget_tracking: true
+  
+  # Route to cheaper models when possible
+  auto_downgrade:
+    enabled: true
+    budget_threshold: 0.8  # Downgrade when 80% of budget used
     
-  # Model cost tiers
+  # Model cost tiers (simplified)
   cost_tiers:
-    expensive: ["gpt-4", "claude-3-opus"]
-    moderate: ["gpt-4-turbo", "claude-3-sonnet", "command-r-plus"]
-    cheap: ["gpt-3.5-turbo", "claude-3-haiku", "command-r", "gemini-pro"]
-    free: ["mistral-7b", "llama2-7b", "llama3-8b", "codellama-7b", "nomic-embed"]
+    expensive: ["zoi-planner", "gpt-4", "claude-3-opus-20240229"]
+    moderate: ["zoi-coder", "gpt-3.5-turbo", "claude-3-sonnet-20240229"]
+    cheap: ["zoi-embed"]
 
-# Performance Optimization
-performance:
-  # Caching configuration
-  caching:
-    enable: true
-    ttl: 3600  # seconds
-    max_size: 1000  # number of cached responses
-    cache_key_strategy: "hash_input"
-    
-  # Request batching
-  batching:
-    enable: true
-    max_batch_size: 10
-    batch_timeout: 100  # milliseconds
-    
-  # Connection pooling
-  connection_pool:
-    max_connections: 100
-    max_idle_connections: 20
-    idle_timeout: 300  # seconds
-    
-  # Request timeout configuration
-  timeouts:
-    connect_timeout: 10  # seconds
-    read_timeout: 300    # seconds
-    total_timeout: 600   # seconds
+# Request Classification
+request_classification:
+  # Automatically detect request type based on content
+  auto_detect: true
+  
+  # Keywords for classification
+  keywords:
+    code: ["function", "class", "debug", "implement", "code", "program", "script"]
+    creative: ["story", "write", "create", "imagine", "describe", "narrative"]
+    analysis: ["analyze", "explain", "reason", "compare", "evaluate", "assess"]
+    chat: ["hello", "hi", "how are", "what is", "tell me", "can you"]
+    vision: ["image", "picture", "visual", "see", "look", "show"]
 
-# Monitoring and Alerting
+# Monitoring and Metrics
 monitoring:
-  # Metrics collection
-  metrics:
-    enable: true
-    export_interval: 60  # seconds
-    include_model_metrics: true
-    include_cost_metrics: true
-    include_performance_metrics: true
+  enabled: true
+  metrics_endpoint: "/metrics"
+  
+  # Track these metrics
+  track:
+    - request_count
+    - response_time
+    - error_rate
+    - token_usage
+    - cost_per_request
+    - model_performance
     
-  # Alerting rules
+  # Alerting thresholds
   alerts:
-    high_error_rate:
-      threshold: 0.05  # 5% error rate
-      window: 300      # 5 minutes
-      
-    high_latency:
-      threshold: 10000  # 10 seconds
-      window: 300       # 5 minutes
-      
-    cost_threshold:
-      daily_threshold: 80.00   # 80% of daily limit
-      hourly_threshold: 8.00   # 80% of hourly limit
-      
-    model_unavailable:
-      consecutive_failures: 3
-      alert_immediately: true
-      
-  # Logging configuration
-  logging:
-    level: "INFO"
-    include_request_body: false
-    include_response_body: false
-    include_headers: true
-    log_slow_requests: true
-    slow_request_threshold: 5000  # milliseconds
+    error_rate_threshold: 0.05      # Alert if error rate > 5%
+    latency_threshold: 5000         # Alert if latency > 5 seconds
+    cost_per_hour_threshold: 10.0   # Alert if cost > $10/hour
 
-# Security Configuration
-security:
-  # Rate limiting per API key
-  rate_limiting:
-    enable: true
-    default_rpm: 100    # requests per minute
-    default_tpm: 10000  # tokens per minute
-    burst_allowance: 10 # additional requests in burst
+# Advanced Features
+advanced:
+  # Smart routing based on request complexity
+  complexity_routing:
+    enabled: true
+    simple_threshold: 100      # Tokens - route to zoi-coder
+    complex_threshold: 1000    # Tokens - route to zoi-planner
     
-  # API key validation
-  api_key_validation:
-    require_api_key: true
-    validate_key_format: true
-    check_key_permissions: true
+  # Context window management
+  context_management:
+    enabled: true
+    max_context_tokens: 32768
+    truncation_strategy: "sliding_window"
     
-  # Request validation
-  request_validation:
-    max_tokens: 8192
-    max_prompt_length: 32768
-    allowed_content_types: ["application/json"]
-    validate_json_schema: true
-    
-  # Response filtering
-  response_filtering:
-    filter_sensitive_data: true
-    redact_api_keys: true
-    sanitize_errors: true
-
-# Environment-specific Overrides
-environments:
-  development:
-    logging:
-      level: "DEBUG"
-      include_request_body: true
-      include_response_body: true
-    cost_optimization:
-      enable_cost_routing: false
-    security:
-      require_api_key: false
-      
-  staging:
-    cost_optimization:
-      daily_limit: 50.00
-      hourly_limit: 5.00
-    performance:
-      caching:
-        ttl: 1800  # 30 minutes
-        
-  production:
-    security:
-      rate_limiting:
-        default_rpm: 500
-        default_tpm: 50000
-    monitoring:
-      alerts:
-        high_error_rate:
-          threshold: 0.01  # 1% error rate
-        cost_threshold:
-          daily_threshold: 90.00
-          hourly_threshold: 9.00
+  # Response caching
+  caching:
+    enabled: true
+    ttl: 600  # seconds
+    max_cache_size: 1000  # entries

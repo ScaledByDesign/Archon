@@ -17,27 +17,27 @@ API_KEY = "sk-wqn0xwq_vha4MVM2yzw"  # From your config
 TEST_QUERIES = [
     {
         "query": "I need to plan a software architecture for a microservices system",
-        "expected_route": "zoi-thinker",
+        "expected_route": "zoi-planner",
         "category": "Planning/Architecture"
     },
     {
         "query": "Help me fix this Python function that's throwing an error",
-        "expected_route": "zoi-helper",
+        "expected_route": "zoi-coder",
         "category": "Coding Help"
     },
     {
         "query": "Generate a complete web application with authentication and database",
-        "expected_route": "zoi-coder-vllm",
+        "expected_route": "zoi-planner",
         "category": "Complex Development"
     },
     {
         "query": "What does our documentation say about deployment procedures?",
-        "expected_route": "zoi-rag-helper",
+        "expected_route": "zoi-rag",
         "category": "Knowledge Retrieval"
     },
     {
         "query": "What's the weather like today?",
-        "expected_route": "zoi-helper",  # Default fallback
+        "expected_route": "zoi-coder",  # Default fallback
         "category": "General Query"
     }
 ]

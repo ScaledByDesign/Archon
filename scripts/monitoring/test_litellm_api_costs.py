@@ -204,17 +204,17 @@ def main():
     # Models to test through LiteLLM API
     models_to_test = [
         {
-            'name': 'zoi-helper',
+            'name': 'zoi-coder',
             'message': 'Write a simple Python hello world function.',
             'max_tokens': 100
         },
         {
-            'name': 'zoi-thinker', 
+            'name': 'zoi-planner', 
             'message': 'Explain the concept of recursion briefly.',
             'max_tokens': 150
         },
         {
-            'name': 'zoi-coder-vllm',
+            'name': 'gpt-3.5-turbo',
             'message': 'Fix this code: def add(a b): return a + b',
             'max_tokens': 50
         },
@@ -224,7 +224,7 @@ def main():
             'max_tokens': 0  # Not used for embeddings
         },
         {
-            'name': 'zoi-rag-helper',
+            'name': 'zoi-rag',
             'message': 'Create a simple REST API endpoint in Python.',
             'max_tokens': 200
         }

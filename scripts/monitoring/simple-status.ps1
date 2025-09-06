@@ -44,7 +44,7 @@ try {
     }
     
     $body = @{
-        model = "zoi-helper"
+        model = "zoi-coder"
         messages = @(@{
             role = "user"
             content = "Test"
