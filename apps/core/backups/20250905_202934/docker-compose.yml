@@ -1,0 +1,430 @@
+name: zoi-core
+
+networks:
+  zoi-network:
+    name: zoi-network
+    external: true
+
+volumes:
+  langflow-data:
+  neo4j-data:
+  postgres-data:
+  redis-data:
+  qdrant-data:
+  minio_data:
+  weaviate-data:
+  elysia-data:
+
+services:
+  # 🧠 Ollama (RTX 5070 Ti GPU Enabled)
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    ports:
+      - "${OLLAMA_PORT:-7040}:11434"
+    volumes:
+      - "${OLLAMA_MODELS:-D:/models/ollama}:/root/.ollama"
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - OLLAMA_ORIGINS=*
+      - OLLAMA_MODELS=/root/.ollama
+      - OLLAMA_NUM_PARALLEL=1  # Limit parallel model loading
+      - OLLAMA_MAX_LOADED_MODELS=2  # Limit concurrent loaded models
+      - OLLAMA_LOAD_TIMEOUT=600  # 10 minute load timeout
+      - OLLAMA_REQUEST_TIMEOUT=300  # 5 minute request timeout
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks: [zoi-network]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:11434/api/tags || exit 1"]
+      interval: 60s  # Increased interval
+      timeout: 30s   # Increased timeout
+      retries: 5     # Reduced retries
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ollama.rule=Host(`ollama.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.ollama.entrypoints=web"
+      - "traefik.http.services.ollama.loadbalancer.server.port=11434"
+
+  # 🤖 vLLM (RTX 5070 Ti GPU Enabled)
+  vllm:
+    image: vllm/vllm-openai:latest
+    container_name: vllm
+    ports:
+      - "${VLLM_PORT:-7030}:8000"
+    volumes:
+      - "${HF_HOME:-D:/models/huggingface}:/root/.cache/huggingface"
+      - "${VLLM_MODEL_PATH:-D:/models/vllm}:/models"
+    environment:
+      - VLLM_LOGGING_LEVEL=INFO
+      - HUGGING_FACE_HUB_TOKEN=${HF_TOKEN:-}
+      - HF_HOME=/root/.cache/huggingface
+      - TRANSFORMERS_CACHE=/root/.cache/huggingface/transformers
+      - VLLM_CACHE_DIR=/models/cache
+      # === AGENTIC CODING OPTIMIZATIONS ===
+      - VLLM_ATTENTION_BACKEND=FLASHINFER  # Faster attention for long contexts
+      - VLLM_USE_MODELSCOPE=false          # Disable ModelScope for stability
+      - VLLM_WORKER_USE_RAY=false          # Disable Ray for simpler deployment
+      - VLLM_ENGINE_ITERATION_TIMEOUT_S=60 # Longer timeout for complex reasoning
+      - CUDA_VISIBLE_DEVICES=0             # Explicit GPU assignment
+    command: [
+      "Qwen/Qwen3-0.6B",
+      "--host", "0.0.0.0",
+      "--port", "8000",
+      "--max-model-len", "32768",
+      "--gpu-memory-utilization", "0.9",
+      # === AGENTIC CODING FEATURES ===
+      "--enable-auto-tool-choice",           # Enable automatic tool selection
+      "--tool-call-parser", "hermes",        # Use Hermes parser for tool calls
+      "--enable-chunked-prefill",            # Better handling of long contexts
+      "--max-num-seqs", "256",               # Higher concurrent sequences for agents
+      "--max-num-batched-tokens", "32768",   # Optimize batch processing for larger contexts
+      "--enable-prefix-caching",             # Cache common prefixes (system prompts)
+      "--disable-log-stats",                 # Reduce noise in logs
+      "--served-model-name", "zoi-coder",    # Consistent model name
+      "--response-role", "assistant",        # Ensure proper role in responses
+      "--enable-lora",                       # Enable LoRA adapter support
+      "--max-lora-rank", "64",               # Support for fine-tuned adapters
+      "--trust-remote-code"                  # Allow custom model code (needed for some models)
+    ]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped
+    networks: [zoi-network]
+    healthcheck:
+      test: ["CMD", "bash", "-lc", "curl -fsSL http://localhost:8000/v1/models || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vllm.rule=Host(`vllm.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.vllm.entrypoints=web"
+      - "traefik.http.services.vllm.loadbalancer.server.port=8000"
+
+  # 🚪 LiteLLM Router
+  litellm:
+    image: ghcr.io/berriai/litellm:main-stable
+    container_name: litellm
+    ports:
+      - "${LITELLM_PORT:-7010}:4000"
+    volumes:
+      - ../../config/litellm/config_simple.yaml:/app/config.yaml:ro
+      - ../../config/litellm/auto_router_config.json:/app/auto_router_config.json:ro
+    environment:
+      - LITELLM_CONFIG=/app/config.yaml
+      - DATABASE_URL=postgresql://postgres:litellm_password123@postgres:5432/litellm
+      - POSTGRES_PRISMA_URL=postgresql://postgres:litellm_password123@postgres:5432/litellm
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - LITELLM_MASTER_KEY=${LITELLM_MASTER_KEY}
+      - LITELLM_SALT_KEY=${LITELLM_SALT_KEY}
+      - STORE_MODEL_IN_DB=True
+      - PORT=4000
+      - LITELLM_LOG=INFO  # Use INFO instead of DEBUG to avoid JSON serialization issues
+    command: ["--config", "/app/config.yaml"]
+    depends_on:
+      # - vllm  # Removed - using external LLM Studio
+      # - ollama  # Removed - using external LLM Studio
+      - postgres
+      - redis
+    restart: unless-stopped
+    networks: [zoi-network]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --quiet --tries=1 --timeout=5 -O /dev/null http://localhost:4000/health/readiness || exit 1"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.litellm.rule=Host(`litellm.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.litellm.entrypoints=web"
+      - "traefik.http.services.litellm.loadbalancer.server.port=4000"
+
+
+  # 🧠 Vector Database (Qdrant for RAG)
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "${QDRANT_PORT:-7060}:6333"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    restart: unless-stopped
+    networks: [zoi-network]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qdrant.rule=Host(`qdrant.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.qdrant.entrypoints=web"
+      - "traefik.http.services.qdrant.loadbalancer.server.port=6333"
+
+  # Qdrant Bootstrap - Initialize collections
+  qdrant-bootstrap:
+    image: python:3.11-slim
+    container_name: qdrant-bootstrap
+    depends_on:
+      - qdrant
+    volumes:
+      - ../../config/qdrant/01-init-collections.py:/app/bootstrap.py:ro
+    working_dir: /app
+    command: >
+      sh -c "
+        pip install qdrant-client &&
+        python bootstrap.py
+      "
+    environment:
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+    networks: [zoi-network]
+    restart: "no"
+
+  # 🌊 LangFlow - Visual AI Workflow Builder
+  langflow:
+    image: langflowai/langflow:latest
+    container_name: langflow
+    ports:
+      - "${LANGFLOW_PORT:-7070}:7860"
+    volumes:
+      - langflow-data:/app/langflow
+    environment:
+      - LANGFLOW_HOST=0.0.0.0
+      - LANGFLOW_PORT=7860
+      - LANGFLOW_BACKEND_ONLY=false
+      - LANGFLOW_DATABASE_URL=postgresql://postgres:litellm_password123@postgres:5432/langflow
+      - LANGFLOW_REDIS_URL=redis://redis:6379
+      - LANGFLOW_CACHE_TYPE=redis
+      - LANGFLOW_LOG_LEVEL=INFO
+    restart: unless-stopped
+    networks: [zoi-network]
+    depends_on:
+      - postgres
+      - redis
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsSL http://localhost:7860/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.langflow.rule=Host(`langflow.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.langflow.entrypoints=web"
+      - "traefik.http.services.langflow.loadbalancer.server.port=7860"
+
+
+
+  # 🧠 Neo4j - Graph Database for structured reasoning
+  neo4j:
+    image: neo4j:5.20
+    container_name: neo4j
+    ports:
+      - "${NEO4J_HTTP_PORT:-7061}:7474"   # Browser UI (HTTP)
+      - "${NEO4J_BOLT_PORT:-7062}:7687"   # Bolt protocol (drivers, APIs)
+    environment:
+      NEO4J_AUTH: neo4j/password123    # ⚠️ You should change this in production
+      NEO4J_PLUGINS: '["apoc", "graph-data-science"]'
+      NEO4J_dbms_security_procedures_unrestricted: "gds.*,apoc.*"
+      NEO4J_dbms_security_procedures_allowlist: "gds.*,apoc.*"
+    volumes:
+      - neo4j-data:/data
+    restart: unless-stopped
+    networks: [zoi-network]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.neo4j.rule=Host(`neo4j.${DOMAIN:-zoi.local}`)"
+      - "traefik.http.routers.neo4j.entrypoints=web"
+      - "traefik.http.services.neo4j.loadbalancer.server.port=7474"
+
+  # 🐘 PostgreSQL - Local Database for LiteLLM and LangFlow persistence
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: postgres
+    ports:
+      - "${POSTGRES_PORT:-7063}:5432"
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: litellm_password123
+      POSTGRES_MULTIPLE_DATABASES: litellm,langflow,lobechat,n8n,openwebui,authentik,refact
+      PGDATA: /var/lib/postgresql/data/pgdata
+      # Performance tuning for AI/ML workloads
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=trust"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../../config/postgres/01-init-databases.sh:/docker-entrypoint-initdb.d/01-init-databases.sh:ro
+      - ../../config/postgres/02-bootstrap.sql:/docker-entrypoint-initdb.d/02-bootstrap.sql:ro
+    restart: unless-stopped
+    networks: [zoi-network]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 🔴 Redis - Cache for LiteLLM performance optimization
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "${REDIS_PORT:-7064}:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - redis-data:/data
+      - ../../config/redis/01-init-redis.conf:/usr/local/etc/redis/redis.conf:ro
+    restart: unless-stopped
+    networks: [zoi-network]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # === UNIFIED RAG SERVICE ===
+  # Cross-collection knowledge access for 100% context
+  unified-rag:
+    image: python:3.11-slim
+    container_name: unified-rag
+    working_dir: /app
+    volumes:
+      - ../../services:/app/services
+      - ../../config:/app/config
+    environment:
+      - POSTGRES_URL=postgresql://postgres:litellm_password123@postgres:5432/postgres
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=password123
+      - LOG_LEVEL=INFO
+    command: >
+      bash -c "
+        pip install --no-cache-dir fastapi uvicorn asyncpg qdrant-client neo4j httpx numpy &&
+        cd /app &&
+        python -m uvicorn services.unified_rag_service:app --host 0.0.0.0 --port 8000
+      "
+    ports:
+      - "7090:8000"  # Unified RAG API
+    depends_on:
+      - postgres
+      - qdrant
+      - neo4j
+    restart: unless-stopped
+    networks:
+      - zoi-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # === MINIO S3 STORAGE ===
+  # S3-compatible object storage for LobeChat file uploads
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=minioadmin
+      - MINIO_ROOT_PASSWORD=minioadmin123
+      - MINIO_DEFAULT_BUCKETS=lobechat
+      - MINIO_SERVER_URL=http://localhost:7065
+      - MINIO_BROWSER_REDIRECT_URL=http://localhost:7066
+      - MINIO_API_CORS_ALLOW_ORIGIN=http://localhost:7302,http://lobechat.zoi.local
+    ports:
+      - "7065:9000"  # S3 API
+      - "7066:9001"  # MinIO Console
+    volumes:
+      - minio_data:/data
+    restart: unless-stopped
+    networks:
+      - zoi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 40s
+
+  # 🔍 Weaviate - Vector Database for Elysia
+  weaviate:
+    image: semitechnologies/weaviate:latest
+    container_name: weaviate
+    ports:
+      - "7080:8080"  # HTTP API
+      - "7081:50051" # gRPC API
+    environment:
+      - PERSISTENCE_DATA_PATH=/var/lib/weaviate
+      - AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true
+      - QUERY_DEFAULTS_LIMIT=25
+      - DEFAULT_VECTORIZER_MODULE=none
+      - ENABLE_MODULES=text2vec-openai,text2vec-cohere,text2vec-huggingface
+      - CLUSTER_HOSTNAME=weaviate
+    volumes:
+      - weaviate-data:/var/lib/weaviate
+    restart: unless-stopped
+    networks:
+      - zoi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/.well-known/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+  # 🤖 Elysia - Agentic Platform for Weaviate
+  elysia:
+    build:
+      context: ../elysia
+      dockerfile: Dockerfile
+    container_name: elysia
+    ports:
+      - "7085:8000"  # Elysia API
+    environment:
+      # Weaviate Configuration
+      - WEAVIATE_IS_LOCAL=True
+      - WCD_URL=http://weaviate:8080
+      - LOCAL_WEAVIATE_PORT=8080
+      - LOCAL_WEAVIATE_GRPC_PORT=50051
+      # LiteLLM Configuration for models (using new LLM Studio setup)
+      - BASE_MODEL=zoi-coder
+      - COMPLEX_MODEL=zoi-planner
+      - BASE_PROVIDER=openai
+      - COMPLEX_PROVIDER=openai
+      - MODEL_API_BASE=http://litellm:4000/v1
+      - OPENAI_API_KEY=sk-wqn0xwq_vha4MVM2yzw
+      - OPENAI_API_BASE=http://litellm:4000/v1
+      - LITELLM_API_KEY=sk-wqn0xwq_vha4MVM2yzw
+      # Additional settings
+      - FIRST_START_ELYSIA=1
+      - LOGGING_LEVEL=INFO
+    volumes:
+      - elysia-data:/app/data
+      - ../elysia/elysia:/app/elysia:ro
+    depends_on:
+      - weaviate
+      - litellm
+    restart: unless-stopped
+    networks:
+      - zoi-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s

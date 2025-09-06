@@ -1,0 +1,373 @@
+[
+    {
+        "Id": "2510a1ab5a4d81db723c76c42c2528089d929adba7638e17d1d9ff19ce40b174",
+        "Created": "2025-08-22T23:43:07.897299231Z",
+        "Path": "/run.sh",
+        "Args": [],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 1073,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2025-09-05T22:57:03.394424689Z",
+            "FinishedAt": "2025-09-05T22:56:03.301877888Z",
+            "Health": {
+                "Status": "healthy",
+                "FailingStreak": 0,
+                "Log": [
+                    {
+                        "Start": "2025-09-05T23:05:02.475943621Z",
+                        "End": "2025-09-05T23:05:02.550216253Z",
+                        "ExitCode": 0,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\r100   113  100   113    0     0   118k      0 --:--:-- --:--:-- --:--:--  110k\n{\n  \"database\": \"ok\",\n  \"version\": \"12.2.0-17027759091\",\n  \"commit\": \"2695ed91d10b7d400f602b674f10020f3a6d8ae8\"\n}"
+                    },
+                    {
+                        "Start": "2025-09-05T23:05:30.240658422Z",
+                        "End": "2025-09-05T23:05:30.305245836Z",
+                        "ExitCode": 0,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0{\n  \"database\": \"ok\",\n  \"version\": \"12.2.0-17027759091\",\n  \"commit\": \"2695ed91d10b7d400f602b674f10020f3a6d8ae8\"\n\r100   113  100   113    0     0    98k      0 --:--:-- --:--:-- --:--:--  110k\n}"
+                    },
+                    {
+                        "Start": "2025-09-05T23:05:57.997524262Z",
+                        "End": "2025-09-05T23:05:58.070364651Z",
+                        "ExitCode": 0,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\r100   113  100   113    0     0   109k      0 --:--:-- --:--:-- --:--:--  110k\n{\n  \"database\": \"ok\",\n  \"version\": \"12.2.0-17027759091\",\n  \"commit\": \"2695ed91d10b7d400f602b674f10020f3a6d8ae8\"\n}"
+                    },
+                    {
+                        "Start": "2025-09-05T23:06:25.759668928Z",
+                        "End": "2025-09-05T23:06:25.824724526Z",
+                        "ExitCode": 0,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0{\n  \"database\": \"ok\",\n  \"version\": \"12.2.0-17027759091\",\n  \"commit\": \"2695ed91d10b7d400f602b674f10020f3a6d8ae8\"\n}\r100   113  100   113    0     0  90763      0 --:--:-- --:--:-- --:--:--  110k\n"
+                    },
+                    {
+                        "Start": "2025-09-05T23:06:53.516386483Z",
+                        "End": "2025-09-05T23:06:53.597006703Z",
+                        "ExitCode": 0,
+                        "Output": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\r  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0{\n  \"database\": \"ok\",\n  \"version\": \"12.2.0-17027759091\",\n  \"commit\": \"2695ed91d10b7d400f602b674f10020f3a6d8ae8\"\n\r100   113  100   113    0     0   115k      0 --:--:-- --:--:-- --:--:--  110k\n}"
+                    }
+                ]
+            }
+        },
+        "Image": "sha256:495b5838573a0f87f26f39779675428a187b64cfc2363ebcf2c90415fd574126",
+        "ResolvConfPath": "/var/lib/docker/containers/2510a1ab5a4d81db723c76c42c2528089d929adba7638e17d1d9ff19ce40b174/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/2510a1ab5a4d81db723c76c42c2528089d929adba7638e17d1d9ff19ce40b174/hostname",
+        "HostsPath": "/var/lib/docker/containers/2510a1ab5a4d81db723c76c42c2528089d929adba7638e17d1d9ff19ce40b174/hosts",
+        "LogPath": "/var/lib/docker/containers/2510a1ab5a4d81db723c76c42c2528089d929adba7638e17d1d9ff19ce40b174/2510a1ab5a4d81db723c76c42c2528089d929adba7638e17d1d9ff19ce40b174-json.log",
+        "Name": "/grafana",
+        "RestartCount": 0,
+        "Driver": "overlayfs",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": [
+                "zoi-monitoring_grafana_data:/var/lib/grafana:rw",
+                "/run/desktop/mnt/host/d/zoi/apps/monitor/config/grafana/provisioning:/etc/grafana/provisioning:ro",
+                "/run/desktop/mnt/host/d/zoi/apps/monitor/config/grafana/dashboards:/var/lib/grafana/dashboards:ro",
+                "/etc/localtime:/etc/localtime:ro"
+            ],
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "zoi-monitoring_monitoring_network",
+            "PortBindings": {
+                "3000/tcp": [
+                    {
+                        "HostIp": "",
+                        "HostPort": "7101"
+                    }
+                ]
+            },
+            "RestartPolicy": {
+                "Name": "unless-stopped",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "ConsoleSize": [
+                0,
+                0
+            ],
+            "CapAdd": null,
+            "CapDrop": null,
+            "CgroupnsMode": "private",
+            "Dns": [],
+            "DnsOptions": [],
+            "DnsSearch": [],
+            "ExtraHosts": [],
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": false,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": null,
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": null,
+            "BlkioDeviceReadBps": null,
+            "BlkioDeviceWriteBps": null,
+            "BlkioDeviceReadIOps": null,
+            "BlkioDeviceWriteIOps": null,
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": null,
+            "DeviceCgroupRules": null,
+            "DeviceRequests": null,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": null,
+            "PidsLimit": null,
+            "Ulimits": null,
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": [
+                "/proc/asound",
+                "/proc/acpi",
+                "/proc/interrupts",
+                "/proc/kcore",
+                "/proc/keys",
+                "/proc/latency_stats",
+                "/proc/timer_list",
+                "/proc/timer_stats",
+                "/proc/sched_debug",
+                "/proc/scsi",
+                "/sys/firmware",
+                "/sys/devices/virtual/powercap"
+            ],
+            "ReadonlyPaths": [
+                "/proc/bus",
+                "/proc/fs",
+                "/proc/irq",
+                "/proc/sys",
+                "/proc/sysrq-trigger"
+            ]
+        },
+        "GraphDriver": {
+            "Data": null,
+            "Name": "overlayfs"
+        },
+        "Mounts": [
+            {
+                "Type": "bind",
+                "Source": "/etc/localtime",
+                "Destination": "/etc/localtime",
+                "Mode": "ro",
+                "RW": false,
+                "Propagation": "rprivate"
+            },
+            {
+                "Type": "volume",
+                "Name": "zoi-monitoring_grafana_data",
+                "Source": "/var/lib/docker/volumes/zoi-monitoring_grafana_data/_data",
+                "Destination": "/var/lib/grafana",
+                "Driver": "local",
+                "Mode": "rw",
+                "RW": true,
+                "Propagation": ""
+            },
+            {
+                "Type": "bind",
+                "Source": "/run/desktop/mnt/host/d/zoi/apps/monitor/config/grafana/dashboards",
+                "Destination": "/var/lib/grafana/dashboards",
+                "Mode": "ro",
+                "RW": false,
+                "Propagation": "rprivate"
+            },
+            {
+                "Type": "bind",
+                "Source": "/run/desktop/mnt/host/d/zoi/apps/monitor/config/grafana/provisioning",
+                "Destination": "/etc/grafana/provisioning",
+                "Mode": "ro",
+                "RW": false,
+                "Propagation": "rprivate"
+            }
+        ],
+        "Config": {
+            "Hostname": "2510a1ab5a4d",
+            "Domainname": "",
+            "User": "472",
+            "AttachStdin": false,
+            "AttachStdout": true,
+            "AttachStderr": true,
+            "ExposedPorts": {
+                "3000/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "GF_SECURITY_ADMIN_PASSWORD=admin123",
+                "GF_SERVER_ROOT_URL=http://grafana.zoi.local",
+                "GF_SNAPSHOTS_EXTERNAL_ENABLED=false",
+                "GF_ANALYTICS_REPORTING_ENABLED=false",
+                "GF_UNIFIED_ALERTING_ENABLED=true",
+                "GF_SECURITY_DISABLE_GRAVATAR=true",
+                "GF_SECURITY_ADMIN_USER=admin",
+                "GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel",
+                "GF_FEATURE_TOGGLES_ENABLE=ngalert",
+                "GF_USERS_ALLOW_SIGN_UP=false",
+                "GF_ANALYTICS_CHECK_FOR_UPDATES=false",
+                "GF_ALERTING_ENABLED=true",
+                "PATH=/usr/share/grafana/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "GF_PATHS_CONFIG=/etc/grafana/grafana.ini",
+                "GF_PATHS_DATA=/var/lib/grafana",
+                "GF_PATHS_HOME=/usr/share/grafana",
+                "GF_PATHS_LOGS=/var/log/grafana",
+                "GF_PATHS_PLUGINS=/var/lib/grafana/plugins",
+                "GF_PATHS_PROVISIONING=/etc/grafana/provisioning"
+            ],
+            "Cmd": null,
+            "Healthcheck": {
+                "Test": [
+                    "CMD-SHELL",
+                    "curl -f http://localhost:3000/api/health || exit 1"
+                ],
+                "Interval": 30000000000,
+                "Timeout": 10000000000,
+                "StartPeriod": 30000000000,
+                "Retries": 3
+            },
+            "Image": "grafana/grafana:latest",
+            "Volumes": null,
+            "WorkingDir": "/usr/share/grafana",
+            "Entrypoint": [
+                "/run.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {
+                "com.docker.compose.config-hash": "11e9155c65479421684f2df5aa5a8d34abf5c29a3349bdebe2a6f0e20e56ef35",
+                "com.docker.compose.container-number": "1",
+                "com.docker.compose.depends_on": "prometheus:service_started:false",
+                "com.docker.compose.image": "sha256:495b5838573a0f87f26f39779675428a187b64cfc2363ebcf2c90415fd574126",
+                "com.docker.compose.oneoff": "False",
+                "com.docker.compose.project": "zoi-monitoring",
+                "com.docker.compose.project.config_files": "D:\\zoi\\apps\\monitor\\docker-compose.yml",
+                "com.docker.compose.project.working_dir": "D:\\zoi\\apps\\monitor",
+                "com.docker.compose.service": "grafana",
+                "com.docker.compose.version": "2.39.1",
+                "maintainer": "Grafana Labs \u003chello@grafana.com\u003e",
+                "org.opencontainers.image.source": "https://github.com/grafana/grafana",
+                "traefik.enable": "true",
+                "traefik.http.routers.grafana.entrypoints": "web",
+                "traefik.http.routers.grafana.rule": "Host(`grafana.zoi.local`)",
+                "traefik.http.services.grafana.loadbalancer.server.port": "3000"
+            }
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "c4228dbfe49cc0bce009f438ca934f29889f346a737008a12f4df87973d1e4a0",
+            "SandboxKey": "/var/run/docker/netns/c4228dbfe49c",
+            "Ports": {
+                "3000/tcp": [
+                    {
+                        "HostIp": "0.0.0.0",
+                        "HostPort": "7101"
+                    },
+                    {
+                        "HostIp": "::",
+                        "HostPort": "7101"
+                    }
+                ]
+            },
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "",
+            "Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "",
+            "IPPrefixLen": 0,
+            "IPv6Gateway": "",
+            "MacAddress": "",
+            "Networks": {
+                "zoi-monitoring_monitoring_network": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": [
+                        "grafana",
+                        "grafana"
+                    ],
+                    "MacAddress": "66:a3:cf:24:30:08",
+                    "DriverOpts": null,
+                    "GwPriority": 0,
+                    "NetworkID": "362477f30e392748f50e2854e31ac8f191ef829028e8c068dcabcf8664e2768a",
+                    "EndpointID": "0c07c7ffee4961b019d19382423b9d41ec7f6907ddcb3e64158309de8081b44f",
+                    "Gateway": "172.19.0.1",
+                    "IPAddress": "172.19.0.9",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "DNSNames": [
+                        "grafana",
+                        "2510a1ab5a4d"
+                    ]
+                },
+                "zoi-network": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": [
+                        "grafana",
+                        "grafana"
+                    ],
+                    "MacAddress": "86:7c:15:79:ed:89",
+                    "DriverOpts": null,
+                    "GwPriority": 0,
+                    "NetworkID": "510192a3daaf2c8ef684bd3a95024fe9e48e1cccd0859f66c6f47bcd3e4b4599",
+                    "EndpointID": "137e368b3d90ed58dbe1fe1c1915d9b21fdab11c0122cb98a3459884a1c6c062",
+                    "Gateway": "172.18.0.1",
+                    "IPAddress": "172.18.0.4",
+                    "IPPrefixLen": 16,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "DNSNames": [
+                        "grafana",
+                        "2510a1ab5a4d"
+                    ]
+                }
+            }
+        },
+        "ImageManifestDescriptor": {
+            "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+            "digest": "sha256:d69298429ee7b35caf106193a89918e8a39cc3139bef8902a54eb1424f3a154d",
+            "size": 2417,
+            "platform": {
+                "architecture": "amd64",
+                "os": "linux"
+            }
+        }
+    }
+]
