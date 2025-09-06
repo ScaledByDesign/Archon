@@ -1,0 +1,68 @@
+name: zoi-core
+
+# Override configuration to ensure all services use the same LiteLLM setup
+# This file complements the main docker-compose.yml
+
+services:
+  # Ensure LiteLLM uses the simplified configuration
+  litellm:
+    environment:
+      - LITELLM_CONFIG=/app/config.yaml
+      - LITELLM_MASTER_KEY=sk-wqn0xwq_vha4MVM2yzw
+      - LITELLM_SALT_KEY=${LITELLM_SALT_KEY}
+      - PORT=7010
+      - LITELLM_LOG=INFO
+      - STORE_MODEL_IN_DB=False  # Disable DB storage for simplicity
+      - DISABLE_SPEND_LOGS=true  # Disable spend tracking
+      
+  # Elysia - Ensure it uses LiteLLM properly
+  elysia:
+    environment:
+      # Override to use consistent LiteLLM setup
+      - BASE_MODEL=zoi-coder
+      - COMPLEX_MODEL=zoi-planner
+      - BASE_PROVIDER=openai
+      - COMPLEX_PROVIDER=openai
+      - MODEL_API_BASE=http://host.docker.internal:7010/v1  # Use host.docker.internal for Windows
+      - OPENAI_API_KEY=sk-wqn0xwq_vha4MVM2yzw
+      - OPENAI_API_BASE=http://host.docker.internal:7010/v1
+      - LITELLM_API_KEY=sk-wqn0xwq_vha4MVM2yzw
+      # Weaviate settings remain the same
+      - WEAVIATE_IS_LOCAL=True
+      - WCD_URL=http://weaviate:8080
+      - LOCAL_WEAVIATE_PORT=8080
+      - LOCAL_WEAVIATE_GRPC_PORT=50051
+      
+  # Langflow - Configure to use LiteLLM
+  langflow:
+    environment:
+      - LANGFLOW_HOST=0.0.0.0
+      - LANGFLOW_PORT=7860
+      - LANGFLOW_DATABASE_URL=postgresql://postgres:litellm_password123@postgres:5432/langflow
+      - LANGFLOW_REDIS_URL=redis://redis:6379
+      # Add LiteLLM configuration
+      - OPENAI_API_BASE=http://host.docker.internal:7010/v1
+      - OPENAI_API_KEY=sk-wqn0xwq_vha4MVM2yzw
+      - LITELLM_BASE_URL=http://host.docker.internal:7010/v1
+      - LITELLM_API_KEY=sk-wqn0xwq_vha4MVM2yzw
+      
+  # Unified RAG Service - Configure for LiteLLM
+  unified-rag:
+    environment:
+      - POSTGRES_URL=postgresql://postgres:litellm_password123@postgres:5432/postgres
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=password123
+      # Add LiteLLM configuration
+      - LITELLM_BASE_URL=http://host.docker.internal:7010/v1
+      - LITELLM_API_KEY=sk-wqn0xwq_vha4MVM2yzw
+      - MODEL_NAME=zoi-coder
+      - EMBEDDING_MODEL=zoi-planner  # Can be used for embeddings if needed
+      
+  # Any future AI services should use these environment variables:
+  # - LITELLM_BASE_URL=http://host.docker.internal:7010/v1
+  # - LITELLM_API_KEY=sk-wqn0xwq_vha4MVM2yzw
+  # - PRIMARY_MODEL=zoi-coder
+  # - ADVANCED_MODEL=zoi-planner

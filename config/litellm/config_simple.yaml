@@ -1,82 +1,25 @@
-# ============================================
-# Zoi Simple LiteLLM Configuration (KISS)
-# RTX 5070 Ti (ioz.zoi) + RTX 3090 (astra.zoi)
-# Host Network Mode Configuration
-# ============================================
-
-# Basic settings only
+# Working LiteLLM Configuration
 general_settings:
   master_key: sk-wqn0xwq_vha4MVM2yzw
-  default_model: zoi-coder
   telemetry: false
-  json_logs: true
 
-# Enhanced LiteLLM settings for host networking
-litellm_settings:
-  set_verbose: true
-  drop_params: true
-  ssl_verify: false  # Disable SSL verification for local endpoints
-  request_timeout: 120  # Increase timeout for local inference
-  background_health_checks: true  # Enable background health monitoring
-  health_check_interval: 300  # Check every 5 minutes
-
-# Core models only - no complexity
 model_list:
-  # RTX 5070 Ti - Fast coding model
+  # RTX 5070 Ti - Fast model
   - model_name: zoi-coder
     litellm_params:
       model: openai/qwen/qwen3-14b
       api_base: http://192.168.8.135:1234/v1
-      api_key: sk-no-key-required
-    model_info:
-      mode: chat
-      health_check_timeout: 30  # Increase timeout for local models
-
-  # RTX 3090 - Advanced reasoning model  
+      api_key: dummy
+      
+  # RTX 3090 - Advanced model
   - model_name: zoi-planner
     litellm_params:
       model: openai/qwen/qwen3-coder-30b
       api_base: http://192.168.8.241:1234/v1
-      api_key: sk-no-key-required
-    model_info:
-      mode: chat
-      health_check_timeout: 30
-
-  # RTX 3090 - Embeddings model
-  - model_name: zoi-embed
-    litellm_params:
-      model: openai/text-embedding-nomic-embed-text-v1.5
-      api_base: http://192.168.8.241:1234/v1
-      api_key: sk-no-key-required
-    model_info:
-      mode: embedding
-      health_check_timeout: 30
-
-  # Essential aliases only
-  - model_name: gpt-3.5-turbo
-    litellm_params:
-      model: openai/qwen/qwen3-14b
-      api_base: http://192.168.8.135:1234/v1
-      api_key: sk-no-key-required
-    model_info:
-      mode: chat
-      health_check_timeout: 30
-
+      api_key: dummy
+  # RTX 3090 - Advanced model
   - model_name: gpt-4
     litellm_params:
       model: openai/qwen/qwen3-coder-30b
       api_base: http://192.168.8.241:1234/v1
-      api_key: sk-no-key-required
-    model_info:
-      mode: chat
-      health_check_timeout: 30
-
-# Enhanced router settings to prevent "No deployments available" errors
-router_settings:
-  routing_strategy: simple
-  default_model: zoi-coder
-  num_retries: 2
-  timeout: 120
-  allowed_fails: 5  # Increase threshold
-  cooldown_time: 60  # Seconds to wait after failures
-  disable_cooldowns: false  # Keep cooldowns for failure isolation
+      api_key: dummy
