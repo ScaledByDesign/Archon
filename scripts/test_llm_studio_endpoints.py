@@ -20,12 +20,12 @@ from datetime import datetime
 LLM_STUDIO_ENDPOINTS = {
     "ioz.zoi.local": {
         "url": "http://ioz.zoi.local:1234/v1",
-        "models": ["qwen-14b"],
+        "models": ["qwen/qwen3-14b"],
         "description": "RTX 5070 Ti - Fast coding model"
     },
     "astra.zoi.local": {
         "url": "http://astra.zoi.local:1234/v1",
-        "models": ["qwen-30b", "nomic-embed-text"],
+        "models": ["qwen/qwen3-coder-30b", "text-embedding-nomic-embed-text-v1.5"],
         "description": "RTX 5090 - Advanced reasoning and embeddings"
     }
 }
