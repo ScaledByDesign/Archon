@@ -12,14 +12,12 @@ def test_model_cost_tracking(model_name: str, test_message: str = "Hello, respon
     """Test cost tracking for a specific model"""
     print(f"Testing cost tracking for {model_name}...")
 
-    # Map model names to their Ollama equivalents
+    # Map model names to their LLM Studio equivalents
     model_mapping = {
-        'zoi-coder-vllm': 'Qwen/Qwen3-0.6B',  # This goes through vLLM
-        'zoi-thinker': 'qwen2.5:7b',
-        'zoi-helper': 'qwen2.5-coder:7b-instruct',
-        'zoi-embed': 'mxbai-embed-large',
-        'zoi-rag-helper': 'qwen2.5-coder:7b-instruct',
-        'zoi-rag-thinker': 'qwen2.5:7b'
+        'zoi-coder': 'qwen-14b',  # Goes to ioz.zoi:1234
+        'zoi-planner': 'qwen-30b',  # Goes to astra.zoi:1234
+        'zoi-embed': 'nomic-embed-text',  # Goes to astra.zoi:1234
+        'zoi-rag': 'qwen-30b'  # Goes to astra.zoi:1234
     }
 
     try:
@@ -27,14 +25,14 @@ def test_model_cost_tracking(model_name: str, test_message: str = "Hello, respon
         if model_name == "zoi-embed":
             # Test embedding model
             response = requests.post(
-                'http://ollama:11434/v1/embeddings',
+                'http://astra.zoi.local:1234/v1/embeddings',
                 json={'model': model_mapping[model_name], 'input': test_message},
                 timeout=60
             )
-        elif model_name == "zoi-coder-vllm":
-            # Test vLLM model
+        elif model_name == "zoi-coder":
+            # Test LLM Studio (ioz.zoi)
             response = requests.post(
-                'http://vllm:8000/v1/chat/completions',
+                'http://ioz.zoi.local:1234/v1/chat/completions',
                 json={
                     'model': model_mapping[model_name],
                     'messages': [{'role': 'user', 'content': test_message}],
@@ -43,9 +41,9 @@ def test_model_cost_tracking(model_name: str, test_message: str = "Hello, respon
                 timeout=120
             )
         else:
-            # Test Ollama chat models
+            # Test LLM Studio (astra.zoi)
             response = requests.post(
-                'http://ollama:11434/v1/chat/completions',
+                'http://astra.zoi.local:1234/v1/chat/completions',
                 json={
                     'model': model_mapping[model_name],
                     'messages': [{'role': 'user', 'content': test_message}],
@@ -88,12 +86,10 @@ def calculate_estimated_cost(model_name: str, usage: Dict[str, Any]) -> Dict[str
     
     # Cost per token for each model (from our configuration)
     model_costs = {
-        'zoi-coder-vllm': {'input': 0.000001, 'output': 0.000002},
-        'zoi-thinker': {'input': 0.000002, 'output': 0.000004},
-        'zoi-helper': {'input': 0.000002, 'output': 0.000003},
+        'zoi-coder': {'input': 0.000001, 'output': 0.000002},
+        'zoi-planner': {'input': 0.000002, 'output': 0.000004},
         'zoi-embed': {'input': 0.0000005, 'output': 0.0},
-        'zoi-rag-helper': {'input': 0.000003, 'output': 0.000004},
-        'zoi-rag-thinker': {'input': 0.000003, 'output': 0.000005}
+        'zoi-rag': {'input': 0.000002, 'output': 0.000004}
     }
     
     if model_name not in model_costs:
@@ -195,12 +191,10 @@ def main():
     
     # Models to test
     models_to_test = [
-        'zoi-coder-vllm',
-        'zoi-thinker', 
-        'zoi-helper',
+        'zoi-coder',
+        'zoi-planner', 
         'zoi-embed',
-        'zoi-rag-helper',
-        'zoi-rag-thinker'
+        'zoi-rag'
     ]
     
     # Test each model

@@ -9,7 +9,7 @@ import json
 
 # LiteLLM configuration (internal Docker network)
 LITELLM_BASE_URL = "http://litellm:4000/v1"
-LITELLM_API_KEY = "sk-zoi-master-key-2024-secure"
+LITELLM_API_KEY = "sk-wqn0xwq_vha4MVM2yzw"  # Updated master key
 
 def test_litellm_connection():
     """Test connection to LiteLLM"""
